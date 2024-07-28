@@ -1,0 +1,81 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CommunicationLogsViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Details"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Details"] @Localizer["Messages"]
+
+
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["User Name"]</td>
+                    <td class="tms-details-data">@Model.ContactName</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Contact Type"]</td>
+                    <td class="tms-details-data">@Model.ContactType</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Message"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.LogText)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Type Text"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.TypeText)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Model.CreatedOn.ToString("dd/MM/yyyy")</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Communication Type"]</td>
+                    <td class="tms-details-data">
+                        @if (Model.TypeId == (int)GeneralEnums.CommunicationTypes.Email)
+                        {
+                            @Localizer["Email"]
+                        }
+                        else
+                        {
+                            @Localizer["SMS"]
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Is For Extra Type"]</td>
+                    <td class="tms-details-data">
+                        @if (Model.IsForExtraType == true)
+                        {
+                            @Localizer["Yes"]
+                        }
+                        else
+                        {
+                            @Localizer["No"]
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Model.CreatedBy</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status)?.Name</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    </div>

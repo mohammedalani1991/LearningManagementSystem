@@ -1,0 +1,7 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.AspNetRole>
+<select id="roles" class="form-control" multiple>
+    @foreach (var item in Model)
+    {
+        <option>@item.Name</option>
+    }
+</select>

@@ -1,0 +1,138 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using Microsoft.AspNetCore.Localization
+
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+    ViewData["Title"] = Localizer["Log in"];
+}
+
+<style>
+    .translate-middle-y-ar {
+        transform: translateY(-50%) !important;
+    }
+</style>
+
+
+<div class="container-fluid mtb-center">
+    <div class="row justify-content-center align-items-center ">
+        <div class="px-139 w-login bg-white">
+            <h2 class="text-center">@Localizer["Log in"]</h2>
+            <form id="login-form" class="tms-login-frm">
+                <div class="row p-0">
+                    <div class="mb-3 p-0">
+                        <label class="form-label" for="Email">@Localizer["Email"]</label><span class="required">*</span>
+                        <input type="email" id="Email" name="Email" class="form-control shadow-none" placeholder="@Localizer["Email"]" required>
+                    </div>
+                    <div class="mb-3 p-0">
+                        <label class="form-label" for="Password"> @Localizer["Password"] </label><span class="required">*</span>
+                        <div class="position-relative">
+                            <input type="password" id="Password" name="Password" class="form-control shadow-none password" placeholder=" @Localizer["Password"]" required>
+                            <div class="position-absolute top-50 end-0 translate-middle-y-ar mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between font-colorlog">
+                        <div class="">
+                            <div class="form-check">
+                                <input class="form-check-input shadow-none" type="checkbox" id="RememberMe">
+                                <label for="RememberMe" class="form-check-label">
+                                    @Localizer["Remember Me"]
+                                </label>
+
+                            </div>
+                        </div>
+                        <div>
+                            <a class="font-colorlog" asp-area="Identity" asp-controller="Account" asp-action="ForgotPassword">@Localizer["Forgot Password ?"]</a>
+                        </div>
+                    </div>
+                    <button type="button" onclick="Login()" id="login" class="btn mb-3 btn-primary  mx-auto h-loginbtn">@Localizer["Log in"]</button>
+                    <div class="text-center form-label">
+                        <p>@Localizer["Don't have account Register"] <a class="text-primarycolor" asp-controller="Authentication" asp-action="Register">@Localizer["Sign Up"]</a></p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="SuccessEmail" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <h1 class="text-center">@Localizer["Your Email is not Verified"]</h1>
+                <h5 class="text-center" style="margin:30px 0">@Localizer["Resend Confirmation Email"]</h5>
+                <button class="btn btn-primary" style="font-size:20px;width:100px" type="button" data-bs-dismiss="modal" aria-label="Close" onclick="ReSend()">@Localizer["Send"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+
+        document.getElementById("Email")
+            .addEventListener("keyup", function (event) {
+                event.preventDefault();
+                if (event.keyCode === 13) {
+                    document.getElementById("login").click();
+                }
+            });
+        document.getElementById("Password")
+            .addEventListener("keyup", function (event) {
+                event.preventDefault();
+                if (event.keyCode === 13) {
+                    document.getElementById("login").click();
+                }
+            });
+        function Login() {
+            if ($('#login-form').valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Authentication/Login",
+                    data: { email: $("#Email").val(), password: $("#Password").val(), rememberMe: $("#RememberMe").is(":checked") },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        if (data.success)
+                            window.location.href = "/";
+                        else if (data.reSendEmail)
+                            $("#SuccessEmail").modal("show")
+                        else
+                            toastr.error(data.message);
+                    },
+                    error: function (data) {
+                        toastr.error(data);
+                    }
+                });
+            }
+        }
+
+        function ReSend() {
+            $.ajax({
+                type: "POST",
+                url: "/Authentication/ReSendConfirmtionEmail",
+                data: { email: $("#Email").val() },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    toastr.success('@Localizer["Email has been sent"]');
+                },
+                error: function (data) {
+                    toastr.error('@Localizer["Error While Sending Email"]');
+                }
+            });
+        }
+    </script>
+}

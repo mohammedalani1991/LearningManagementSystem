@@ -1,0 +1,119 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model IEnumerable<DataEntity.Models.EfModels.EnrollStudentAssigmentAnswer>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.Helpers
+@using System.Web
+<style>
+    .tms-details-title {
+        width: 20%;
+    }
+
+    .tms-details-data {
+        width: 80%;
+    }
+</style>
+<div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" onclick="CloseAnswers();"></i>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel px-3">
+            <div class="x_content">
+                @foreach (var item in Model)
+                {
+                    <table class="table tms-details">
+                        <tr>
+                            <td class="tms-details-title">@Localizer["Question"]</td>
+                            <td class="tms-details-data">@Html.DisplayFor(model => item.EnrollCourseAssigmentQuestion.QuestionName)</td>
+                        </tr>
+                        @if (item.EnrollCourseAssigmentQuestion.QuestionType == (int)GeneralEnums.QuestionEnum.Text)
+                        {
+                            <tr>
+                                <td class="tms-details-title">@Localizer["Answer"]</td>
+                                <td class="tms-details-data">@Html.DisplayFor(model => item.Answer)</td>
+                            </tr>
+                        } else if (item.EnrollCourseAssigmentQuestion.QuestionType == (int)GeneralEnums.QuestionEnum.UploadAttachment)
+                        {
+                             var UploadAttachmentName = item.Answer;
+
+                            <tr>
+                                  <td class="tms-details-title">@Localizer["Answer"]</td>
+                                  <td class="tms-details-data">
+                                 @if (!string.IsNullOrEmpty(UploadAttachmentName) && UploadAttachmentName != "--" )
+                                 {
+                                        if(LookupHelper.GetFileType(System.IO.Path.GetExtension(UploadAttachmentName)) == (int)GeneralEnums.ResourceTypeEnum.Image)
+                                        {
+                                            <a href="javascript:;" class="tms-imageview-btn" onclick="ImageM('@UploadAttachmentName')" aria-haspopup="true" id="ImageViewer" data-toggle="dropdown" aria-expanded="false">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                        else if (LookupHelper.GetFileType(System.IO.Path.GetExtension(UploadAttachmentName)) == (int)GeneralEnums.ResourceTypeEnum.Pdf)
+                                        {
+                                            <a onclick="OpenPdf('@UploadAttachmentName')" class="btn btn-sm btn-primary text-white mb-0" style="border-radius:10px">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/CourseExam/DownloadDocument?filePath=@HttpUtility.UrlEncode(UploadAttachmentName)">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                    }
+                                    </td>
+                           
+                               
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="tms-details-title">@Localizer["Answers"]</td>
+                                @foreach (var item1 in item.EnrollCourseAssigmentQuestion.EnrollCourseAssigmentQuestionOptions)
+                                {
+                                <tr>
+                                    <td class="tms-details-title">@item1.Name</td>
+                                        @if (item1.IsCorrect == true)
+                                        {
+                                            <td class="tms-details-data"><span class="fa fa-check"></span></td>
+                                        }
+                                        else
+                                        {
+                                            <td class="tms-details-data">
+                                                <span class="fa fa-times"></span>
+                                            </td>
+                                        }
+                                </tr>
+                                }
+                            </tr>
+                            <tr>
+                                <td class="tms-details-title">@Localizer["Is Correct"]</td>
+                                <td class="tms-details-data">
+                                    @if (item.IsCorrect == true)
+                                    {
+                                        <span class="fa fa-check"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fa fa-times"></span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+
+        .IconStyle{
+            background-color: #c1c1c1;
+    display: inline;
+    padding: 6px;
+    border-radius: 7px;
+    }
+</style>

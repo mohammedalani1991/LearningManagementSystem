@@ -1,0 +1,64 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CalendarViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Calendar"]
+            </div>
+        </div>
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Type"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.Type).Name</td>
+                </tr>
+               <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.Description)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Start Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.StartDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["End Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EndDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status).Name</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center">
+                    <button class="tms-delete-btn" type="button" onclick="ConfirmDelete(@Model.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Calendar"]</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+

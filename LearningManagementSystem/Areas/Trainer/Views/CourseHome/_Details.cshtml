@@ -1,0 +1,211 @@
+﻿@model DataEntity.Models.ViewModels.CourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels;
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+@inject IEnrollStudentCourseService EnrollStudentCourseService
+@{
+    ViewData["Title"] = @Localizer["Details"];
+
+    var enrollTeacherCourse = LookupHelper.GetEnrollTeacherCourse((int)ViewBag.LangId, Model.Id);
+    var checkIfClassOnline = LookupHelper.CheckIfClassOnline(Model.Id);
+
+
+    var selectedEnrollTeacherCourseId = ViewBag.EnrollTeacherCourseId;
+    var enrollTeacherCourseData = (EnrollTeacherCourseViewModel)null;
+    if (ViewBag.enrollTeacherCourseData != null)
+    {
+        enrollTeacherCourseData = (EnrollTeacherCourseViewModel)ViewBag.enrollTeacherCourseData;
+    }
+
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+}
+
+<div class="container-fluid container-lg px-0 px-lg-3 ">
+    <div class="bg-white About-Courses ">
+
+        <div class="row">
+            <div class="row flex-column-reverse flex-lg-row">
+                <div class="col-12 col-lg-7 pt-4 pt-lg-0">
+
+                    @*Enroll Student*@
+                    @if (selectedEnrollTeacherCourseId != null && selectedEnrollTeacherCourseId != 0)
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Section"]</h3>
+                            @(enrollTeacherCourse.FirstOrDefault(s => s.Id == (int)selectedEnrollTeacherCourseId)?.Name ?? "")
+                        </div>
+
+                    }
+                    @if (ViewBag.enrollTeacherCourseData != null)
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Learning Method"]</h3>
+                            @if (enrollTeacherCourseData.LearningMethodId != null)
+                            {
+                                @Html.Raw(@LookupHelper.GetLookupDetailsById(enrollTeacherCourseData.LearningMethodId ?? 0, ViewBag.LangId).Name)
+                            }
+                            else
+                            {
+                                <span>--</span>
+                            }
+                        </div>
+                    }
+                    @if (ViewBag.enrollTeacherCourseData != null)
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Age Allowed For Registration"]</h3>
+                            @Html.Raw(enrollTeacherCourseData.AgeAllowedForRegistration)
+                        </div>
+                    }
+                    @if (ViewBag.enrollTeacherCourseData != null)
+                    {
+
+                        <div class="mb-5">
+                            <h3>@Localizer["Age Group"]</h3>
+                            @if (enrollTeacherCourseData.AgeGroup != 0)
+                            {
+                                @Html.Raw(LookupHelper.GetLookupDetailsById(enrollTeacherCourseData.AgeGroup, ViewBag.LangId).Name)
+
+                            }
+
+
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.AcquiredSkills))
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Acquired Skills"]</h3>
+                            @Html.Raw(Model.AcquiredSkills)
+                        </div>
+
+                    }
+
+
+
+                    @if (!string.IsNullOrEmpty(Model.TargetGroup))
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Target Group"]</h3>
+                            @Html.Raw(Model.TargetGroup)
+
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Requirements))
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Requirements"]</h3>
+                            @Html.Raw(Model.Requirements)
+
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mb-5">
+                            <h3>@Localizer["Notes"]</h3>
+                            @Html.Raw(Model.Notes)
+
+                        </div>
+                    }
+
+                    <div class="mb-5">
+                        <h3>@Localizer["Course Duration/Hours"]</h3>
+                        <p class="text-primarycolor">@Model.CourseDuration @Localizer["Hour"]</p>
+                    </div>
+
+                    <div class="mb-5">
+                        <h3>@Localizer["Course Category"]</h3>
+                        <p class="text-primarycolor">@Model.CategoryName</p>
+                    </div>
+
+
+
+
+
+                    <div class="col-12 col-lg text-start">
+                        <div id="CourseTrainerEnrollDetails"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg text-start">
+                    <div id="CourseTrainer"></div>
+                </div>
+                @if (enrollTeacherCourseData != null && enrollTeacherCourseData.LearningMethodId != (int)GeneralEnums.LearningMethodEnum.ElectronicOnce)
+                {
+                    <div id="CourseTimes" class="col-12 col-lg-4 pt-4 pt-lg-0"></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function () {
+        CourseTrainerEnrollDetails();
+        ShowCourseTimes();
+    });
+
+    function CourseTrainerEnrollDetails() {
+        var EnrollTeacherCourseId = "@ViewBag.EnrollTeacherCourseId";
+        if (EnrollTeacherCourseId != '' && EnrollTeacherCourseId != null) {
+            $.ajax({
+                type: "GET",
+                url: "/Courses/ShowCourseTrainerEnrollDetails/",
+                data: { id: EnrollTeacherCourseId },
+                success: function (data) {
+                    if (data !== null) {
+                        $('#CourseTrainerEnrollDetails').html(data);
+                    }
+
+                },error :function (data){
+                }
+            });
+        } else {
+            $('#CourseTrainerEnrollDetails').html("");
+        }
+    }
+
+
+    function ShowCourseTimes() {
+        var EnrollTeacherCourseId = "@ViewBag.EnrollTeacherCourseId";
+        if (EnrollTeacherCourseId != '' && EnrollTeacherCourseId != null) {
+            $.ajax({
+                type: "GET",
+                url: "/Courses/ShowCourseTimes/",
+                data: { id: EnrollTeacherCourseId },
+                success: function (data) {
+                    if (data !== null) {
+                        $('#CourseTimes').html(data);
+                    }
+
+                }
+            });
+        } else {
+            $('#CourseTimes').html("");
+        }
+    }
+
+</script>
+
+

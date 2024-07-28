@@ -1,0 +1,81 @@
+﻿@model List<DataEntity.Models.EfModels.EnrollStudentAssigment>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = null;
+}
+
+
+<div class="p-3">
+    @if (!Model.Any())
+    {
+        <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+    }
+    @foreach (var item in Model)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="row justify-content-between">
+                    <div class="col-12 col-lg">
+                        <h5 class="card-title">@item.EnrollCourseAssigment.Name</h5>
+                        @if (ViewBag.IsOnlineLearningMethod == false)
+                        {
+                            <p class="card-text text-primarycolor">@Localizer["Submission Date"] @LookupHelper.ConvertTimeToSystemTimeZone(item.EnrollCourseAssigment.PublishDate) </p>
+                            <p class="card-text text-primarycolor">@Localizer["Expiry Date:"]  @LookupHelper.ConvertTimeToSystemTimeZone(item.EnrollCourseAssigment.PublishEndDate) </p>
+                            <p class="card-text text-primarycolor">@Localizer["Assignment Time Zone"] @ViewBag.TimeZone</p>
+                        }
+                        <p class="card-text">@Html.Raw(item.EnrollCourseAssigment.Description)</p>
+                    </div>
+                    <div class="col-12 col-lg d-flex flex-lg-column justify-content-between align-items-end text-end">
+                        <p class="card-text text-primarycolor"></p>
+                        @if (ViewBag.IsOnlineLearningMethod == false)
+                        {
+                            @if (LookupHelper.ConvertTimeToSystemTimeZone(item.EnrollCourseAssigment.PublishEndDate) >= LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now))
+                            {
+                                if (item.EnrollStudentAssigmentAnswers.Any())
+                                {
+                                    <button disabled class="btn btn-primary"> @Localizer["Assignment Submitted"]</button>
+                                }
+                                else
+                                {
+                                    <a href="#"
+                                       class="btn btn-primary rounded-pill shadow-none btn-card-Exam">
+                                        @Localizer["Start Assignment"]
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                if (LookupHelper.ConvertTimeToSystemTimeZone(item.EnrollCourseAssigment.PublishEndDate) <= LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now))
+                                {
+                                    <button disabled class="btn btn-danger"> @Localizer["Expired"]</button>
+                                }
+                                else if (LookupHelper.ConvertTimeToSystemTimeZone(item.EnrollCourseAssigment.PublishDate) <= LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now))
+                                {
+                                    <button disabled class="btn btn-warning"> @Localizer["You Can't Start yet"]</button>
+                                }
+                            }
+                        }
+                        else
+                        {
+                                if (item.EnrollStudentAssigmentAnswers.Any())
+                                {
+                                    <button disabled class="btn btn-primary"> @Localizer["Assignment Submitted"]</button>
+                                }
+                                else
+                                {
+                                    <a href="#"
+                                    class="btn btn-primary rounded-pill shadow-none btn-card-Exam">
+                                        @Localizer["Start Assignment"]
+                                    </a>
+                                }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,57 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CoursePrerequisiteGeneralViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+@{
+    ViewData["Title"] = @Localizer["Course Prerequisite Deatils"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div>
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Course Prerequisite Deatils"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Course Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePrerequisiteViewModel[0].CourseName)</td>
+                </tr>
+                  <tr>
+                        <td class="tms-details-title">@Localizer["Course Prerequisite List"]</td>
+                        <td class="tms-details-data">         
+                            <ul class="list-group">
+                                @foreach(var prerequisiteCourse in Model.CoursePrerequisiteViewModel)
+                                {
+                                <li class="list-group-item list-group-item-action list-group-item-light">@prerequisiteCourse.PrerequisiteCourseName</li>  
+                                }
+                                @if(Model.CoursePrerequisiteViewModel[0].PrerequisiteCourseId == null )
+                                {
+                                <li class="list-group-item list-group-item-action list-group-item-light">--</li>  
+                                }
+
+                           </ul>
+                       </td>
+                    </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.CoursePrerequisiteViewModel[0].Status).Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePrerequisiteViewModel[0].CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePrerequisiteViewModel[0].CreatedBy)</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,67 @@
+﻿
+@model DataEntity.Models.EfModels.Trainer
+@using LearningManagementSystem.Services.General;
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels;
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+@inject ISettingService SettingService
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = $"{Localizer["Trainer"]} - {Model.Contact.FirstName} {Model.Contact.LastName}";
+
+
+    List<DetailsLookupViewModel> generalSpecialization = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(), ViewBag.LangId);
+    var dicGeneralSpecialization = generalSpecialization.ToDictionary(item => item.Id,
+                     item => item.Name);
+
+    var phone = Boolean.Parse(SettingService.GetOrCreate("Show_Phone_Trainer", "true").Value);
+    var email = Boolean.Parse(SettingService.GetOrCreate("Show_Email_Trainer", "true").Value);
+}
+
+<div class="container-fluid container-lg p-0">
+    <div class="row bg-white padding-35">
+        <div class="col-12 col-lg-3 text-center">
+            <img src="@(Model.ImageUrl??"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")" class="img-fluid wimg-Train">
+          @*  <div class="d-flex iconTrainers align-items-center justify-content-center pb-3 p-lg-0">
+
+                <a href="" class="rounded-circle"><i class="fa-brands fa-dribbble"></i></a>
+                <!-- <a href="" class="rounded-circle"><i class="fa-solid fa-m py-2"></i></a> -->
+                <a href="" class="rounded-circle "><i class="fa-brands fa-linkedin"></i></a>
+                <a href="" class="rounded-circle"><i class="fa-brands fa-whatsapp"></i></a>
+            </div>*@
+        </div>
+        <div class="col-12 col-lg-9">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="Trainer-name">@Model.Contact.FullName</h3>
+                <div class="Tr-type">
+                    @Localizer["Trainer"]
+                </div>
+            </div>
+            <div class="Trainer-data mt-5">
+                @if (email)
+                {
+                    <p>@Localizer["E-mail"]: @Model.Contact.Email</p>
+                }
+                @if (phone)
+                {
+                    <p>@Localizer["Phone Number"]: @Model.Contact.Mobile</p>
+                }
+                @*<p>Gender: male</p>
+                    <p>Country: Palestine</p>
+                    <p>City: Jerusalem</p>
+                *@
+                @if (Model.GeneralSpecialtyId != null)
+                {
+                    <p>@Localizer["Specialization"]:@dicGeneralSpecialization[Model.GeneralSpecialtyId.Value]</p>
+                }
+            </div>
+            <div class="mt-5">
+                @Html.Raw(Model.Description)
+            </div>
+        </div>
+    </div>
+</div>

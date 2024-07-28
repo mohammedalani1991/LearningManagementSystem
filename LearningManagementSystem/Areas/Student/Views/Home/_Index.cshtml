@@ -1,0 +1,25 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+<div class="d-flex justify-content-start align-items-start  courses-title">
+    <span class="My-Cources">@Localizer["My Courses"]</span>
+</div>
+<div class="Course-Contant"> @Localizer["Courses Data"] </div>
+<div class="courses-tab menu-sliders">
+    <button class="tablinkss menu-slide" id="defaultOpenViewCourses" onclick="openCourse(event, 'UserProfile_ViewCourses'); GetStudentCourses();">@Localizer["List Courses"]</button>
+    @*<button class="tablinkss menu-slide StudentEnrollCoursesContent" onclick="openCourse(event, 'UserProfile_CoursesContent'); GetStudentEnrollCoursesContent();">@Localizer["Courses Content <small>(Sections, Lectures, Resources)</small>"]</button>*@
+
+</div>
+<div id="UserProfile_ViewCourses" class="tabcontentt"> </div>
+@*<div id="UserProfile_CoursesContent" class="tabcontentt"></div>*@
+<style>
+   .StudentEnrollCoursesContent   small {
+        font-size: 0.775em !important;
+    }
+</style>
+<script>
+    document.getElementById("defaultOpenViewCourses").click();
+</script>

@@ -1,0 +1,360 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CountryViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Country Details"];
+    var languages = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), ViewBag.LangId);
+    var statuses = LookupHelper.GetStatuses();
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Details"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title"> @Localizer["Name"]</td>
+                    <td>@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title"> @Localizer["Status"]</td>
+                    <td>@LookupHelper.GetStatusById(Model.Status).Name</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td>@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td>@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+            <div>
+                <div class="d-flex tms-page-title">
+                    <div class="tms-title">
+                        <h4>@Localizer["Cities"]</h4>
+                    </div>
+                    <div class="d-flex justify-content-end tms-action">
+
+                        @if (AuthenticationHelper.CheckAuthentication("Lookups", "Create", User.Identity.Name))
+                        {
+                            <button class="tms-btn" id="addIcon" type="button" onclick="ShowAddRow()">
+                                <img src="~/img/add-to-list.png" /> @Localizer["Add New"]
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="tms-table">
+                        <thead>
+                            <tr class="tms-headings">
+                                <th>
+                                    @Localizer["Language"]
+                                </th>
+                                <th>
+                                    @Localizer["Name"]
+                                </th>
+                               
+                                <th>
+                                    @Localizer["Status"]
+                                </th>
+                                <th>
+
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <input type="hidden" id="CountryId" name="CountryId" value="@Model.Id" />
+                            <tr class="tms-tr" id="AddRow" style="display:none;">
+                                <td>
+                                    @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "select-text col-10", required = "required", style = "min-width: 110px;" })
+                                    <span class="col-10 m-auto select-bar" />
+                                    <span class="Message" style="color:red;font-weight:bold;display:none;">@Localizer["All Fileds Reqiered"]</span>
+                                </td>
+                                <td>
+                                    <input type="text" id="Name" name="Name" class="col-10 form__field" required />
+                                </td>
+                               
+                                <td>
+                                    @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), new { @class = "select-text col-10", required = "required", style = "min-width: 110px;" })
+                                    <span class="col-10 m-auto select-bar" />
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Create", User.Identity.Name))
+                                    {
+                                        <div class="dropdown nav-item open tms-choose-op mx-auto">
+                                            <a href="javascript:;" class="dropdown-toggle user-profile" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                                @Localizer["Choose a process"]
+                                            </a>
+                                            <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+
+                                                <button onClick="AddDetailsLookup(event)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Save"]</button>
+                                                <button onClick="HideAddRow(event)" type="button" class="tms-dropdown-menu-item">@Localizer["Cancel"]</button>
+
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+
+                            @if (Model.Cities != null)
+                            {
+                                @foreach (var item in Model.Cities)
+                                {
+                                    <tr class="tms-tr" id="@item.Id">
+                                        <td>
+                                            @if (ViewBag.LangId == (int)GeneralEnums.LanguageEnum.English)
+                                            {
+                                                <span class="LanguageTD">@Localizer["English"]</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="LanguageTD">@Localizer["Arabic"]</span>
+                                            }
+                                            @Html.DropDownList("Language", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "select-text col-10", required = "required", onchange = "GetCityByLanguage(" + item.Id + ")", style = "display:none;min-width: 110px;" })
+                                            <span class="col-10 m-auto select-bar" />
+                                            <span class="RowMessage" style="color:red;font-weight:bold;display:none;">@Localizer["All Fileds Reqiered"]</span>
+                                        </td>
+                                        <td>
+                                            <span class="NameTD">@item.Name</span>
+                                            <input type="text" class="col-10 form__field Name" style="display:none;" name="Name" value="@item.Name" />
+                                        </td>
+                                        <td>
+                                            <span class="StatusTD">
+                                                @LookupHelper.GetStatusById(item.Status)?.Name
+                                            </span>
+                                            @Html.DropDownList("StatusCode", new SelectList(statuses, "Id", "Name", item.Status), string.Empty, new { @class = "select-text col-10", style = "display:none;min-width: 110px;" })
+                                            <span class="col-10 m-auto select-bar" />
+                                        </td>
+                                        <td>
+                                            <div class="dropdown nav-item open tms-choose-op mx-auto">
+                                                <a href="javascript:;" class="dropdown-toggle user-profile" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                                    @Localizer["Choose a process"]
+                                                </a>
+                                                <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+
+                                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Edit", User.Identity.Name))
+                                                    {
+                                                        <button onClick="UpdateCity(@item.Id)" type="button" class="edit tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                                    }
+                                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Edit", User.Identity.Name))
+                                                    {
+                                                        <button onClick="SaveCity(@item.Id)" type="button" class="save tms-dropdown-menu-item tms-first-drop-item" style="display:none">@Localizer["Save"]</button>
+                                                        <button onClick="CancelEdit(@item.Id)" type="button" class="cancel tms-dropdown-menu-item" style="display:none">@Localizer["Cancel"]</button>
+                                                    }
+                                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Delete", User.Identity.Name))
+                                                    {
+                                                        <button onClick="Delete(@item.Id)" type="button" class="delete tms-dropdown-menu-item">@Localizer["Delete"]</button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                    <br />
+                    <br />
+                    <div class="fade modal" id="delete_confirmation_modal" role="dialog" style="display: none;">
+                        <div class="modal-dialog" style="margin-top: 260.5px;">
+                            <div class="modal-content">
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12 col-xs-12">
+                                        <div class="d-flex py-4 tms-page-popup-title">
+                                            <div data-dismiss="modal" class="tms-close-div">
+                                                <i class="fa fa-close"></i>
+                                            </div>
+                                            <div class="tms-table-popup-title" style="width:97%;">
+                                                @Localizer["Are you sure you want to delete this?"]
+                                            </div>
+                                        </div>
+                                        <div class="x_content">
+                                            <br />
+                                            @using (Html.BeginForm("DeleteConfirmed", "City", FormMethod.Post, new { id = "delete_data" }))
+                                            {
+                                                <input type="hidden" id="delete_item_id" name="id" value="">
+                                                <p class="p-3 text-center tms-delete-msg">@Localizer["You are trying to delete the information and data of this item, are you sure to delete all its details?"]</p>
+                                                <div class="text-center">
+                                                    <button type="submit" onclick="myfun()" class="tms-save-btn" style="width: 100px;">@Localizer["Delete"]</button>
+                                                    <button type="button" class="px-10 tms-cancel-btn" style="width: 100px;" data-dismiss="modal">@Localizer["Cancel"]</button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section JavaScript
+{
+    <script>
+
+
+    function ShowAddRow() {
+        $("#AddRow").show();
+        $("#addIcon").hide();
+    }
+
+    function HideAddRow() {
+        $("#AddRow").hide();
+        $("#addIcon").show();
+    }
+
+    function CancelEdit(id) {
+        $("#" + id + ' .save').hide();
+        $("#" + id + ' .cancel').hide();
+        $("#" + id + " .RowMessage").hide();
+        $("#" + id + ' .save').hide();
+        $("#" + id + ' .edit').show();
+        $("#" + id + ' .delete').show();
+        $("#" + id + ' #Language').hide();
+        $("#" + id + ' .LanguageTD').show();
+        $("#" + id + " .Name").hide();
+        $("#" + id + ' .NameTD').show();
+        $("#" + id + " #StatusCode").hide();
+        $("#" + id + ' .StatusTD').show();
+    }
+
+    function AddDetailsLookup(e) {
+        e.preventDefault();
+        var cityViewModel = {};
+        var langId = $('#LanguageId').val();
+        var name = $('#Name').val();
+        var status = $('#Status').val();
+        var countryId = $("#CountryId").val();
+        cityViewModel.LanguageId = langId;
+        cityViewModel.Name = name;
+        cityViewModel.Status = status;
+        cityViewModel.CountryId = countryId;
+        if (langId > 0 && status > 0 && name != "") {
+            $.post("/ControlPanel/City/Create",
+                { cityViewModel: cityViewModel},
+                function (data) {
+                    toastr.success(addMassege);
+                    setTimeout(
+                        function () {
+                            location.reload();
+                        }, 1000);
+                },
+            ).fail(function (data) {
+                toastr.error(addMassegeError);
+            });
+        } else {
+            $(".Message").show();
+        }
+    }
+
+    function UpdateCity(id) {
+        $("#" + id + ' .save').show();
+        $("#" + id + ' .cancel').show();
+        $("#" + id + ' .edit').hide();
+        $("#" + id + ' .delete').hide();
+        $("#" + id + ' .detailes').hide();
+
+        $("#" + id + ' #Language').show();
+        $("#" + id + ' .LanguageTD').hide();
+        $("#" + id + " .Name").show();
+        $("#" + id + ' .NameTD').hide();
+        $("#" + id + " #StatusCode").show();
+        $("#" + id + ' .StatusTD').hide();
+    }
+    function SaveCity(id) {
+        debugger;
+        var cityViewModel = {};
+        var langId = $("#"+id+' #Language').val();
+        var name = $("#" + id + " .Name").val();
+        var countryId = $("#CountryId").val();
+        var status = $("#" + id + " #StatusCode").val();
+        var statusName = $("#" + id + " #StatusCode option:selected").text();
+        cityViewModel.LanguageId = langId;
+        cityViewModel.Id = id;
+        cityViewModel.Name = name;
+        cityViewModel.Status = status;
+        cityViewModel.CountryId = countryId;
+        if (langId > 0 && status > 0 && name != "" ) {
+
+            $.post("/ControlPanel/City/Edit",
+                { cityViewModel: cityViewModel },
+                function (data) {
+                    toastr.success(editMassege)
+                    $("#" + id + ' .NameTD').text(name);
+                    $("#" + id + ' .StatusTD').text(statusName);
+
+                    if (langId ==@((int) GeneralEnums.LanguageEnum.English)){
+                        $("#" + id + ' .LanguageTD').text('@Localizer["English"]');
+                    }else{
+                        $("#" + id + ' .LanguageTD').text('@Localizer["Arabic"]');
+                    }
+                    $("#" + id + ' .save').hide();
+                    $("#" + id + ' .cancel').hide();
+                    $("#" + id + " .RowMessage").hide();
+                    $("#" + id + ' .save').hide();
+                    $("#" + id + ' .edit').show();
+                    $("#" + id + ' .delete').show();
+                    $("#" + id + ' #Language').hide();
+                    $("#" + id + ' .LanguageTD').show();
+                    $("#" + id + " .Name").hide();
+                    $("#" + id + ' .NameTD').show();
+                    $("#" + id + " #StatusCode").hide();
+                    $("#" + id + ' .StatusTD').show();
+                }
+            ).fail(function (data) {
+                toastr.error(editMassegeError);
+            });
+
+        } else {
+            $("#" + id + " .RowMessage").show();
+        }
+    }
+    function GetCityByLanguage(id) {
+        var langId = $("#" + id + ' #Language').val();
+        $.post("/ControlPanel/City/GetCityByLanguage",
+            { id: id, languageId: langId },
+            function (data) {
+                $("#" + id + ' .Name').val(data.name);
+            }
+        ).fail(function (data) {
+            toastr.error(errorMassege);
+        });
+    }
+    function Delete(id) {
+        $("#delete_item_id").val(id);
+        $('#delete_confirmation_modal').modal('show');
+    }
+     function myfun() {
+        toastr.success(deleteMassege);
+
+    }
+    </script>
+    <script>
+       var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+          var errorMassege = '@Localizer["Error while Get Setting By Language"]';
+          $('.tms-management').addClass("active");
+              $('.tms-sub-Country').addClass("active");
+              $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+
+    </script>
+}

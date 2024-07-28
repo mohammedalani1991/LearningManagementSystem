@@ -1,0 +1,74 @@
+﻿@using Microsoft.AspNetCore.Builder
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Options
+@using LearningManagementSystem.Services.Helpers;
+@using static LearningManagementSystem.Core.Constants
+
+@inject IViewLocalizer Localizer
+@inject IOptions<RequestLocalizationOptions> LocOptions
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var cultureItems = LocOptions.Value.SupportedUICultures
+        .Select(c => new SelectListItem { Value = c.Name, Text = c.DisplayName })
+        .ToList();
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}{Context.Request.QueryString}";
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "En" : "Ar";
+    var languageId = CultureHelper.GetCurrentLanguageId(requestCulture);
+    var currncies = CurrencyService.GetAllCurrencies(languageId);
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+}
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+       aria-expanded="false">
+        (@Html.Raw(currency.Icon)) @currency.Code
+    </a>
+    <ul class="dropdown-menu">
+        @foreach (var item in currncies)
+        {
+            var dis = item.Id == currency.Id ? "disabled" : "";
+            <li><button class="dropdown-item" @dis onclick="Javascript:window.location.href = '@Url.Action("SetCurrency","Home", new { Area = "" ,currencyId = item.Id ,returnUrl = returnUrl })'">@item.Name - (@Html.Raw(item.Icon)) @item.Code</button></li>
+        }
+    </ul>
+</li>
+
+
+@if (selectedLang == "Ar")
+{
+    <form id="selectLanguage" asp-area="" asp-controller="Home"
+      asp-action="SetLanguage" asp-route-returnUrl="@returnUrl"
+      method="post" class="form-horizontal" role="form">
+        <input type="hidden" name="culture" id="culture" value="en-US" />
+        <a class="nav-link" title="English" href="#" onclick="document.getElementById('selectLanguage').submit()">
+            <i class="fa-solid fa-globe"></i> eng
+        </a>
+    </form>
+}
+else
+{
+    <form id="selectLanguage" asp-area="" asp-controller="Home"
+      asp-action="SetLanguage" asp-route-returnUrl="@returnUrl"
+      method="post" class="form-horizontal" role="form">
+        <input type="hidden" name="culture" id="culture" value="ar" />
+        <a class="nav-link" title="عربي" href="#" onclick="document.getElementById('selectLanguage').submit()">
+            <i class="fa-solid fa-globe"></i> عربي
+        </a>
+    </form>
+}
+

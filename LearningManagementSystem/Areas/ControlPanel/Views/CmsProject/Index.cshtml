@@ -1,0 +1,91 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.CmsProject>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+
+<div id="main"></div>
+
+<div id='CreateCmsProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateRegimentDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCmsProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+     <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditCmsProjectTendersDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsCmsProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DetailsCmsProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteCmsProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DeleteCmsProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCmsProjectSource' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='EditCmsProjectSourceDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCmsProjectCosts' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='EditCmsProjectCostsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowImageCmsProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='ShowImageCmsProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Name", "Description", "ShortDescription", "ImageUrl", "Keyword", "PublishDate", "EndDate", "SortOrder", "ShowInHomePage", "IsFeatured", "PaymentType","ProjectCost", "OneObjectFees", "ProjectStatus", "ProjectCategoryId",  "Status", "CreatedBy", "CreatedOn"]
+        var linkCounter = 0; // Initialize the counter
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        $('.tms-cms').addClass("active");
+        $('.tms-sub-CmsProject').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_cms').addClass("active");
+
+    </script>
+
+    <script src="~/js/CmsProject/CmsProjects.js" async></script>
+}

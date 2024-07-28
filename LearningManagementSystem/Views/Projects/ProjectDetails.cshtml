@@ -1,0 +1,364 @@
+﻿@model DataEntity.Models.ViewModels.CmsProjectViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    var GoalItems = Model.ProjectCost / Model.OneObjectFees;
+    var Donated = Model.CmsProjectDonors.Sum(r => r.Cost);
+    var DonatedItems = Math.Round((decimal)((Donated / Model.OneObjectFees)??0), 2);
+    var Rest = Math.Round((decimal)(GoalItems - (double)(DonatedItems)??0), 2);
+    var RestPercentage = (((double)(DonatedItems) / GoalItems) * 100) > 100 ? "100%" : ((double)(DonatedItems) / GoalItems) * 100 + "%";
+    var Percentage = (Donated > 0 ? Math.Round(((decimal)(Donated / Model.ProjectCost)), 2) * 100 : 0);
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+}
+
+@section Css{
+    <link href="~/css/thankyou.css" rel="stylesheet" />
+}
+
+<div id="Projects-Details">
+    <div class="container-fluid container-lg">
+        <div class="row flex-column-reverse flex-lg-row justify-content-center align-items-center marg-tb ">
+            <div class="col-12 col-lg-6 px-4">
+                <p class="project-tit-name">@Model.Name</p>
+                <div class="project-sup-desc">
+                    @Html.Raw(Model.Description)
+                </div>
+                <div class="d-flex align-items-center fs-btnspan">
+                    <button data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-primary">
+                        <i class="fa-solid fa-circle-dollar-to-slot"></i> @Localizer["Donate Now"]
+                    </button>
+                    @*<p class="text-primarycolor m-0"><i class="fa-solid fa-user"></i> 24566 Viewer</p>*@
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 text-center">
+                <img src="@(Model.ImageUrl??"https://images.unsplash.com/photo-1572177812156-58036aae439c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80")"
+                     class="img-fluid h-roun-img">
+            </div>
+        </div>
+
+        <div class="row p-0 justify-content-center">
+            <div class="col-11">
+                <div class="progress position-relative rounded-pill">
+                    <span class="position-absolute top-50 start-50 translate-middle text-primarycolor  fs-bar">
+                        @Localizer["Donated"]:
+                        @DonatedItems
+                    </span>
+                    <div class="progress-bar rounded-pill" role="progressbar" aria-label="Example 20px high"
+                         style="width: @RestPercentage;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between fs-bar px-3">
+                    <span>
+                        @Localizer["Goal"]: @Math.Round(GoalItems??0,2)
+                    </span>
+                    <span>@Localizer["Rest"]: @Rest</span>
+                </div>
+            </div>
+            <div class="col-11 row mt-5 p-0">
+                <div class="col-12 col-xxl-8 p-0">
+                    <div class="project-table1 table-responsiv">
+                        <table class="table ">
+                            <thead class="first-thead">
+                                <tr>
+                                    <th>@Localizer["Donor Name"]</th>
+                                    <th>@Localizer["Item"]</th>
+                                    <th>@Localizer["Amount"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CmsProjectDonors)
+                                {
+                                    <tr>
+                                        <td>@item.Name</td>
+                                        <td>@item.ProjectCost.Name</td>
+                                        <td>@item.Cost</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-12 col-xxl-4 p-0 px-lg-5">
+                    <div class="bordar-chart mx-auto position-relative text-center">
+                        <p class="text-primarycolor fs-Dentations">@Localizer["Donations"]</p>
+                        <canvas id="myChart" class="mx-auto" style="width:261px;"></canvas>
+                        <span class="fs-2 position-absolute top-50 start-50 translate-middle">@Percentage%</span>
+                        <div class="d-flex justify-content-between fs-downchart">
+                            <div class="text-primarycolor">@Localizer["Goal"]: @CurrencyService.GetValue((decimal)Model.ProjectCost)  <small style="font-size:17px">@Html.Raw(currency.Icon)</small></div>
+                            <div class="vr" style="color:#E8E8E8;"></div>
+                            <div>@Localizer["Donations"]: @CurrencyService.GetValue((decimal)Donated) <small style="font-size:17px">@Html.Raw(currency.Icon)</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-11 p-0 row mx-auto Project-Goals">
+            <hr style="color: #E8E8E8;">
+            @Html.Raw(Model.SecondDescription)
+
+            @if (Model.CmsProjectResources.Any())
+            {
+                <div class="row bg-prim mt-5">
+                    <h4 class="fontsize-min-end text-primarycolor">@Localizer["Al-Safa Academy Traning Center"]</h4>
+                    <div class="row justify-content-between">
+                        @foreach (var item in Model.CmsProjectResources)
+                        {
+                            string embedLink = item.Link??"";
+
+                            if (embedLink.Contains("youtu.be"))
+                            {
+                                embedLink = $"https://www.youtube.com/embed/{item.Link.Substring(item.Link.LastIndexOf("/") + 1)}";
+                            }
+                            else if (embedLink.Contains("youtube.com"))
+                            {
+                                var uri = new Uri(embedLink);
+                                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                                var videoId = query.Get("v");
+                                if (!string.IsNullOrEmpty(videoId))
+                                {
+                                    embedLink = $"https://www.youtube.com/embed/{videoId}";
+                                }
+                            }
+
+                            <div class="col-md-6 col-12">
+                                <iframe class="iframe" src="@embedLink"></iframe>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+
+
+        <!-- Modal --->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">@Localizer["Project Donation"]</h1>
+                        <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                           aria-label="Close"></i>
+                    </div>
+                    <div class="modal-body P-Donation ">
+                        <form id="Donation">
+                            <div class="row">
+                                <p class="fs-18">@Localizer["Donor Details"]</p>
+
+                                <div class="row">
+                                    <div class="col-12 col-lg-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["Donor Name"]</label><span class="required">*</span>
+                                            <input type="text" id="Name" name="Name" class="form-control" placeholder="" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-lg-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["Email"]</label><span class="required">*</span>
+                                            <input type="email" id="Email" name="Email" class="form-control" placeholder="" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-lg-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["Donor Number"]</label><span class="required">*</span>
+                                            <input type="text" id="Phone" name="Phone" class="form-control" placeholder="" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="fs-18">@Localizer["Choose Amount"]</p>
+                                <div class="row">
+                                    <div class="col-12 col-lg-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["Donation Type"]:</label><span class="required">*</span>
+                                            <select class="form-select required" id="Item" name="Item" aria-label="Default select example" onchange="CmsProjectCosts(this)" required>
+                                                <option value="" selected>@Localizer["Select"]</option>
+                                                @foreach (var item in Model.CmsProjectCosts)
+                                                {
+                                                    <option value="@item.Id-@item.Cost">@item.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-lg-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["Amount"] ($):</label><span class="required">*</span>
+                                            <input class="form-control" type="number" id="ProjectCosts" name="ProjectCosts" required disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="modal-footer">
+                                <a onclick="Donate()" class="btn border-0 w-100 m-0 btn-primary">@Localizer["Donate"]</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<div class="modal fade" id="ThankYouModel" tabindex="-1" aria-labelledby="ThankYouModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div id="ThankYou" class="m-0 p-0" style="background:white">
+                <div class="card m-0 p-0" style="box-shadow:unset;border:unset">
+                    <div style="border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;">
+                        <i class="checkmark">✓</i>
+                    </div>
+                    <h1>@Localizer["Thank you for your support"]</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="FailedModel" tabindex="-1" aria-labelledby="FailedModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div id="ThankYou" class="m-0 p-0" style="background:white">
+                <div class="card m-0 p-0" style="box-shadow:unset;border:unset">
+                    <div style="border-radius:200px; height:200px; width:200px; background: #F8FAF5;margin:0 auto;">
+                        <i class="fa-solid fa-x" style="color:red"></i>
+                    </div>
+                    <h3 style="color:red">@Localizer["Sorry Something wrong went with the Payment"]</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/theme/Public/assets/lib/chart/chart.js"></script>
+    <script>
+        setTimeout(() => {
+            if ("@ViewBag.Success" == "True")
+                $("#ThankYouModel").modal("show");
+            else if ("@ViewBag.Success" == "False")
+                $("#FailedModel").modal("show");
+        }, (500))
+
+        var Token = '@tokenSet.RequestToken';
+        var addMassege = '@Localizer["Added successfully"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+
+        /******** Chart *************** */
+        let xValues = ["@Localizer["Rest"]", "@Localizer["Donations"]"];
+        let yValues = [(100 - @Percentage), @Percentage];
+        let barColors = [
+            "#000", "#1088a2"
+        ];
+
+        new Chart("myChart", {
+            type: "doughnut",
+            data: {
+                labels: xValues,
+                datasets: [{
+                    backgroundColor: barColors,
+                    data: yValues
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: "World Wide Wine Production 2018"
+                }
+            }
+        });
+
+
+        function CmsProjectCosts(current) {
+            var s = current.value.split('-')[1];
+            $("#ProjectCosts").val(s);
+            if (s != 0)
+                $("#ProjectCosts").attr("disabled", true)
+            else
+                $("#ProjectCosts").attr("disabled", false)
+
+        }
+
+        function Donate() {
+            $("#Donation").validate({
+                errorElement: "span",
+                rules: {
+                    Name: "required",
+                    Email: {
+                        required: true,
+                        email: true,
+                    },
+                    Phone: {
+                        required: true,
+                        number: true,
+                        minlength: 9,
+                    },
+                    Item: "required",
+                    ProjectCosts: {
+                        required: true,
+                        number: true,
+                        min: 1
+                    }
+                }
+            })
+
+            let obj = {
+                ProjectId: "@Model.Id",
+                UserName: $("#Name").val(),
+                Email: $("#Email").val(),
+                PhoneNumber: $("#Phone").val(),
+                Item: $("#Item").val().split('-')[0],
+                Amount: $("#ProjectCosts").val(),
+            };
+
+            if ($("#Donation").valid()) {
+                ShowSpinner()
+                $.ajax({
+                    type: "POST",
+                    url: "/SenangPay/Create",
+                    data: { senangPayViewModel: obj, donation: true },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        if (data.url != undefined && data.url != '')
+                            window.location = data.url;
+                        else {
+                            toastr.error(addMassegeError);
+                            HideSpinner();
+                        }
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        toastr.error(addMassegeError);
+                    }
+                });
+            }
+        }
+    </script>
+    }

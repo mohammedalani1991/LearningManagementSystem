@@ -1,0 +1,21 @@
+﻿CREATE TABLE [dbo].[Subscribers](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Email] [nvarchar](300) NOT NULL,
+	[CreatedOn] [datetime] NOT NULL,
+	[DeletedOn] [datetime] NULL,
+	[Status] [int] NOT NULL,
+ CONSTRAINT [PK_Subscribers] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+
+
+
+
+
+
+
+
+

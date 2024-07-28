@@ -1,0 +1,193 @@
+﻿@using Microsoft.AspNetCore.Localization;
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Core
+@inject IViewLocalizer Localizer
+
+@using LearningManagementSystem.Services.General
+
+@inject ISettingService _SettingService
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+    int BlogCategoryId = int.Parse(_SettingService.GetOrCreate(Constants.SystemSettings.BlogCategoryId, "1").Value);
+    int NewsCategoryId = int.Parse(_SettingService.GetOrCreate(Constants.SystemSettings.NewsCategoryId, "2").Value);
+    bool ShowProjects = false;
+    Boolean.TryParse(_SettingService.GetOrCreate(Constants.SystemSettings.ShowProjects, "true").Value, out ShowProjects);
+    var settings = LookupHelper.GetSettings();
+}
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" style="width:230px" href="@Url.Action("Index","Home",new {area="" })">
+            <img class="img-fluid logo"
+                 src="@(languageName == Constants.LanguageCultures.Arabic ? settings.ImageUrlAr : settings.ImageUrl)">
+        </a>
+        <button class="bg-white navbar-brand d-lg-none shadow-0 border-0" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+            <img src="~/theme/Public/assets/images/menu.png">
+        </button>
+
+        <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="offcanvasExample"
+             aria-labelledby="offcanvasExampleLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasExampleLabel">
+                    <img class="img-fluid logo"
+                         src="@(languageName == Constants.LanguageCultures.Arabic ? settings.ImageUrlAr : settings.ImageUrl)">
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index","Home", new { Area = "" })">@Localizer["Home"]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index","Courses", new { Area = "" })">@Localizer["Courses"]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index","CourseCategories", new { Area = "" })">@Localizer["Categories"]</a>
+                    </li>
+                    @if (ShowProjects && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                    {
+                        <li class="nav-item ">
+                            <a class="nav-link" href="@Url.Action("Index","Projects", new { Area = "" })">@Localizer["Projects"]</a>
+                        </li>
+                    }
+                    <li class="nav-item ">
+                        <a class="nav-link" href="@Url.Action("Index","Calendar", new { Area = "" })">@Localizer["Calendar"]</a>
+                    </li>
+
+                    <li class="nav-item ">
+                        <a class="nav-link" href="@Url.Action("Index","Blog", new { Area = "",category=BlogCategoryId })">@Localizer["Blog"]</a>
+                    </li>
+
+                    <li class="nav-item ">
+                        <a class="nav-link" href="@Url.Action("Index", "Blog", new { Area = "", category = NewsCategoryId })">@Localizer["News"]</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            @Localizer["About"]
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="@Url.Action("Index","Trainers", new { Area = "", })">@Localizer["Team"]</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Index","Page",new { code=StaticContentDescription.AboutUs,Area = ""})">@Localizer["About Us"] </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" href="@Url.Action("Index","ContactUs", new { Area = "" })">@Localizer["Contact Us"]</a>
+                    </li>
+
+                    <partial name="_SelectPublicLanguagePartial" />
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        if (AuthenticationHelper.CheckIfEmployee(User.Identity.Name))
+                        {
+                            <li class="nav-item ">
+                                <a class="nav-link" href="@Url.Action("Index", "Dashboard", new { area = "ControlPanel" })">@Localizer["Control Panel"]</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item ">
+                                <a class="nav-link" href="@Url.Action("Manage", "Account", new { area = "Identity" })">@Localizer["My Profile"]</a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="nav-item ">
+                            <a class="nav-link btn loginbtn" href="@Url.Action("Login", "Authentication", new { area = "" })">@Localizer["Login"]</a>
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link" asp-controller="Authentication" asp-action="Register">@Localizer["Sign up"]</a>
+                        </li>
+                    }
+                </ul>
+
+            </div>
+        </div>
+
+
+
+
+
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
+            <ul class="navbar-nav  align-items-center w-scrolls">
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index","Home", new { Area = "" })">@Localizer["Home"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index","Courses", new { Area = "" })">@Localizer["Courses"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index","CourseCategories", new { Area = "" })">@Localizer["Categories"]</a>
+                </li>
+                @if (ShowProjects && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                {
+                    <li class="nav-item ">
+                        <a class="nav-link" href="@Url.Action("Index","Projects", new { Area = "" })">@Localizer["Projects"]</a>
+                    </li>
+                }
+                <li class="nav-item ">
+                    <a class="nav-link" href="@Url.Action("Index","Calendar", new { Area = "" })">@Localizer["Calendar"]</a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="@Url.Action("Index","Blog", new { Area = "",category=BlogCategoryId })">@Localizer["Blog"]</a>
+                </li>
+
+                <li class="nav-item ">
+                    <a class="nav-link" href="@Url.Action("Index", "Blog", new { Area = "", category = NewsCategoryId })">@Localizer["News"]</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        @Localizer["About"]
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="@Url.Action("Index","Trainers", new { Area = "" })">@Localizer["Team"]</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Index","Page",new { code=StaticContentDescription.AboutUs,Area = ""})">@Localizer["About Us"] </a></li>
+                    </ul>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="@Url.Action("Index","ContactUs", new { Area = "" })">@Localizer["Contact Us"]</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav  align-items-center">
+                <partial name="_SelectPublicLanguagePartial" />
+
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    if (AuthenticationHelper.CheckIfEmployee(User.Identity.Name))
+                    {
+                        <li class="nav-item ">
+                            <a class="nav-link" href="@Url.Action("Index", "Dashboard", new { area = "ControlPanel" })">@Localizer["Control Panel"]</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item ">
+                            <a class="nav-link" href="@Url.Action("Manage", "Account", new { area = "Identity" })">@Localizer["My Profile"]</a>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="nav-item ">
+                        <a class="nav-link btn loginbtn" href="@Url.Action("Login", "Authentication", new { area = "" })">@Localizer["Login"]</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link" asp-controller="Authentication" asp-action="Register">@Localizer["Sign up"]</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>

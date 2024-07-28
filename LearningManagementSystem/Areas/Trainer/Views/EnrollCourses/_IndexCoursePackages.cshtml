@@ -1,0 +1,124 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.ViewModels.CoursePackageViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+<div class="row">
+    <div class="d-flex justify-content-start align-items-start  courses-title">
+        <span class="My-Cources">@Localizer["Packages"]</span>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Id">
+                                @Localizer["Id"]
+                            </th>
+                            <th class="PackageName">
+                                @Localizer["Package Name"]
+                            </th>
+                            <th class="Courses">
+                                @Localizer["Courses List"]
+                            </th>
+                            <th class="Status ">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn">
+                                @Localizer["Created On"]
+                            </th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var count = 0;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            @if (item.CoursePackagesRelations != null && item.CoursePackagesRelations.Count > 0)
+                            {
+                                count++;
+                                <tr class="tms-tr">
+                                    <td class="Id ">
+                                        @Html.DisplayFor(modelItem => item.Id)
+                                    </td>
+                                    <td class="PackageName">
+                                        <a class="tablelink" style="cursor:pointer" onclick="GetTrainerHomePageCoursesPackages(@item.Id)">
+                                            @Html.DisplayFor(modelItem => item.PackageName)
+                                        </a>
+                                    </td>
+
+                                    <td class="Courses">
+                                        <ul class="list-group">
+                                            @foreach (var coursePackagesRelations in item.CoursePackagesRelations)
+                                            {
+                                                <li class="list-group-item list-group-item-action list-group-item-light">@coursePackagesRelations.Course.CourseName</li>
+                                            }
+                                            @if (item.CoursePackagesRelations == null || item.CoursePackagesRelations.Count == 0)
+                                            {
+                                                <li class="list-group-item list-group-item-action list-group-item-light">--</li>
+                                            }
+                                        </ul>
+                                    </td>
+                                    <td class="Status">
+                                        @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                    </td>
+                                    <td class="CreatedBy">
+                                        @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                    </td>
+                                    <td class="CreatedOn">
+                                        @Html.DisplayFor(modelItem => item.CreatedOn)
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        @if (count == 0 || Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="7">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (count > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "MyCoursesPackagesData" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount </p> @Localizer["Item No:"]  <p class="text-primary px-1">@count</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="DetailsTrainerCourses" tabindex="-1" aria-labelledby="DetailsTrainerCoursesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DetailsTrainerCoursesDiv">
+        </div>
+    </div>
+</div>
+<style>
+    .custmSelect {
+        display: inline-block !important;
+        width: 290px !important;
+        padding-top: 2px;
+    }
+
+</style>
+<script src="~/js/EnrollCourses/EnrollCourses.js?ver=10.1"></script>

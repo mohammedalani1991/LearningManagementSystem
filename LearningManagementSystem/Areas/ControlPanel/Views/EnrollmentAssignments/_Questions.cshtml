@@ -1,0 +1,88 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollCourseAssigmentQuestion>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="row mb-3">
+            <div class="col-12 ">
+                @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Create", User.Identity.Name))
+                {
+                    <button class="tms-save-btn float-end" type="button" onclick="ShowAssignmentQuestions(@ViewBag.EnrollCourseAssigmentId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Assignment Question"]</button>
+                }
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Question Number"]
+                            </th>
+                            <th class="w-50">
+                                @Localizer["Question"]
+                            </th>
+                            <th>
+                                @Localizer["Status"]
+                            </th>
+                            <th class="w-25">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Id)
+                                </td>
+                                <td>
+                                    @Html.Raw(item.QuestionName)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="d-flex">
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Edit", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowEditAssignmentQuestions(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Delete", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowDeleteQuestion(@item.Id, @ViewBag.EnrollCourseAssigmentId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Delete"]</button>
+                                            }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="Questions" class="p-3">
+    </div>
+</div>

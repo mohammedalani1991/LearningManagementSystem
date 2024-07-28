@@ -1,0 +1,376 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.SubCommunicationChannelViewModel
+@using LearningManagementSystem.Core
+@using LearningManagementSystem.Core.SystemEnums
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Second Sup Communication Channel"];
+    var languages = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), ViewBag.LangId);
+    var statuses = LookupHelper.GetStatuses();
+}
+
+<div class = "col-md-12 col-sm-12 col-xs-12">
+<div class = "x_panel">
+<div class = "d-flex tms-page-popup-title">
+    <a onclick = "history.back()">
+        <i class = "fa fa-close"></i>
+    </a>
+
+    <div class = "tms-table-popup-title" style = "width:97%;">
+        @Localizer["Details"]
+
+    </div>
+</div>
+
+<div class = "x_content">
+    <table class = "table tms-details">
+        <tr>
+            <td class = "tms-details-title"> @Localizer["Name"]</td>
+            <td class = "tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+        </tr>
+        <tr>
+            <td class = "tms-details-title"> @Localizer["Status"]</td>
+            <td class = "tms-details-data">@LookupHelper.GetStatusById(Model.Status).Name</td>
+        </tr>
+
+        <tr>
+            <td class = "tms-details-title">@Localizer["Created On"]</td>
+            <td class = "tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+        </tr>
+        <tr>
+            <td class = "tms-details-title">@Localizer["Created By"]</td>
+            <td class = "tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+        </tr>
+
+    </table>
+    <div class = "d-flex tms-page-title">
+        <div class = "tms-title">
+            <h4>
+                @Localizer["Settings"] @ViewData["Title"]
+            </h4>
+        </div>
+        <div class = "d-flex justify-content-end tms-action">
+            @if (AuthenticationHelper.CheckAuthentication("Lookups", "Create", User.Identity.Name))
+            {
+                <button class = "tms-btn" type = "button" onclick = "ShowSecondAddRow()">
+                    <img src = "/img/add-to-list.png"/> @Localizer["Add New"]
+                </button>
+            }
+        </div>
+
+    </div>
+
+    <div class = "table-responsive">
+        <table class = "tms-table">
+            <thead>
+            <tr class = "tms-headings">
+                <th>
+                    @Localizer["Language"]
+                </th>
+                <th>
+                    @Localizer["Name"]
+                </th>
+                <th>
+                    @Localizer["Note"]
+                </th>
+                <th>
+                    @Localizer["Status"]
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <input type = "hidden" id = "CommunicationChannelId" name = "CommunicationChannelId" value = "@Model.CommunicationChannelId"/>
+            <input type = "hidden" id = "ParentId" name = "ParentId" value = "@Model.Id"/>
+
+            <tr class = "tms-tr" id = "SecondAddRow" style = "display:none;">
+                <td>
+                    @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new {@class = "select-text col-10", required = "required", style = "min-width: 110px;"})
+                    <span class = "col-10 m-auto select-bar"/>
+                    <span class = "Message" style = "color:red;font-weight:bold;display:none;">@Localizer["All Fileds Reqiered"]</span>
+                </td>
+                <td>
+                    <input type = "text" id = "Name" name = "Name" class = "col-10 form__field" required/>
+                </td>
+                <td>
+                    <textarea id="Note" name="Note" class="col-10 form__field" style="height: 39px; min-height: 39px !important;" required></textarea>
+                </td>
+                <td>
+                    @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), new {@class = "select-text col-10", required = "required", style = "min-width: 110px;"})
+                    <span class = "col-10 m-auto select-bar"/>
+                </td>
+                <td>
+                    <div class = "dropdown nav-item open tms-choose-op mx-auto">
+                        <a href = "javascript:;" class = "dropdown-toggle user-profile" aria-haspopup = "true" data-toggle = "dropdown" aria-expanded = "false">
+                            @Localizer["Choose a process"]
+                        </a>
+                        <div class = "dropdown-menu tms-dropdown-menu" aria-labelledby = "navbarDropdown">
+
+                            @if (AuthenticationHelper.CheckAuthentication("Lookups", "Create", User.Identity.Name))
+                            {
+                                <button onClick = "AddSecondSubCommunicationChannel(event)" type = "button" class = "tms-dropdown-menu-item tms-first-drop-item">@Localizer["Save"]</button>
+                                <button onClick = "HideSecondAddRow(event)" type = "button" class = "tms-dropdown-menu-item">@Localizer["Cancel"]</button>
+                            }
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            @if (Model.SubCommunicationChannels != null)
+            {
+                @foreach (var item in Model.SubCommunicationChannels)
+                {
+                    <tr class = "tms-tr" id = "@item.Id">
+                        <td>
+                            @if (ViewBag.LangId == (int) GeneralEnums.LanguageEnum.English)
+                            {
+                                <span class = "LanguageTD">@Localizer["English"]</span>
+                            }
+                            else
+                            {
+                                <span class = "LanguageTD">@Localizer["Arabic"]</span>
+                            }
+                            @Html.DropDownList("Language", new SelectList(languages, "Id", "Name", ViewBag.LangId), new {@class = "select-text col-10", required = "required", onchange = "GetSubCommunicationChannelByLanguage(" + item.Id + ")", style = "display:none;min-width: 110px;"})
+                            <span class = "col-10 m-auto select-bar"/>
+                            <span class = "RowMessage" style = "color:red;font-weight:bold;display:none;">@Localizer["All Fileds Reqiered"]</span>
+                        </td>
+                        <td>
+                            <span class = "NameTD">@item.Name</span>
+                            <input type = "text" class = "col-10 form__field Name" style = "display:none;" name = "Name" value = "@item.Name"/>
+                        </td>
+                        <td>
+                            <span class = "NoteTD">@item.Note</span>
+                            <textarea type="text" class="col-10 form__field Note" style="display:none;height: 39px; min-height: 39px !important;" name="Note">@item.Note</textarea>
+                        </td>
+                        <td>
+                            <span class = "StatusTD">
+                                @LookupHelper.GetStatusById(item.Status)?.Name
+                            </span>
+                            @Html.DropDownList("StatusCode", new SelectList(statuses, "Id", "Name", item.Status), string.Empty, new {@class = "select-text col-10", style = "display:none;min-width: 110px;"})
+                            <span class = "col-10 m-auto select-bar"/>
+                        </td>
+                        <td>
+                            <div class = "dropdown nav-item open tms-choose-op mx-auto">
+                                <a href = "javascript:;" class = "dropdown-toggle user-profile" aria-haspopup = "true" data-toggle = "dropdown" aria-expanded = "false">
+                                    @Localizer["Choose a process"]
+                                </a>
+                                <div class = "dropdown-menu tms-dropdown-menu" aria-labelledby = "navbarDropdown">
+
+                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Edit", User.Identity.Name))
+                                    {
+                                        <button onClick = "UpdateSecondSubCommunicationChannel(@item.Id)" type = "button" class = "edit tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Edit", User.Identity.Name))
+                                    {
+                                        <button onClick = "SaveSecondSubCommunicationChannel(@item.Id)" type = "button" class = "save tms-dropdown-menu-item" style = "display:none">@Localizer["Save"]</button>
+                                        <button onClick = "CancelSecondEdit(@item.Id)" type = "button" class = "cancel tms-dropdown-menu-item" style = "display:none">@Localizer["Cancel"]</button>
+                                    }
+
+                                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "Delete", User.Identity.Name))
+                                    {
+                                        <button onClick = "DeleteSecond(@item.Id)" type = "button" class = "delete tms-dropdown-menu-item">@Localizer["Delete"]</button>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+        <br/>
+        <br/>
+        <div class = "fade modal" id = "delete_confirmation_modal" role = "dialog" style = "display: none;">
+            <div class = "modal-dialog" style = "margin-top: 260.5px;">
+                <div class = "modal-content">
+                    <div class = "row">
+                        <div class = "col-md-12 col-sm-12 col-xs-12">
+                            <div class = "d-flex py-4 tms-page-popup-title">
+                                <div data-dismiss = "modal" class = "tms-close-div">
+                                    <i class = "fa fa-close"></i>
+                                </div>
+                                <div class = "tms-table-popup-title" style = "width:97%;">
+                                    @Localizer["Are you sure you want to delete this?"]
+                                </div>
+                            </div>
+                            <div class = "x_content">
+                                <br/>
+                                @using (Html.BeginForm("DeleteConfirmed", "SubCommunicationChannels", FormMethod.Post, new {id = "delete_data"}))
+                                {
+                                    <input type = "hidden" id = "delete_item_id" name = "id" value = "">
+                                    <input type = "hidden" id = "delete_page_id" name = "page" value = "@ViewBag.Page">
+                                    <p class = "p-3 text-center tms-delete-msg">@Localizer["You are trying to delete the information and data of this item, are you sure to delete all its details?"]</p>
+                                    <div class = "text-center">
+                                        <button type = "submit" class = "tms-save-btn" style = "width: 100px;">@Localizer["Delete"]</button>
+                                        <button type = "button" class = "px-10 tms-cancel-btn" style = "width: 100px;" data-dismiss = "modal">@Localizer["Cancel"]</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+@section JavaScript{
+    <script>
+
+
+    function ShowSecondAddRow() {
+        $("#SecondAddRow").show();
+        $("#addIcon").hide();
+    }
+
+    function HideSecondAddRow() {
+        debugger;
+        $("#SecondAddRow").hide();
+        $("#addIcon").show();
+    }
+
+    function CancelSecondEdit(id) {
+        $("#" + id + ' .save').hide();
+        $("#" + id + ' .cancel').hide();
+        $("#" + id + " .RowMessage").hide();
+        $("#" + id + ' .save').hide();
+        $("#" + id + ' .edit').show();
+        $("#" + id + ' .delete').show();
+        $("#" + id + ' #Language').hide();
+        $("#" + id + ' .LanguageTD').show();
+        $("#" + id + " .Name").hide();
+        $("#" + id + ' .NameTD').show();
+        $("#" + id + " #StatusCode").hide();
+        $("#" + id + ' .StatusTD').show();
+        $("#" + id + " .Note").hide();
+        $("#" + id + ' .NoteTD').show();
+    }
+
+    function AddSecondSubCommunicationChannel(e) {
+        e.preventDefault();
+        var subCommunicationChannelViewModel = {};
+        var langId = $('#LanguageId').val();
+        var name = $('#Name').val();
+        var status = $('#Status').val();
+        var note = $("#Note").val();
+        var communicationChannelId = $("#CommunicationChannelId").val();
+        var parentId = $("#ParentId").val();
+        subCommunicationChannelViewModel.LanguageId = langId;
+        subCommunicationChannelViewModel.Name = name;
+        subCommunicationChannelViewModel.Status = status;
+        subCommunicationChannelViewModel.Note = note;
+        subCommunicationChannelViewModel.CommunicationChannelId = communicationChannelId;
+        subCommunicationChannelViewModel.ParentId = parentId;
+        if (langId > 0 && status > 0 && name != "" && note != "") {
+            ShowSpinner();
+            $.post("/ControlPanel/SubCommunicationChannels/CreateSecond",
+                { subCommunicationChannelViewModel: subCommunicationChannelViewModel},
+                function (data) {
+                HideSpinner();
+                    location.reload();
+                }
+            ).fail(function (data) {
+                HideSpinner();
+                alert("Error while Add Detailes Lookup");
+            });
+        } else {
+            $(".Message").show();
+        }
+    }
+
+    function UpdateSecondSubCommunicationChannel(id) {
+        $("#" + id + ' .save').show();
+        $("#" + id + ' .cancel').show();
+        $("#" + id + ' .edit').hide();
+        $("#" + id + ' .delete').hide();
+        $("#" + id + ' .subCommunicationChannel').hide();
+
+        $("#" + id + ' #Language').show();
+        $("#" + id + ' .LanguageTD').hide();
+        $("#" + id + " .Name").show();
+        $("#" + id + ' .NameTD').hide();
+        $("#" + id + " #StatusCode").show();
+        $("#" + id + ' .StatusTD').hide();
+        $("#" + id + " .Note").show();
+        $("#" + id + ' .NoteTD').hide();
+    }
+    function SaveSecondSubCommunicationChannel(id) {
+
+        var subCommunicationChannelViewModel = {};
+        var langId = $("#"+id+' #Language').val();
+        var name = $("#" + id + " .Name").val();
+        var note = $("#" + id + " .Note").val();
+        var masterId = $("#MasterId").val();
+        var status = $("#" + id + " #StatusCode").val();
+        var statusName = $("#" + id + " #StatusCode option:selected").text();
+        subCommunicationChannelViewModel.LanguageId = langId;
+        subCommunicationChannelViewModel.Id = id;
+        subCommunicationChannelViewModel.Name = name;
+        subCommunicationChannelViewModel.Status = status;
+        subCommunicationChannelViewModel.Note = note;
+        subCommunicationChannelViewModel.MasterId = masterId;
+        if (langId > 0 && status > 0 && name != "" && Note != "") {
+            ShowSpinner();
+            $.post("/ControlPanel/SubCommunicationChannels/EditSecond",
+                { subCommunicationChannelViewModel: subCommunicationChannelViewModel },
+                function (data) {
+                    HideSpinner();
+                    $("#" + id + ' .NameTD').text(name);
+                    $("#" + id + ' .NoteTD').text(note);
+                    $("#" + id + ' .StatusTD').text(statusName);
+
+                    if (langId ==@((int) GeneralEnums.LanguageEnum.English)){
+                        $("#" + id + ' .LanguageTD').text('@Localizer["English"]');
+                    }else{
+                        $("#" + id + ' .LanguageTD').text('@Localizer["Arabic"]');
+                    }
+                    $("#" + id + ' .save').hide();
+                    $("#" + id + ' .cancel').hide();
+                    $("#" + id + " .RowMessage").hide();
+                    $("#" + id + ' .save').hide();
+                    $("#" + id + ' .edit').show();
+                    $("#" + id + ' .delete').show();
+                    $("#" + id + ' #Language').hide();
+                    $("#" + id + ' .LanguageTD').show();
+                    $("#" + id + " .Name").hide();
+                    $("#" + id + ' .NameTD').show();
+                    $("#" + id + " #StatusCode").hide();
+                    $("#" + id + ' .StatusTD').show();
+                    $("#" + id + " .Note").hide();
+                    $("#" + id + ' .NoteTD').show();
+                }
+            ).fail(function (data) {
+                HideSpinner();
+                alert("Error while Edit Lookup");
+            });
+
+        } else {
+            $("#" + id + " .RowMessage").show();
+        }
+    }
+    function GetSubCommunicationChannelByLanguage(id) {
+        var langId = $("#" + id + ' #Language').val();
+        $.post("/ControlPanel/SubCommunicationChannels/GetSubCommunicationChannelByLanguage",
+            { id: id, languageId: langId },
+            function (data) {
+                $("#" + id + ' .Name').val(data.name);
+                $("#" + id + ' .Note').val(data.note);
+            }
+        ).fail(function (data) {
+            alert("Error while Get Setting By Language");
+        });
+    }
+    function DeleteSecond(id) {
+        $("#delete_item_id").val(id);
+        $('#delete_confirmation_modal').modal('show');
+    }
+    $('.tms-management').addClass("active");
+    $('.tms-sub-communication-channels').addClass("active");
+    $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+
+</script>
+
+}

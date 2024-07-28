@@ -1,0 +1,141 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Course>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='CreateCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered ">
+        <div id='DetailsCompanyDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DeleteRegimentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowImageCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='ShowImageCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='AddExams' role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='AddExamsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='AddSubjects' role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='AddSubjectsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='EditSubjectMark' role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditSubjectMarkDiv' class="modal-content p-3">
+            <h3>@Localizer["Edit Subject Mark"]</h3>
+            <form id="EditSubjectMarkFrom" class="p-2 row">
+                <input type="hidden" id="SubjectMarkCourseId" />
+                <div class="form-group col-12 mb-3">
+                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="SubjectMark">
+                        @Localizer["Subject Mark"]<span class="required">*</span>
+                    </label>
+                    <div class="col-md-12 col-sm-6 col-xs-12">
+                        <input type="number" id="SubjectMark" class="form-control" />
+                    </div>
+                </div>
+                <div class="text-center col-12">
+                    <button class="tms-save-btn" type="button" onclick="EditSubjectMark()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="RefetchQuizzesModal" class="modal fade">
+    <div class="modal-dialog modal-confirm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <div class="icon-box" style="    border: 3px solid #2B61AE;">
+                    <i class="fa fa-refresh" aria-hidden="true" style="color:#2B61AE"></i>
+                </div>
+                <h4 class="modal-title w-100">@Localizer["Refetch the Daily recitation?"]</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>@Localizer["It Will Add a New Quiz Under Every Section in this Course"]</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <input type="hidden" id="RefetchCourseId" />
+                <button type="button" class="btn tms-btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                <button id="Refetch_Modal" type="button" class="btn tms-btn" style="margin-top:6px ; background-color:#2B61AE" onclick="Refetch()">@Localizer["Refetch"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id='CourseMarksModal' role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='CourseMarksModalDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+    {
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["CourseName", "CourseDuration", "CoursePrice", "SuccessMark", "CategoryId", "LearningMethodId", "Status", "CreatedOn", "ImageUrl", "ShowInHomePage"]
+        let SubjectMark;
+        let Mark;
+        let MarkAfterConversion;
+        let obj = [];
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var deleteMassegeErrorEnrollTeacherCourse = '@Localizer["An error occurred while deleting, this course has been enrolled for the trainer!"]';
+
+        $('.tms-courses').addClass("active");
+        $('.tms-sub-Courses').addClass("active");
+        $('.tms-sub-top-nav .tms_sub_courses').addClass("active");
+    </script>
+
+    <script src="~/js/Course/Course.js?ver=2.1"></script>
+}

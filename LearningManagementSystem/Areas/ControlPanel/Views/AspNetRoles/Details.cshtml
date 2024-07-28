@@ -1,0 +1,94 @@
+﻿@model DataEntity.Models.ViewModels.RoleViewModel
+@inject IViewLocalizer Localizer
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = @Localizer["Role Details"];
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_title">
+            <h2>@Localizer["Accounts"] <small>@ViewData["Title"]</small></h2>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <table class="table table-striped table-bordered">
+                <tr>
+                    <td>@Localizer["Id"]</td>
+                    <td>@Html.DisplayFor(model => model.RoleId)</td>
+                </tr>
+
+                <tr>
+                    <td>@Localizer["Name"]</td>
+                    <td>@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+
+                <tr>
+                    <td>@Localizer["Friendly Name"]</td>
+                    <td>@Html.DisplayFor(model => model.FriendlyName)</td>
+                </tr>
+                <tr>
+                    <td>@Localizer["Concurrency Stamp"]</td>
+                    <td>@Html.DisplayFor(model => model.ConcurrencyStamp)</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+    <div class="col-md-12 mt-2 x_panel x_content" style="border-radius:10px">
+        <h2 class="text-center">@Localizer["Permissions"]</h2>
+        <hr/>
+        @using (Html.BeginForm("AddPermission", "AspNetRoles",
+        FormMethod.Post, new { @id = "demo-form2", @class = "form-horizontal form-label-left" }))
+        {
+            <input type="hidden" id="RoleId" name="RoleId" value="@Model.RoleId" />
+            foreach (var permissionGroup in Model.Permissions.GroupBy(r => r.PageName))
+            {
+                <div style="margin: 0; padding-bottom: 3px !important" class="row">
+                    <span class="col-12">
+                        <strong><label id="@permissionGroup.Key" style="color: black; font-size: 15px;" class="control-label">@Regex.Replace(permissionGroup.Key, @"(\p{Ll})(\p{Lu})", "$1 $2")</label></strong>
+                    </span>
+                    <br />
+                    <span class="material-input col-12 mt-3">
+                        @foreach (var permission in permissionGroup.ToList())
+                        {
+                            <span style="margin-left: 20px; display: inline-block">
+                                @if (permission.IsSelected)
+                                {
+                                    <input style="margin: 5px" checked type="checkbox" id="Permission_@permission.Id" name="Permission_@permission.Id" value="@permission.IsSelected" class="option control-label">
+                                    <label for="Permission_@permission.Id">
+                                        @Localizer[Regex.Replace(permission.PermissionKey, @"(\p{Ll})(\p{Lu})", "$1 $2")]
+                                    </label>
+                                }
+                                else
+                                {
+                                    <input style="margin: 5px" type="checkbox" id="Permission_@permission.Id" name="Permission_@permission.Id" value="@permission.IsSelected" class="option control-label">
+                                    <label for="Permission_@permission.Id">
+                                        @Localizer[Regex.Replace(permission.PermissionKey, @"(\p{Ll})(\p{Lu})", "$1 $2")]
+                                    </label>
+                                }
+                            </span>
+                        }
+                        <hr />
+                    </span>
+                </div>
+            }
+
+            <div class="text-center">
+                <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Submit"]</button>
+            </div>
+            <br />
+            <br />
+        }
+
+    </div>
+</div>
+@section JavaScript{
+    <script>
+        $('.tms-management').addClass("active");
+        $('.tms-sub-roles').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+    </script>
+}
+

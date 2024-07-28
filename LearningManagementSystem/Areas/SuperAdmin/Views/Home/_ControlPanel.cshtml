@@ -1,0 +1,216 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.SuperAdmin>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using System.Text.RegularExpressions;
+
+<style>
+    .card {
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+        padding: 10px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2B61AE;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2B61AE;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+    .w-80 {
+        width: 80%;
+    }
+
+    .w-10 {
+        width: 10%;
+    }
+
+    .info {
+        border-radius: 100px;
+        background-color: #eee;
+        width: 30px;
+        height: 30px;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+        cursor: pointer;
+    }
+
+    .clr-field{
+        display: contents !important;
+    }
+
+    .clr-field button{
+        z-index:100;
+        border-radius:100px;
+        height:30px;
+        width:30px;
+    }
+</style>
+
+<div class="row p-4 pb-5 mb-5">
+    <div class="col-12 mb-5 d-flex justify-content-between">
+        <div class="w-10 d-flex align-items-center">
+            <div class="d-flex align-items-center justify-content-center info" onclick="ShowInfo()">
+                <i class="fa fa-exclamation"></i>
+            </div>
+        </div>
+        <div class="w-80">
+            <h1 class="text-center">@Localizer["Control Panel"]</h1>
+        </div>
+        <div class="w-10">
+            <button class="tms-save-btn" onclick="ShowAddMore()">@Localizer["Add More"]</button>
+        </div>
+    </div>
+
+    <div class="col-12 mb-3">
+        <h2>@Localizer["Settings"]</h2>
+    </div>
+    <div class="col-12 row mb-4">
+        <div class="col-12 mb-3 d-flex flex-column align-items-center">
+            <img src="@ViewBag.Logo" class="shadow-sm p-2" style="width:300px;height:100px; border-radius:10px" alt="@Localizer["No Logo"].Value" id="Logo" />
+            <div class="form-group">
+                <div class="col-md-12 col-sm-6 col-xs-12">
+                    <label class="custom-file-upload">
+                        <input type="file" accept="image/*" onchange="UploadProfilePhoto(event , true)" />
+                        <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload English Logo"]
+                    </label>
+                    <input type="hidden" id="ImageUrl" />
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-3 d-flex flex-column align-items-center">
+            <img src="@ViewBag.LogoAr" class="shadow-sm p-2" style="width:300px;height:100px; border-radius:10px" alt="@Localizer["No Logo"].Value" id="LogoAr" />
+            <div class="form-group">
+                <div class="col-md-12 col-sm-6 col-xs-12">
+                    <label class="custom-file-upload">
+                        <input type="file" accept="image/*" onchange="UploadProfilePhoto(event ,false)" />
+                        <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload Arabic Logo"]
+                    </label>
+                    <input type="hidden" id="ImageUrlAr" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+            <label class="control-label col-xs-6 tms-label" for="Name">
+                @Localizer["Site Name in English"]<span class="required">*</span>
+            </label>
+            <div class="col-lg-12">
+                <input class="form-control col-md-7 col-xs-12 tms-input" id="NameEnglish" value="@ViewBag.NameEnglish" onchange="ChangeSettings()" />
+            </div>
+        </div>
+        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+            <label class="control-label col-xs-6 tms-label" for="Name">
+                @Localizer["Site Name in Arabic"]<span class="required">*</span>
+            </label>
+            <div class="col-lg-12">
+                <input class="form-control col-md-7 col-xs-12 tms-input" id="NameArabic" value="@ViewBag.NameArabic" onchange="ChangeSettings()" />
+            </div>
+        </div>
+        <div class="form-group col-lg-2 col-sm-6 col-xs-6">
+            <label class="control-label col-xs-6 tms-label" for="Name">
+                @Localizer["Primary Site Color"]<span class="required">*</span>
+            </label>
+            <div class="col-lg-12">
+                <input class="form-control col-md-7 col-xs-12 tms-input coloris" id="Color" value="@ViewBag.Color" onchange="ChangeSettings()" />
+            </div>
+        </div>
+        <div class="form-group col-lg-2 col-sm-6 col-xs-6">
+            <label class="control-label col-xs-6 tms-label" for="Name">
+                @Localizer["Secondary Site Color"]<span class="required">*</span>
+            </label>
+            <div class="col-lg-12">
+                <input class="form-control col-md-7 col-xs-12 tms-input coloris" id="SecondaryColor" value="@ViewBag.SecondaryColor" onchange="ChangeSettings()" />
+            </div>
+        </div>
+    </div>
+    <div class="col-12 mb-4">
+        <h2>@Localizer["Permissions"]</h2>
+    </div>
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 col-12 mb-4">
+            <div class="col-12 card row flex-row justify-content-between">
+                <div class="col-lg-8 col-6 d-flex align-items-center">
+                    <h5 class="mb-0">@Regex.Replace(item.Name, "([a-z])([A-Z])", "$1 $2")</h5>
+                </div>
+                <div class="col-lg-4 col-6 d-flex justify-content-end align-items-center">
+                    <label class="switch mb-0 flip">
+                        <input type="checkbox" @(item.Show ? "checked" : "") onchange="SetValue(@item.Id)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    Coloris({
+        el: '.coloris',
+        format: 'hex',
+        swatches: [
+            '#264653',
+            '#2a9d8f',
+            '#e9c46a',
+            '#f4a261',
+            '#e76f51',
+            '#d62828',
+            '#023e8a',
+            '#0077b6',
+            '#0096c7',
+            '#00b4d8',
+            '#48cae4',
+        ]
+    }); 
+</script>

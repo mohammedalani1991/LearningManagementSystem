@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+<div class="tms_modules d-none d-lg-flex">
+
+    @if (AuthenticationHelper.CheckAuthentication("Area", "Management", User.Identity.Name))
+    {
+        <div class="tms-management area" onclick="OpenArea('management')">
+            <div class="text-center">
+                <i class="fa fa-gears"></i>
+            </div>
+            <div>@Localizer["Management"]</div>
+        </div>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("Area", "ManageCMS", User.Identity.Name))
+    {
+        <div class="tms-cms area" onclick="OpenArea('cms')">
+            <div class="text-center">
+                <i class="fa fa-gears"></i>
+            </div>
+            <div>@Localizer["Manage CMS"]</div>
+        </div>
+    }
+
+    @if (AuthenticationHelper.CheckAuthentication("Area", "ManageCourses", User.Identity.Name))
+    {
+        <div class="tms-courses area" onclick="OpenArea('courses')">
+            <div class="text-center">
+                <i class="fa fa-gears"></i>
+            </div>
+            <div>@Localizer["Manage Courses"]</div>
+        </div>
+    }
+
+    @if (AuthenticationHelper.CheckAuthentication("Area", "ManageQuestions", User.Identity.Name))
+    {
+        <div class="tms-questions area" onclick="OpenArea('questions')">
+            <div class="text-center">
+                <i class="fa fa-gears"></i>
+            </div>
+            <div>@Localizer["Manage Questions"]</div>
+        </div>
+    }
+
+    @if (AuthenticationHelper.CheckAuthentication("Area", "ManageReports", User.Identity.Name))
+    {
+        <div class="tms-reports area" onclick="OpenArea('reports')">
+            <div class="text-center">
+                <i class="fa fa-gears"></i>
+            </div>
+            <div>@Localizer["Reports"]</div>
+        </div>
+    }
+</div>

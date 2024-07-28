@@ -1,0 +1,114 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralizationViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Details"];
+}
+<style>
+    .headings th {
+        background: #00BFF3;
+        color: #ffffff;
+        height: 48px;
+        font-weight: normal;
+    }
+</style>
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div>
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Details"]
+            </div>
+        </div>
+        <div class="x_content">
+                <table class="table tms-details">
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Title"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.Title)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Description"]</td>
+                        <td class="tms-details-data">@Html.Raw(Model.Description)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Generalization Type"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.GeneralizationTypeId.GetValueOrDefault(0), ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Job"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.JobId.GetValueOrDefault(0), ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Branch"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetBrancheById(Model.BranchId.GetValueOrDefault(0), ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Status"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status).Name</td>
+                    </tr>
+
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Created On"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Created By"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Select Employees"]</td>
+                        <td class="tms-details-data">
+                            <div class="table-responsive">
+                                <table class="tms-table">
+                                    <thead>
+                                        <tr class="tms-headings">
+                                            <th>
+                                                @Localizer["User Number"]
+                                            </th>
+                                            <th>
+                                                @Localizer["Full Name"]
+                                            </th>
+                                            <th>
+                                                @Localizer["Gender"]
+                                            </th>
+                                            <th>
+                                                @Localizer["Job"]
+                                            </th>
+                                            <th>
+                                                @Localizer["Branch"]
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.GeneralizationEmployees)
+                                        {
+                                            <tr class="tms-tr">
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.ContactId)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.UserName)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.UserGender)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.UserJob)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.UserBranch)
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+</div>
+    </div>
+</div>

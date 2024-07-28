@@ -1,0 +1,128 @@
+﻿@inject SignInManager<IdentityUser> SignInManager
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using System.Globalization
+@inject IViewLocalizer Localizer
+@{
+    var IsTrainer = AuthenticationHelper.CheckIsTrainer(User.Identity.Name);
+    var IsStudent = AuthenticationHelper.CheckIsStudent(User.Identity.Name);
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+<div class="col-12 dropdown d-block d-lg-none">
+    <button class="btn w-100 form-select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span id="nameprofile">
+            <i class="fa-solid fa-user mx-3"></i>@Localizer["Personal Info"]
+        </span>
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            <button class="tablinks dropdown-item" onclick="openprof(event, 'Personal')">
+                <i class="fa-solid fa-user mx-3"></i>@Localizer["Personal Info"]
+            </button>
+        </li>
+        <li>
+
+            <button class="tablinks dropdown-item" onclick="openprof(event, 'E-Mail');ShowChangeEmail()">
+                <i class="fa-solid fa-envelope mx-3"></i>@Localizer["E-Mail Address"]
+            </button>
+        </li>
+        <li>
+            <button class="tablinks dropdown-item" onclick="openprof(event, 'Password');ShowPassword()">
+                <i class="fa-solid fa-lock mx-3"></i>@Localizer["Password"]
+            </button>
+        </li>
+        <li>
+            <button class="tablinks dropdown-item" onclick="openprof(event, 'Calendar')">
+                <i class="fa-solid fa-calendar-days mx-3"></i>@Localizer["Calendar"]
+            </button>
+        </li>
+        @if (IsStudent)
+        {
+            <li>
+                <button class="tablinks dropdown-item" onclick="openprof(event, 'Certificates')">
+                    <i class="fa-solid fa-certificate mx-3"></i>@Localizer["Certificates"]
+                </button>
+            </li>
+            <li>
+                <button class="tablinks dropdown-item" onclick="openprof(event, 'MyCourses');GetStudentHomePage()">
+                    <i class="fa-solid fa-certificate mx-3"></i>@Localizer["My Courses"]
+                </button>
+            </li>
+            <li>
+                <button class="tablinks dropdown-item" onclick="openprof(event, 'MyBalance');GetBalanceHistory()">
+                    <i class="fa-solid fa-scale-balanced mx-3"></i>@Localizer["Balance History"]
+                </button>
+            </li>
+        }
+        @if (IsTrainer)
+        {
+            <li>
+                <button class="tablinks dropdown-item" onclick="    openprof(event, 'MyCourses'); GetTrainerViewCourses(); GetTrainerViewCoursePackages()">
+                    <i class="fa-solid fa-certificate mx-3"></i>@Localizer["My Courses"]
+                </button>
+            </li>
+            <li>
+                <button class="tablinks dropdown-item" onclick="openprof(event, 'MySupportCourses');GetTrainerViewSupportCourses()">
+                    <i class="fa-solid fa-certificate mx-3"></i>@Localizer["Support Courses"]
+                </button>
+            </li>
+        }
+    </ul>
+</div>
+<div class="tab d-none d-lg-flex col-12 col-xl-2 col-md-3 col-w-user nav flex-column nav-pills text-start px-0">
+    <button name="PersonalBtn" class="tablinks nav-link" onclick="openprof(event,'Personal')" id="defaultOpen">
+        <i class="fa-solid fa-user mx-3"></i>@Localizer["Personal Info"]
+    </button>
+
+    <button class="tablinks nav-link" onclick="openprof(event, 'E-Mail');ShowChangeEmail()">
+        <i class="fa-solid fa-envelope mx-3"></i>@Localizer["E-Mail Address"]
+    </button>
+
+    <button class="change-password tablinks nav-link" onclick="openprof(event, 'Password');ShowPassword()">
+        <i class="fa-solid fa-lock mx-3"></i>@Localizer["Password"]
+    </button>
+
+    @* <button class="tablinks nav-link" onclick="openprof(event, 'DeleteAccount')">
+    <i class="fa-solid fa-trash mx-3"></i>@Localizer["Delete Account"]
+    </button>*@
+    <button class="tablinks nav-link" onclick="openprof(event, 'Calendar')">
+        <i class="fa-solid fa-calendar-days mx-3"></i>@Localizer["Calendar"]
+    </button>
+    @if (IsStudent)
+    {
+        <button class="tablinks nav-link" onclick="openprof(event, 'Certificates')">
+            <i class="fa-solid fa-certificate mx-3"></i>@Localizer["Certificates"]
+        </button>
+        <button class="tablinks nav-link" onclick="openprof(event, 'MyCourses');GetStudentHomePage()">
+            <i class="fa-solid fa-certificate mx-3"></i>@Localizer["My Courses"]
+        </button>
+        <button class="tablinks nav-link" id="BalanceBtn" onclick="openprof(event, 'MyBalance');GetBalanceHistory()">
+            <i class="fa-solid fa-scale-balanced mx-3"></i>@Localizer["Balance History"]
+        </button>
+    }
+    @if (IsTrainer)
+    {
+        <button class="tablinks nav-link" onclick="openprof(event, 'MyCourses');GetTrainerViewCourses();GetTrainerViewCoursePackages()">
+            <i class="fa-solid fa-certificate mx-3"></i>@Localizer["My Courses"]
+        </button>
+        @if (AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+        {
+            <button class="tablinks nav-link" onclick="openprof(event, 'MySupportCourses');GetTrainerViewSupportCourses()">
+                <i class="fa-solid fa-certificate mx-3"></i>@Localizer["Support Courses"]
+            </button>
+        }
+    }
+</div>
+
+<script>
+
+
+</script>
+<script>
+    function AccountProfileToggles() {
+        if ($("#EditCompanyToggle").is(":hidden"))
+            return;
+        $(".tms-nav-div").toggle();
+        $("#myTabContent").toggle();
+    }
+</script>

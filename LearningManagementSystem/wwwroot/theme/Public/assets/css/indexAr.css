@@ -1,0 +1,244 @@
+@font-face {
+    font-family: 'Al-jazeera';
+    src: url('Font/ArbFONTS-Al-Jazeera-Arabic-Regular.ttf') format('truetype');
+}
+
+/*@media (max-width: 1243px) {
+    .navbar-expand-lg .navbar-collapse {
+        display: none !important;
+        flex-basis: auto;
+    }
+    .navbar-brand{
+        display:flex !important;
+    }
+}*/
+html,
+body*:not(input){
+    font-family: 'Al-jazeera' !important;
+}
+
+
+.fa-arrow-left {
+    transform: rotateZ(180deg);
+}
+
+.fa-angle-left {
+    transform: rotateZ(180deg);
+}
+.courses-tab button {
+    float: right;
+    margin: 0 0 0px 15px;
+    font-size:17px;
+}
+.fa-arrow-right {
+    transform: rotateZ(180deg);
+}
+
+.fa-angle-right {
+    transform: rotateZ(180deg);
+}
+
+.fw-student {
+    padding-right: 12px;
+}
+.float-right {
+    float: left !important;
+}
+
+.float-left {
+    float: right !important;
+}
+
+.dropdown-menu li {
+    text-align: right;
+}
+
+    .dropdown-menu li a i {
+        /*width: 18px;*/
+        height: 18px;
+        color: #000;
+        /*margin-left: 7.2px;*/
+    }
+@media screen and (min-width: 1370px) {
+    .fw-student {
+        padding-right: 20px;
+    }
+
+    .Students .swiper-slide {
+        margin-right: 0px !important;
+    }
+}
+
+.Students .swiper-slide {
+    padding: 43px 36px 43px 0;
+}
+
+@media screen and (min-width: 1600px) {
+    .Students .swiper-slide {
+        display: flex;
+        align-items: center;
+        padding: 43px 36px 34px 0;
+        margin-left: 0px !important;
+    }
+}
+
+@media screen and (min-width: 992px) {
+    .brk-btn::after {
+        content: "";
+        background: #8d868c;
+    }
+}
+
+#Projects-Details .btn-primary {
+    width: 278.81px;
+    height: 63.7px;
+    margin-right: 0px;
+    margin-left: 44px;
+}
+
+.Search {
+    margin-right: 0px;
+    margin-left: 40px;
+}
+
+.select2C {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+@media only screen and (min-width: 992px) {
+    .Search {
+        margin-right: 0px;
+        margin-left: 40px;
+    }
+
+    .select2C {
+        width: 303.83px;
+        height: 65px;
+        margin-right: 0px;
+        margin-left: 40px;
+        border-color: #BBCAFF;
+        background-color: #fff0;
+    }
+}
+
+.div-img-title .position-absolute img {
+    transform: rotateZ(180deg);
+}
+
+.border-padding-left {
+    border-left: 0;
+    border-right: 1px solid #D6D6D6;
+    padding-left: 0px;
+    padding-right: 43px;
+    margin-bottom: 78px;
+}
+
+.blogs-div {
+    padding-left: 0px;
+    border-left: none;
+    border-right: none;
+    padding-right: 34px;
+    border-right: 5px solid var(--swiper-theme-color) !important;
+    border-left: 1px solid #D6D6D6 !important;
+}
+
+.Blogs-card {
+    padding-left: 0;
+    padding-right: 23px;
+}
+
+#Blogs .Search {
+    margin-left: 40px;
+    margin-right: 0;
+}
+
+#Blogs .select2C {
+    margin-right: 0;
+    margin-left: 40px;
+}
+
+#Blogs input[type="date"] {
+    margin-right: 0;
+    margin-left: 12px;
+}
+
+    #Blogs input[type="date"]:before {
+        right: auto;
+        left: 6px;
+    }
+
+.tap-Profile .nav-pills .nav-link:first-child {
+    border-radius: 0 12px 0 0;
+}
+
+.tap-Profile .nav-pills .nav-link:last-child {
+    border-radius: 0 0 12px 0;
+}
+
+.tap-Profile .nav-link {
+    padding: 0 10px 0 0;
+    font-size:21px; 
+}
+
+.tabcontent {
+    padding-right: 50px;
+    border-left: none;
+    border-right: 1px solid #D6D6D6;
+    padding-left: 47px;
+}
+
+.Blogs-card .Blogs-user-name {
+    margin-right: 0;
+    margin-left: 38px;
+}
+
+@media only screen and (max-width: 1400px) {
+    .tap-Profile .nav-link {
+        font-size: 18px;
+    }
+}
+
+@media only screen and (max-width: 992px) {
+    .Blogs-card .Blogs-user-name {
+        margin-right: 0;
+        margin-left: 20px;
+    }
+    .tabcontent {
+        border-left: none;
+        padding: 20px 0px;
+        border-right: unset;
+    }
+}
+
+#CurrentPasswordFrm .end-0 {
+    left: 0 !important;
+    right: unset !important;
+}
+
+input[type="email"] {
+    text-align: right;
+}
+
+.video-title {
+    margin-left: 0px;
+    margin-right: 25px;
+}
+
+.video-text {
+    margin-left: 0px;
+    margin-right: 25px;
+}
+
+@media screen and (min-width: 992px) {
+
+    .video-title {
+        margin-left: 0px;
+        margin-right: 20px;
+    }
+
+    .video-text {
+        margin-left: 0px;
+        margin-right: 20px;
+    }
+}

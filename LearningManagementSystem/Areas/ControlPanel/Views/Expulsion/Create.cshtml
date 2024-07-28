@@ -1,0 +1,83 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@model DataEntity.Models.ViewModels.ExpulsionViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Add Expulsion"];
+    var modules = LookupHelper.GetModules(ViewBag.LangId);
+    var languages = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), ViewBag.LangId);
+    var statuses = LookupHelper.GetStatuses(ViewBag.LangId);
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add Expulsion"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/Expulsion/Create" method="post" id="Expulsion-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ExpelledFrom">
+                                @Localizer["Student Expelled From"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.ExpelledFrom, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" ,type="date"} })
+                                @Html.ValidationMessageFor(model => model.ExpelledFrom, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                         <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ExpelledTo">
+                                @Localizer["Student Expelled To"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.ExpelledTo, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" ,type="date"} })
+                                @Html.ValidationMessageFor(model => model.ExpelledTo, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ExpulsionStart">
+                                @Localizer["Expulsion Start"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.ExpulsionStart, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" ,type="date"} })
+                                @Html.ValidationMessageFor(model => model.ExpulsionStart, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ExpulsionEnd">
+                                @Localizer["Expulsion End"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.ExpulsionEnd, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" ,type="date"} })
+                                @Html.ValidationMessageFor(model => model.ExpulsionEnd, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name",(int)GeneralEnums.StatusEnum.Active), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/js/Expulsion/Expulsion.js"></script>

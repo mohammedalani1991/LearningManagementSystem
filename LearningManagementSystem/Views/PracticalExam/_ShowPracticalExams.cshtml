@@ -1,0 +1,92 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model IEnumerable<DataEntity.Models.EfModels.PracticalEnrollmentExam>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    bool enroll = ViewBag.Enroll;
+    bool NeedApproval = ViewBag.NeedApproval;
+
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var types = lookups[GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString()];
+    Layout = null;
+}
+
+@if (enroll)
+{
+    if (!NeedApproval)
+    {
+        <div class="hauto-Exam-1034 h-100">
+            @if (!Model.Any())
+            {
+                <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+            }
+            else
+            {
+                <input id="EnrollTeacherCourseId" type="hidden" value="@ViewBag.EnrollTeacherCourseId" />
+                @foreach (var item in Model)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row justify-content-between">
+                                <div class="col-12 col-lg">
+                                    <h4 class="card-title">@item.PracticalExam.Name</h4>
+                                    <p class="card-text text-primarycolor">@Localizer["Start Date:"] @LookupHelper.ConvertTimeToSystemTimeZone(item.StartDate) </p>
+                                    <p class="card-text text-primarycolor">@Localizer["End Date:"]  @LookupHelper.ConvertTimeToSystemTimeZone(item.EndDate) </p>
+                                    <h5> @LookupHelper.GetLookupDetailsById(item.TypeId??0 , (int)ViewBag.LangId)?.Name</h5>
+                                </div>
+                                <div class="col-12 col-lg d-flex flex-lg-column justify-content-between align-items-end text-end">
+                                    <p class="card-text text-primarycolor"></p>
+                                    @if (AuthenticationHelper.CheckSuperAuthentication("MarkAdoptionForPracticalExam"))
+                                    {
+                                        if (item.MarkAdoption == true)
+                                        {
+                                            <button class="btn btn-primary" onclick="ShowPracticalExamMarks(@item.Id)"><i class="fa-regular fa-eye"></i> @Localizer["Show Marks"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button disabled class="btn btn-primary"><i class="fa-regular fa-eye-slash"></i> @Localizer["Not Published Yet"]</button>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div>
+            <p>@Localizer["You need to check the [Pre Requests] tab to can see the content"]</p>
+        </div>
+    }
+}
+
+
+<div class="modal fade" id="ShowPracticalExamMarks" tabindex="-1" aria-labelledby="ShowAddPointsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div id='ShowPracticalExamMarksDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+    function ShowPracticalExamMarks(id) {
+        $.ajax({
+            type: "GET",
+            url: "/PracticalExam/ShowPracticalExamMarks/",
+            data: { practicalEnrollmentExamId: id, enrollTeacherCourseId: $("#EnrollTeacherCourseId").val() },
+            success: function (data) {
+                if (data !== null) {
+                    $('#ShowPracticalExamMarksDiv').html(data);
+                    $('#ShowPracticalExamMarks').modal("show");
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,172 @@
+﻿@model DataEntity.Models.ViewModels.ContactUsViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Core;
+@using DataEntity.Models.ViewModels
+@using Microsoft.AspNetCore.Antiforgery
+@inject IViewLocalizer Localizer
+@inject IAntiforgery Antiforgery
+@{
+     Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Contact Us"];
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var DataSystemSettings = ViewBag.SystemSettings as List<SettingViewModel>;
+}
+
+
+  <div id="contact-us">
+       
+        <div class="container-fluid p-0">
+
+            <div class="div-img-title">
+                <div class="position-absolute top-50 end-0 translate-middle-y">
+                    <img src="~/theme/Public/assets/images/About/A-right.png" class="img-fluid">
+                </div>
+                <div class="position-absolute top-50 start-50 translate-middle mx-auto w-100">
+                    <h1 class="fs-titlebag text-center text-white">@Localizer["Get In Touch"] </h1>
+                    <div class="spas-titlebag shadow-sm mx-auto"></div>
+                </div>
+                <div class="position-absolute top-50 start-0 translate-middle-y">
+                    <img src="~/theme/Public/assets/images/About/A-left.png" class="img-fluid">
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid container-lg">
+            <div class="row justify-content-around bg-white pm-contact">
+                <div class="col-12 col-lg-6 p-0 px-lg-3 border-right" data-aos="zoom-in-right">
+
+                    <h3 class="contact-title">@Localizer["Get In Touch With Us By Filling Contact Form Below"]</h3>
+                    <div>
+                         <form action="/ContactUs/AddContactUsForGuest" method="post" id="ContactUs-Create">
+                             
+                            <div class="mb-3">
+                                 @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control" ,placeholder =Localizer["Your Name"].Value } })
+                            </div>
+                            <div class="mb-3">
+                                  @Html.EditorFor(model => model.Email, new { htmlAttributes = new { required = "required",type="email", @class = "form-control" ,placeholder=Localizer["Your E-mail"].Value} })
+                            </div>
+                            <div class="mb-3">
+                                 @Html.EditorFor(model => model.Subject, new { htmlAttributes = new { required = "required", @class = "form-control" ,placeholder=Localizer["Subject"].Value} })
+                            </div>
+                            <div class="mb-3">
+                                @Html.TextAreaFor(model => model.Message,4,0, htmlAttributes: new {maxlength=1000, required = "required",@class = "form-control w-100", @style="height:179px !important ;" ,placeholder=Localizer["Start writing a message here (Max length/1000 Char)"].Value})
+                            </div>
+                              <div class="mb-3">
+                              <div class="g-recaptcha" data-sitekey="@DataSystemSettings.Where(r=> r.Name=="GoogleReCaptcha_Site_key").Select(r=>r.Value).FirstOrDefault()"></div>
+                            </div>
+                            
+                            <button type="submit"  class="btn btn-primary">@Localizer["Let's Connect"]</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-5 p-0" data-aos="zoom-in-left">
+                    <div class="mapouter">
+                        <div class="gmap_canvas">
+                          
+                            <iframe class="gmap_iframe" width="100%" frameborder="0" scrolling="no"
+                                    marginheight="0" marginwidth="0"
+                                    src="https://maps.google.com/maps?width=600&amp;height=420&amp;hl=en&amp;t=p&amp;z=17&amp;ie=UTF8&amp;iwloc=B&amp;output=embed&ll=@DataSystemSettings.Where(r=> r.Name=="ContactUs_Map_Lat_Long").Select(r=>r.Value).FirstOrDefault()"></iframe><a href="#">Minecraft Website</a>
+                        </div>
+                    </div>
+                 
+                    <div class="d-flex align-items-center datamap-contact">
+                        <i class="fa-solid fa-location-dot rounded-circle"></i>
+                        <div class="text-location">
+                            <h6>@Localizer["Address:"] </h6>
+                            <a href="#">@DataSystemSettings.Where(r=> r.Name=="ContactUs_Address").Select(r=>r.Value).FirstOrDefault() </a>
+                        </div>
+                    </div>
+
+                    <div class="row ">
+                        <div class="col-12 col-xl-7">
+                            <div class="d-flex align-items-center datamap-contact">
+                                <i class="fa-solid fa-envelope rounded-circle"></i>
+                                <div class="text-location">
+                                    <h6>@Localizer["E-mail:"] </h6>
+                                @{
+                                    var PEmail = "mailto:" + @DataSystemSettings.Where(r => r.Name == "ContactUs_Email").Select(r => r.Value).FirstOrDefault();
+                                }
+
+                                    <a href="@PEmail">@DataSystemSettings.Where(r=> r.Name=="ContactUs_Email").Select(r=>r.Value).FirstOrDefault() </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-5">
+                            <div class="d-flex align-items-center datamap-contact">
+                                <i class="fa-solid fa-phone rounded-circle"></i>
+                                <div class="text-location">
+                                    <h6>@Localizer["Phone:"]  </h6>
+                                      @{
+                                     var Ptel = "tel:" + @DataSystemSettings.Where(r => r.Name == "ContactUs_Phone").Select(r => r.Value).FirstOrDefault();
+                                   }
+                                    <a href="@Ptel" style="color: inherit;">@DataSystemSettings.Where(r=> r.Name=="ContactUs_Phone").Select(r=>r.Value).FirstOrDefault()</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+@section Scripts
+    {
+     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+     <script type="text/javascript">
+        $(function() {
+            var Token = '@tokenSet.RequestToken';
+            var ContactUsFrm = $('#ContactUs-Create');
+            var ReCaptchaError = '@Localizer["Please verify the ReCaptcha!"]';
+            var AddedSuccess = '@Localizer["Added successfully, Thank You."]';
+            var AddedError = '@Localizer["Failed added, Please try again!"]';
+            ContactUsFrm.submit(function (e) {
+                e.preventDefault();
+                ShowSpinner();
+                var response = grecaptcha.getResponse();
+                if (response.length == 0) {
+                     HideSpinner();
+                    toastr.error(ReCaptchaError);
+
+                } else {
+                    $.ajax({
+                        type: ContactUsFrm.attr('method'),
+                        url: ContactUsFrm.attr('action'),
+                        data: ContactUsFrm.serialize(),
+                        headers: {
+                            'RequestVerificationToken': Token
+                        },
+                        success: function(data) {
+                            HideSpinner();
+                            grecaptcha.reset();
+                            if (data == "-3") {
+                                toastr.error(ReCaptchaError);
+                            } else {
+
+                                if (data > 0) {
+                                    toastr.success(AddedSuccess);
+                                    $('#ContactUs-Create').find("input[type=text],input[type=email],textarea").each(function() {
+                                        $(this).val('');
+                                    });
+                                } else {
+                                    toastr.error(AddedError);
+                                }
+                            }
+                        },
+                        error: function(data) {
+                            HideSpinner();
+                            toastr.error(AddedError);
+                        },
+                    });
+                }
+            });
+
+        });
+
+    </script>
+    }

@@ -1,0 +1,126 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICourseService CourseService
+@inject ISemesterService SemesterService
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var semesters = SemesterService.GetSemestersList(ViewBag.LangId);
+}
+
+<form data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+    <div class="row justify-content-end mt-3 p-4">
+        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+            @Html.DropDownList("SemesterId", new SelectList(semesters, "Id", "Name"), Localizer["Select Semester"].Value, new { @class = "form-control chosen-select tms-ddl" , onchange="GetCourses(this)"})
+        </div>
+        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+            @Html.DropDownList("CourseId", new SelectList(Enumerable.Empty<SelectListItem>()), Localizer["Select Course"].Value, new { @class = "form-control chosen-select tms-ddl"})
+        </div>
+        <input class="btn btn-primary" type="button" onclick="AddCertificateAdoption()" value="@Localizer["Add Certificate Adoption"]" style="height:35px" />
+    </div>
+</form>
+
+<div class="row" style="min-height:69vh">
+    <div id="main" class="col-12"></div>
+</div>
+
+@section JavaScript
+    {
+    <script>
+        var Token = '@tokenSet.RequestToken';
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+
+        $('.tms-questions').addClass("active");
+        $('.tms-sub-CertificateAdoption').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_questions').addClass("active");
+
+        function GetCourses(current) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/MarkAdoption/GetCourses",
+                data: { id: current.value },
+                success: function (data) {
+                    $('#CourseId').empty();
+                    $('#CourseId').append($('<option>', { text: "@Localizer["Select Course"]" }));
+                    $.each(data, function (index, item) {
+                        $('#CourseId').append($('<option>', {
+                            value: item.id,
+                            text: item.courseName
+                        }));
+                    });
+
+                    $('.chosen-select').trigger('chosen:updated');
+                    HideSpinner();
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                $('#CourseId').empty();
+                HideSpinner();
+            });
+        }
+
+        function Get() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/CertificateAdoption/GetData",
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#main').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        Get()
+
+        function AddCertificateAdoption() {
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/CertificateAdoption/AddCertificateAdoption",
+                data: { semesterId: $("#SemesterId").val(), courseId: $("#CourseId").val() },
+                success: function (data) {
+                    HideSpinner();
+                    toastr.success(addMassege)
+                    Get()
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(addMassegeError)
+            });
+        }
+
+        function DeleteCertificateAdoption(id) {
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/CertificateAdoption/DeleteCertificateAdoption",
+                data: { id },
+                success: function (data) {
+                    HideSpinner();
+                    toastr.success(deleteMassege)
+                    Get()
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(deleteMassegeError)
+            });
+        }
+
+        function GetData(data){
+            $('#main').html(data);
+        }
+
+    </script>
+}

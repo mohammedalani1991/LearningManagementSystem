@@ -1,0 +1,1 @@
+﻿INSERT [dbo].[Currency] ( [Name], [Code], [Icon], [Value], [IsPrimary],[IsExchange] ,[SortOrder], [CreatedOn], [CreatedBy], [Status], [DeletedOn]) VALUES ( N'Dollar', N'USD', N'<i class="fa fa-dollar-sign"></i>', 1.000 , 1, 1 ,1 , CAST(N'2022-09-05T00:00:00.000' AS DateTime), N'salam-cs@hotmail.com', 1, NULL)

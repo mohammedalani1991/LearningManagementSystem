@@ -1,0 +1,975 @@
+﻿@using LearningManagementSystem.Core;
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Core.SystemEnums
+@model DataEntity.Models.EfModels.EnrollTeacherCourse
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using static LearningManagementSystem.Core.Constants
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject IEnrollTeacherCourseService EnrollTeacherCourseService
+@inject ISettingService SettingService
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    ViewData["Title"] = @Localizer["Enrollment Course"];
+    var enrollmentCourses = EnrollTeacherCourseService.GetEnrollmentCourseList((int)ViewBag.LangId);
+    var closeCourse = Boolean.Parse(SettingService.GetOrCreate(Constants.SystemSettings.Close_Course_After_Calculation, "false")?.Value);
+}
+
+@section Css{
+    <style>
+        .studentSummary td {
+            padding: .455rem;
+            color: #464545;
+            font-weight: 100;
+            border-bottom: 1px solid white;
+        }
+
+        .studentSummary-title {
+            background-color: #5580BE;
+            color: white !important;
+        }
+
+        .studentSummary-data {
+            background-color: #eef1f5;
+        }
+
+        .financialSummary td {
+            border-bottom: 1px solid #f5f5f5;
+            color: #464545;
+            font-weight: 100;
+        }
+
+        .financialSummary .first-financial {
+            color: #1a94db;
+            font-weight: 600;
+        }
+    </style>
+}
+@if (Model != null)
+{
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="tms-page-title">
+                    <div class="tms-title noPrint row" style="padding: 10px 25px 0px 25px;width:100%;">
+                        <h5 class="col-md-6 col-12">@ViewData["Title"]</h5>
+                        <input type="hidden" value="@Model.Id" id="EnrollTeacherCourseId" />
+                        <div class="col-md-6 col-12 d-flex justify-content-end ">
+                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "RegenerateCourseData", User.Identity.Name))
+                            {
+                                <button onclick="ShowRegenerateEnrollmentCourse(@Model.Id, @ViewBag.LangId)" type="button" class="tms-btn float-right">@Localizer["Regenerate Course Data"]</button>
+                            }
+                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "CalculateStudentsMark", User.Identity.Name) && Model.CalculationTypeId == (int)GeneralEnums.CourseType.Admin && (closeCourse ? (Model.IsCourseDone.HasValue ? !Model.IsCourseDone.Value : true) : true))
+                            {
+                                <button type="button" class="tms-btn float-right" style="background-color:orange" data-toggle="modal" data-target="#CalculateStudentsMarkModal">@Localizer["Calculate Students Mark"]</button>
+                            }
+                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "EditCertificateAdoption", User.Identity.Name) && Model.CertificateAdoption != true)
+                            {
+                                <button type="button" class="tms-btn float-right" onclick="ShowCertificates(@Model.Id,true)">@Localizer["Show Certificates"]</button>
+                            }
+                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "EditCertificateAdoption", User.Identity.Name) && Model.CertificateAdoption == true)
+                            {
+                                <button type="button" class="tms-btn float-right" onclick="ShowCertificates(@Model.Id,false)">@Localizer["Hide Certificates"]</button>
+                            }
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+                <div class="row noPrint" style="padding: 10px 25px 0px 25px;">
+
+                    <div class="studentSummary col-lg-6 col-sm-12 col-xs-12">
+                        <p style="text-align: start">@Localizer["Teacher Info"]</p>
+                        <div class="row">
+                            <table class="table col-lg-6 col-sm-12 col-xs-12">
+                                <tr>
+                                    <td class="studentSummary-title">@Localizer["Full Name"]</td>
+                                    <td class="studentSummary-data">@Model.Teacher.Contact.FullName</td>
+                                </tr>
+                                <tr>
+                                    <td class="studentSummary-title">@Localizer["Mobile"]</td>
+                                    <td class="studentSummary-data">@Model.Teacher.Contact.Mobile</td>
+                                </tr>
+                                <tr>
+                                    <td class="studentSummary-title"> @Localizer["Gender"]</td>
+                                    <td class="studentSummary-data">@LookupHelper.GetLookupDetailsById(Model.Teacher.Contact.GenderId ?? 0, ViewBag.LangId)?.Name</td>
+                                </tr>
+                                <tr>
+                                    <td class="studentSummary-title"> @Localizer["Created On"]</td>
+                                    <td class="studentSummary-data">@Model.Teacher.Contact.CreatedOn.ToString("MM/dd/yyyy")</td>
+                                </tr>
+
+                            </table>
+                            <table class="table col-lg-6 col-sm-12 col-xs-12">
+                                <tr>
+                                    <td class="studentSummary-title">@Localizer["Email"]</td>
+                                    <td class="studentSummary-data">
+                                        @Model.Teacher.Contact.Email
+                                    </td>
+                                </tr>
+                                <tr>
+
+                                    <td class="studentSummary-title">@Localizer["Country"]</td>
+                                    <td class="studentSummary-data">
+                                        @Model.Teacher.Contact.Country
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td class="studentSummary-title">@Localizer["City"]</td>
+                                    <td class="studentSummary-data">
+                                        @Model.Teacher.Contact.City
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                    <div class="financialSummary  col-lg-6 col-sm-12 col-xs-12">
+                        <p style="text-align: start">@Localizer["Course Info"]</p>
+                        <div class="row">
+                            <div class="col-lg-6 col-sm-12 col-xs-12">
+                                <table class="table">
+                                    <tr>
+                                        <td> @Localizer["Course Name"]</td>
+                                        <td class="first-financial">
+                                            @Model.CourseName
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>@Localizer["Course Duration"] (h)</td>
+                                        <td class="first-financial">
+                                            @Model.Course.CourseDuration
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td> @Localizer["Category Name"]</td>
+                                        <td class="first-financial">
+                                            @(Model.Course.Category?.Name ?? "")
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="col-lg-6 col-sm-12 col-xs-12">
+                                <table class="table">
+                                    <tr>
+                                        <td>@Localizer["Fees Amount"]</td>
+                                        <td class="first-financial">
+                                            @Model.Course.CoursePrice
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>@Localizer["Created By"]</td>
+                                        <td class="first-financial">
+                                            @Model.CreatedBy
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>@Localizer["Created On"]</td>
+                                        <td class="first-financial">
+                                            @Model.CreatedOn
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-md-12 mt-4">
+                    <input type='hidden' id='Id' value='@Model.Id' />
+                    <input type='hidden' id='LangId' value='@ViewBag.LangId' />
+                    <input type="hidden" value="@Model.Teacher.Id" name="TeacherId" id="TeacherId" />
+                    <input type="hidden" value="@Model.Teacher.ContactId" name="ContactId" id="ContactId" />
+                    <section>
+                        <div class="d-lg-none d-sm-block nav toggle my-auto" id="EditCompanyToggle" onclick="Toggles()">
+                            <a id="sidenav_toggle">
+                                <i class="fa fa-bars"></i>
+                            </a>
+                        </div>
+                        <div class="d-flex tms-nav-div-container" style="margin-bottom:40px;">
+                            <div class="tms-nav-div" onclick="Toggles()" style="width:20%;">
+                                <ul class="tms-col-nav flex-column" id="myTab" role="tablist">
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Edit", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link " id="firsttab" onclick="ShowEditEnrollmentCourse(@Model.Id, @ViewBag.LangId ,false)" data-toggle="tab" href="#firsttab" role="tab" aria-controls="firsttab" aria-selected="false">@Localizer["Edit Enrollment Course"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @* @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "ShowEnrollStudent", User.Identity.Name))
+                                {
+                                <li class="tms-col-nav-item">
+                                <div class="tms-col-nav-item-text">
+                                <a class="tms-nav-link active" id="secondtab" onclick="ShowEnrollStudent(@Model.Id, @ViewBag.LangId)"
+                                data-toggle="tab" href="#secondtab" role="tab" aria-controls="secondtab" aria-selected="true">@Localizer["Attachments for Enrolled Students"]</a>
+                                </div>
+                                <div class="tms-col-nav-item-icon">
+                                <i class="tms-dir-icon active"></i>
+                                </div>
+                                </li>
+                                <li class="tms-col-nav-sep">
+                                <hr />
+                                </li>
+                                }*@
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link active" id="secondtab" onclick="GetContent(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#secondtab" role="tab" aria-controls="secondtab" aria-selected="false">@Localizer["Course Content"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon active"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "ShowCountOfEnrolledStudents", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="theredtab" onclick="ShowCountOfEnrolledStudents(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#theredtab" role="tab" aria-controls="theredtab" aria-selected="false">@Localizer["Enrolled Students"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "View", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="forthtab" onclick="GetExamData(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#forthtab" role="tab" aria-controls="forthtab" aria-selected="false">@Localizer["Exams & Quizzes"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="fifthtab" onclick="GetPracticalExams(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#fifthtab" role="tab" aria-controls="fifthtab" aria-selected="false">@Localizer["Practical Exams"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="sixtab" onclick="GetAssignmentData(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#sixtab" role="tab" aria-controls="sixtab" aria-selected="false">@Localizer["Assignments"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollStudentAlerts", "View", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="eleventab" onclick="GetEnrollStudentAlertsData(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#eleventab" role="tab" aria-controls="eleventab" aria-selected="false">@Localizer["Student Alerts"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAllowUserRates", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="eighttab" onclick="GetAllowUserRatesData(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#eighttab" role="tab" aria-controls="eighttab" aria-selected="false">@Localizer["Allow User Rates"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("ManagementRates", "View", User.Identity.Name) && ViewBag.CheckManagmentRate == true && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="ninetab" onclick="GetEnrollManagementRates(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#ninetab" role="tab" aria-controls="ninetab" aria-selected="false">@Localizer["Management Rates"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("AcademicSupervisionRates", "View", User.Identity.Name) && ViewBag.CheckAcademicRate == true && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="tentab" onclick="GetEnrollAcademicSupervisionRates(@Model.Id, @ViewBag.LangId)"
+                                                   data-toggle="tab" href="#tentab" role="tab" aria-controls="tentab" aria-selected="false">@Localizer["Academic Supervision Rates"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuiz", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="seventab" onclick="GetQuizzesData(@Model.Id)"
+                                                   data-toggle="tab" href="#seventab" role="tab" aria-controls="seventab" aria-selected="false">@Localizer["Daily recitation"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("TeacherAttendances", "View", User.Identity.Name))
+                                    {
+                                        <li class="tms-col-nav-item">
+                                            <div class="tms-col-nav-item-text">
+                                                <a class="tms-nav-link" id="eighttab" onclick="GetTeacherAttendances(@Model.Id)"
+                                                   data-toggle="tab" href="#eighttab" role="tab" aria-controls="eighttab" aria-selected="false">@Localizer["Teacher Attendances"]</a>
+                                            </div>
+                                            <div class="tms-col-nav-item-icon">
+                                                <i class="font-awesome-icons tms-dir-icon"></i>
+                                            </div>
+                                        </li>
+                                        <li class="tms-col-nav-sep">
+                                            <hr />
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="tab-content" id="myTabContent" style="width:80%">
+                                <div id='GetData'>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id='ShowEnrollStudent' style="z-index: 1050" role="dialog" class='modal fade'>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='ShowEnrollStudentDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='RegenerateEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+            <div id='RegenerateEnrollmentCourseDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='ShowCountOfEnrolledStudents' style="z-index: 1050" role="dialog" class='modal fade'>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='ShowCountOfEnrolledStudentsDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='ShowAddNewStudent' style="z-index: 1050" role="dialog" class='modal fade'>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='ShowAddNewStudentDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='TransferStudent' style="z-index: 1050" role="dialog" class='modal fade'>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='TransferStudentDiv' class="modal-content">
+                <form id="TransferForm">
+                    <div class="row py-2 px-5">
+                        <h5 class="mb-3">@Localizer["Transfer"]</h5>
+                        <input id="TransferStudentId" type="hidden" />
+                        <div class="form-group col-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.LanguageId">
+                                @Localizer["Course"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("TransferCourseId", new SelectList(enrollmentCourses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="text-center col-12">
+                            <button class="tms-save-btn" type="button" onclick="TransferStudent()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    @*Assignment Model*@
+
+    <div class="modal fade" id="CreateEnrollCourseAssignment" tabindex="-1" aria-labelledby="CreateEnrollCourseAssignmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="CreateEnrollCourseAssignmentDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EditEnrollCourseAssignment" tabindex="-1" aria-labelledby="EditEnrollCourseAssignmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditEnrollCourseAssignmentDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DetailsEnrollCourseAssignment" tabindex="-1" aria-labelledby="DetailsEnrollCourseAssignmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DetailsEnrollCourseAssignmentDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DeleteEnrollCourseAssignment" tabindex="-1" aria-labelledby="DeleteEnrollCourseAssignmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DeleteEnrollCourseAssignmentDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ShowAssignmentQuestions" tabindex="-1" aria-labelledby="ShowAssignmentQuestionsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowAssignmentQuestionsDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ShowStudentsAssignment" tabindex="-1" aria-labelledby="ShowStudentsAssignmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowStudentsAssignmentDiv">
+            </div>
+        </div>
+    </div>
+
+    @*AllowUserRate Model*@
+
+    <div class="modal fade" id="CreateEnrollCourseAllowUserRate" tabindex="-1" aria-labelledby="CreateEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="CreateEnrollCourseAllowUserRateDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EditEnrollCourseAllowUserRate" tabindex="-1" aria-labelledby="EditEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditEnrollCourseAllowUserRateDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DetailsEnrollCourseAllowUserRate" tabindex="-1" aria-labelledby="DetailsEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DetailsEnrollCourseAllowUserRateDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DeleteEnrollCourseAllowUserRate" tabindex="-1" aria-labelledby="DeleteEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DeleteEnrollCourseAllowUserRateDiv">
+            </div>
+        </div>
+    </div>
+
+
+    @*Enroll Student Alerts Model*@
+    <div class="modal fade" id="CreateEnrollStudentAlert" tabindex="-1" aria-labelledby="CreateEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="CreateEnrollStudentAlertDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EditEnrollStudentAlert" tabindex="-1" aria-labelledby="EditEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditEnrollStudentAlertDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DetailsEnrollStudentAlert" tabindex="-1" aria-labelledby="DetailsEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DetailsCreateEnrollStudentAlertDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DeleteEnrollStudentAlert" tabindex="-1" aria-labelledby="DeleteEnrollCourseAllowUserRateLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DeleteEnrollStudentAlertDiv">
+            </div>
+        </div>
+    </div>
+    @*Exams Model*@
+
+    <div class="modal fade" id="CreateEnrollCourseExam" tabindex="-1" aria-labelledby="CreateEnrollCourseExamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="CreateEnrollCourseExamDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="EditEnrollCourseExam" tabindex="-1" aria-labelledby="EditEnrollCourseExamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditEnrollCourseExamDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DetailsEnrollCourseExam" tabindex="-1" aria-labelledby="DetailsEnrollCourseExamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DetailsEnrollCourseExamDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="DeleteEnrollCourseExam" tabindex="-1" aria-labelledby="DeleteEnrollCourseExamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DeleteEnrollCourseExamDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowExamQuestions" tabindex="-1" aria-labelledby="ShowExamQuestionsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowExamQuestionsDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowExamViewmodal" tabindex="-1" aria-labelledby="ShowExamViewmodalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowExamViewmodalDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowRegenerateExamQuestions" tabindex="-1" aria-labelledby="ShowRegenerateExamQuestionsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowRegenerateExamQuestionsDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowSubmittedExams" tabindex="-1" aria-labelledby="ShowSubmittedExamsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowSubmittedExamsDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowExamCorrection" tabindex="-1" aria-labelledby="ShowExamCorrectionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowExamCorrectionDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="BankExamQuestionsGetData" tabindex="-1" aria-labelledby="BankExamQuestionsGetDataLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="BankExamQuestionsGetDataDiv">
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ShowAddQuestions" tabindex="-1" aria-labelledby="ShowAddQuestionsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="ShowAddQuestionsDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ResultSubmitExam" tabindex="-1" aria-labelledby="ResultSubmitExamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" id="ResultSubmitExamDiv">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="ResultSubmitExamLabel"></h1>
+                    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                       aria-label="Close"></i>
+                </div>
+                <div class="text-center mt-5">
+                    <button class="btn btn-success" type="button" id="btnResultSubmitExamExam"><i class="fa fa-times"></i> @Localizer["Close"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id='AddRemoveTemplateExamQuestions' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='AddRemoveTemplateExamQuestionsDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    @*PracticalEnrollmentExam Models*@
+
+    <div id='ShowCreatePracticalEnrollmentExam' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowCreatePracticalEnrollmentExamDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='ShowEnrolledStudents' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowEnrolledStudentsDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='ShowAddSubjects' style="z-index: 1050;overflow-y:scroll;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowAddSubjectsDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='ShowAddTeachers' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowAddTeachersDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='ShowAddPoints' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowAddPointsDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    @*EnrollCourseQuiz Modals*@
+
+    <div id='ShowStudentForQuiz' style="z-index: 1050;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowStudentForQuizDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='ShowStudentQuizMarks' style="z-index: 1050;overflow-y:scroll;" role="dialog" class='modal  fade'>
+        <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+            <div id='ShowStudentQuizMarksDiv' class="modal-content">
+            </div>
+        </div>
+    </div>
+
+    @*CoursesContent Modals*@
+
+    <div class="modal fade" id="CreateCoursesContent" tabindex="-1" aria-labelledby="CreateCoursesContentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="CreateCoursesContentDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="EditCoursesContent" tabindex="-1" aria-labelledby="EditCoursesContentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditCoursesContentDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="DetailsCoursesContent" tabindex="-1" aria-labelledby="DetailsCoursesContentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DetailsCoursesContentDiv">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="DeleteCoursesContent" tabindex="-1" aria-labelledby="DeleteCoursesContentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="DeleteCoursesContentDiv">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="EditLecturesContent" tabindex="-1" aria-labelledby="EditLecturesContentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content" id="EditLecturesContentDiv">
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Expel -->
+    <div id="ExpelModal" class="modal fade">
+        <div class="modal-dialog modal-confirm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["Do you really want to Expel This Student?"]</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <input type="hidden" id="ExpelStudentId" />
+                    <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                    <button id="Expel_Modal" type="button" class="btn btn-danger shadow-lg" style="margin-top:6px" onclick="ExpelStudent()">@Localizer["Expel"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="CancelExpulsionModal" class="modal fade">
+        <div class="modal-dialog modal-confirm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box d-flex align-items-center justify-content-center" style="border:3px solid #60c7c1">
+                        <h1 class="m-0" style="color:#60c7c1">X</h1>
+                    </div>
+                    <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["Do you really want to Cancel Expulsion For This Student?"]</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <input type="hidden" id="CancelExpelStudentId" />
+                    <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                    <button id="Expel_Modal" type="button" class="btn btn-success shadow-lg" style="margin-top:6px" onclick="CancelExpulsion()">@Localizer["Cancel Expulsion"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="DelayModal" class="modal fade">
+        <div class="modal-dialog modal-confirm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box">
+                        <i class="fa fa-calendar"></i>
+                    </div>
+                    <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["By Delaying the Student you will Remove it and Return the Enrollment Fee to the Student"]</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <input type="hidden" id="DelayStudentId" />
+                    <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                    <button id="Expel_Modal" type="button" class="btn btn-danger shadow-lg" style="margin-top:6px" onclick="DelayStudent()">@Localizer["Delay"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="CalculateStudentsMarkModal" class="modal fade">
+        <div class="modal-dialog modal-confirm modal-dialog-centered" style="width:50vh !important">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box" style="border:3px solid orange">
+                        <i class="fa fa-calculator" style="color:orange"></i>
+                    </div>
+                    <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["Do you really want to Calculate All the Student Marks?"]</p>
+                    @if (closeCourse)
+                    {
+                        <p style="color:red ;font-size:12px">@Localizer["The Course Will be Closed And You will Not Be Able to Add or Edit it"]</p>
+                    }
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <input type="hidden" id="ExpelStudentId" />
+                    <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                    <button id="Expel_Modal" type="button" class="btn shadow-lg" style="margin-top:6px ;background-color:orange" onclick="CalculateMarks(@Model.Id)">@Localizer["Calculate"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section JavaScript{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let get = true;
+        var subjectCount;
+        var limit;
+        let subjectValues = {};
+        function Toggles() {
+            if ($("#EditCompanyToggle").is(":hidden"))
+                return;
+            $(".tms-nav-div").toggle();
+            $("#myTabContent").toggle();
+        }
+
+        $(document).ready(function () {
+            if ("@(!AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))" == "True") {
+                    $("#theredtab").click();
+                }
+                else if ("@AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name)" == "True") {
+                    $("#secondtab").click();
+                }
+            })
+
+            $(document).on('change', '.checkbox', function () {
+                if (this.checked)
+                    if ($("#Type").val() == 3)
+                        $('input:checkbox').not(this).prop('checked', "");
+            });
+
+
+            function GetTeacherAttendances(CourseId) {
+                ShowSpinner();
+                $.ajax({
+                    type: "Get",
+                    url: "/ControlPanel/EnrollmentCourse/GetTeacherAttendancesData",
+                    data: { CourseId: CourseId },
+                    success: function (data) {
+                        HideSpinner();
+                        $('#GetData').html(data);
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                    },
+                });
+            }
+
+            function CalculateMarks(CourseId) {
+                ShowSpinner();
+                $.ajax({
+                    type: "Get",
+                    url: "/ControlPanel/EnrollmentCourse/CalculateMarks",
+                    data: { CourseId: CourseId },
+                    success: function (data) {
+                        HideSpinner();
+                        toastr.success("@Localizer["Marks has Been Calculated"]");
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 500)
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        toastr.error("@Localizer["An Error Occurred"]");
+                    },
+                });
+            }
+
+            function ShowCertificates(id, show) {
+                ShowSpinner();
+                $.ajax({
+                    type: "Get",
+                    url: "/ControlPanel/EnrollmentCourse/ShowCertificates",
+                    data: { id, show },
+                    success: function (data) {
+                        HideSpinner();
+                        if (show)
+                            toastr.success("@Localizer["Certificates Can be Viewed"]");
+                        else
+                            toastr.success("@Localizer["Certificates are Hidden"]");
+
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 500)
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        toastr.error("@Localizer["An Error Occurred"]");
+                    },
+                });
+            }
+
+            $(".tms-nav-link").click(function (event) {
+                $(".tms-nav-link").removeClass("active");
+                $(".tms-col-nav-item-icon i").removeClass("active");
+                $(this).addClass("active");
+                $(this).parent().parent().children().eq(1).children().eq(0).addClass("active");
+            });
+
+            //$('.tms-courses').addClass("active");
+            //$('.tms-sub-EnrollmentCourse').addClass("active");
+            //$('.tms-sub-top-nav  .tms_sub_courses').addClass("active");
+
+
+            var editMassege = '@Localizer["Edited successfully"]';
+            var addMassege = '@Localizer["Added successfully"]';
+            var PassStudentMassege = '@Localizer["Pass successfully"]';
+            var deleteMassege = '@Localizer["Deleted successfully"]';
+            var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+            var PassStudentMassegeError = '@Localizer["An error occurred while  Passing"]';
+            var addMassegeError = '@Localizer["An error occurred while adding"]';
+            var editMassegeError = '@Localizer["An error occurred while editing"]';
+            var editMassegeErrorCount = '@Localizer["Make sure that student count larger than existing students"]';
+            var AddMassegeErrorInvalidData = '@Localizer["An error occurred while adding, You must add all the required fields!"]';
+            var RegenerateMassege = '@Localizer["Regenerated the course data successfully"]';
+            var RegenerateMassegeError = '@Localizer["An error occurred while regenerating the course data"]';
+            var AddMassegeErrorSameEnrollCourse = '@Localizer["The selected course that you trying to enroll for the trainer already enrolled before!"]';
+            var AddMassegeErrorInvalidCourseTime = '@Localizer["Please add valid days for the course!"]';
+            var FailMaxEnrollStudent = '@Localizer["You have exceeded the maximum number of students on the course!"]';
+            var FailExistsStudent = '@Localizer["The student you want to add already exists!"]';
+            var FailAgeAllowedForRegistration = '@Localizer["The student to be added does not meet the requirements of the course in terms of age allowed for registration!"]';
+            var HasPreRequestsCourse = '@Localizer["You cannot enroll in this course, Please check the [Prerequisites] tab and finish the required courses!"]';
+            var FailAgeGroup = '@Localizer["The student to be added does not meet the requirements of the course in terms of age group (Male, Female)!"]';
+            var AddMassegeErrorInvalidDates = '@Localizer["An error occurred while adding, You must add valid dates"]';
+            var EditMassegeErrorInvalidDates = '@Localizer["An error occurred while editing, You must add valid dates"]';
+            var RegenerateMassege = '@Localizer["Regenerated the exam questions data successfully"]';
+            var RegenerateMassegeError = '@Localizer["An error occurred while regenerating the exam questions"]';
+            var FailExamTemplateId = '@Localizer["You must select an exam template from the list!"]';
+            var editMassegeErrorQuestions = '@Localizer["An error occurred while editing, The questions have been answered by the students"]';
+            let AddSubjectMessage = '@Localizer["Please add Some Subjects Before"]';
+            let DeleteExamMessage = '@Localizer["you can't Delete an Exam with the Student in it"]';
+            let expelMassege = '@Localizer["Expelled successfully"]';
+            let expelMassegeError = '@Localizer["An error occurred while Expelling"]';
+            let CancelExpelMassege = '@Localizer["Expulsion Cancelled Successfully"]';
+            let CancelExpelMassegeError = '@Localizer["An error occurred while Cancelling"]';
+            var FailExpilled = '@Localizer["The Student Has Been Expelled Until"]';
+            let DelayMassege = '@Localizer["Delayed successfully"]';
+            let DelayMassegeError = '@Localizer["An error occurred while Delaying"]';
+        </script>
+        <script src="~/js/EnrollmentCourse/EnrollmentCourse.js?ver=18.1"></script>
+        <script src="~/js/EnrollmentExams/EnrollmentExams.js"></script>
+        <script src="~/js/PracticalQuestion/PracticalQuestion.js"></script>
+        <script src="~/js/PracticalEnrollmentExam/PracticalEnrollmentExam.js"></script>
+        <script src="~/js/PracticalExam/PracticalExam.js"></script>
+        <script src="~/js/EnrollmentAssignments/EnrollmentAssignments.js"></script>
+        <script src="~/js/EnrollCourseAllowUserRate/EnrollCourseAllowUserRate.js"></script>
+        <script src="~/js/EnrollmentQuizzes/EnrollmentQuizzes.js"></script>
+        <script src="~/js/EnrollCoursesContent/EnrollCoursesContent.js?ver=11.1"></script>
+        <script src="~/js/EnrollStudentAlert/EnrollStudentAlert.js"></script>
+    }
+}

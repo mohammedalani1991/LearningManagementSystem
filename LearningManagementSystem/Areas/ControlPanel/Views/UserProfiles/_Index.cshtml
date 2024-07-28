@@ -1,0 +1,333 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+
+@using LearningManagementSystem.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Contact>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Http
+@inject IViewLocalizer Localizer
+@inject IHttpContextAccessor _httpContextAccessor
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    string title = "Contacts";
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        title = LookupHelper.GetContactIndexPagesTitle((int)ViewBag.LangId)[ViewBag.ContactTypeId];
+    }
+    ViewData["Title"] = @Localizer[title];
+
+    var pageNo = _httpContextAccessor.HttpContext?.Request?.Query["page"].ToString() ?? "1";
+    pageNo = pageNo == string.Empty ? "1" : pageNo;
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="x_title">
+            <h1>@Localizer[title]</h1>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <form data-ajax="true" method="get" action="/ControlPanel/UserProfiles/GetContacts" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+
+                <div class="d-flex justify-content-end">
+                    @Html.Hidden("table")
+                    @Html.Hidden("pagination")
+                    @Html.Hidden("page")
+                    <div class="col-md-3 col-sm-3 col-xs-12">
+                        @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                    </div>
+                </div>
+                <input type="hidden" value="@ViewBag.ContactTypeId" id="StudentContactTypeId" name="StudentContactTypeId" />
+                <input type="hidden" value="@ViewBag.CompanyId" id="companyId" name="companyId" />
+                <input type="hidden" value="@ViewBag.ContactTypeId" id="contactTypeId" name="contactTypeId" />
+            </form>
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="FullName d-none">
+                                @Localizer["Full Name"]
+                            </th>
+                            <th class="Email d-none">
+                                @Localizer["Email"]
+                            </th>
+                            <th class="Mobile d-none">
+                                @Localizer["Mobile"]
+                            </th>
+                            <th class="Status d-none">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Create", User.Identity.Name))
+                                {
+                                    <a onclick="ShowCreateContact('@ViewBag.ContactTypeId','@ViewBag.CompanyId')" class="btn btn-sm btn-primary add-cursor my-0" title="@Localizer["Add"]">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                    @if (ViewBag.CompanyId != null)
+                                    {
+                                        <a onclick="ShowAssignStudent(@ViewBag.CompanyId)" class="btn btn-sm btn-primary add-cursor my-0" title="@Localizer["Assign"]">
+                                            <i class="fa fa-user-plus"></i>
+                                        </a>
+                                    }
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="FullName d-none">
+                                    @Html.DisplayFor(modelItem => item.FullName)
+                                </td>
+                                <td class="Email d-none">
+                                    @Html.DisplayFor(modelItem => item.Email)
+                                </td>
+                                <td class="Mobile d-none">
+                                    @Html.DisplayFor(modelItem => item.Mobile)
+                                </td>
+                                <td class="Status d-none">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedOn d-none">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td style="width: 25%;">
+
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Edit", User.Identity.Name))
+                                    {
+                                        <a onclick="ShowEditContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId,@ViewBag.CompanyId)" class="btn btn-sm btn-success add-cursor text-white" title="@Localizer["Edit"]">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "View", User.Identity.Name))
+                                    {
+                                        <a onclick="ShowDetailsContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" class="btn btn-sm btn-warning add-cursor text-white" title="@Localizer["Details"]">
+                                            <i class="fa fa-info"></i>
+                                        </a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Delete", User.Identity.Name))
+                                    {
+                                        <a onclick="ShowDeleteContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" class="btn btn-sm btn-danger add-cursor text-white" title="@Localizer["Delete"]">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "ResetPassword", User.Identity.Name) && item.UserProfiles.Any())
+                                    {
+                                        <a href="#" onclick="ShowResetPassword(@item.UserProfiles.First().Id)"
+                                           class="btn btn-sm btn-warning" title="@Localizer["Reset Password"]">
+                                            <i class="fa fa-key"></i>
+                                        </a>
+                                    }
+                                            </div>
+                                            </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <nav aria-label="Page navigation example" id="divPageing" class="text-center">
+                        @Html.PagedListPager(Model, page => Url.Action("GetContacts", "UserProfiles", new { companyId = ViewBag.CompanyId, page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "GetStudents" }))
+
+                    </nav>
+                }
+
+            </div>
+        </div>
+    </div>
+    <div id='CreateContact' style="z-index: 1050;" role="dialog" class='modal fade'>
+        <div class="modal-dialog err-pop">
+            <div id='CreateContactDiv' class="modal-content modal-content-larg" style="width: max-content;background-color: rgb(245, 245, 245)">
+
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='EditContact' style="z-index: 1050;" role="dialog" class='modal fade'>
+        <div class="modal-dialog err-pop">
+            <div id='EditContactDiv' class="modal-content modal-content-larg" style="width: max-content;background-color: rgb(245, 245, 245)">
+
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='DeleteContact' style="z-index: 1050;" role="dialog" class='modal fade'>
+        <div class="modal-dialog err-pop">
+            <div id='DeleteContactDiv' class="modal-content" style="width: max-content;background-color: rgb(245, 245, 245)">
+
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='DetailsContact' style="z-index: 1050;" role="dialog" class='modal fade'>
+        <div class="modal-dialog err-pop">
+            <div id='DetailsContactDiv' class="modal-content " style="width: max-content;background-color: rgb(245, 245, 245)">
+
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='AssignStudent' style="z-index: 1050;" role="dialog" class='modal fade'>
+        <div class="modal-dialog err-pop">
+            <div id='AssignStudentDiv' class="modal-content " style="width: max-content;background-color: rgb(245, 245, 245)">
+
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+        <div class="modal-dialog modal-dialog-centered">
+            <div id='EditTableDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+</div>
+
+<div id='ResetPassword' style="z-index: 1050; min-width: 40%;" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered" style=" min-width: 40%;">
+        <div id='ResetPasswordDiv' class="modal-content ">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>@Localizer["Change Password"]</h2>
+                    <div class="nav navbar-right panel_toolbox" data-dismiss="modal">
+                        <i class="fa fa-close"></i>
+                    </div>
+                </div>
+                <div class="ln_solid mt-5"></div>
+
+                <div class="x_content">
+                    <br />
+                    <form class="form-horizontal form-label-left" id="form1">
+                        <input type="hidden" id="userId" />
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Passwprd">
+                                @Localizer["Password"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-8 col-xs-12">
+                                <input type="password" name="Password" id="Password" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ConformPasswprd">
+                                @Localizer["Conform Password"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-8 col-xs-12">
+                                <input type="password" name="ConformPassword" id="ConformPassword" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="ln_solid mt-5"></div>
+                        <div class="text-center">
+                            <button data-dismiss="modal" class="btn btn-dark">@Localizer["Cancel"]</button>
+                            <button type="button" onclick="ResetPassword()" class="btn btn-success">@Localizer["Edit"]</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+        var Token = '@tokenSet.RequestToken';
+        window.addEventListener('load', function () {
+            $.validator.addMethod("custompassword",
+                function (value, element) {
+                    return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/.test(value);
+                },
+                "Password must be at least 8 characters long contain a number , an uppercase letter and at least 1 special character."
+            );
+
+            $("#form1").validate({
+                errorElement: "span",
+                rules: {
+                    Password: {
+                        required: true,
+                        custompassword :true
+                    },
+                    ConformPassword: {
+                        required: true,
+                        equalTo: "#Password"
+                    },
+
+                }
+            });
+        })
+
+        function ShowResetPassword(id) {
+            $("#Password-error , #ConformPassword-error").remove();
+            $("#form1").trigger("reset");
+            $("#userId").val(id);
+            $("#ResetPassword").modal("show");
+        }
+
+        function ResetPassword() {
+            if ($("#form1").valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: "/ControlPanel/UserProfiles/ResetPassword",
+                    data: {
+                        id: $("#userId").val(), password: $("#Password").val(), page : @pageNo, searchText : '@ViewBag.SearchText'
+                    },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    dataType: "json",
+                    success: function (msg) {
+                        $("#ResetPassword").modal("hide");
+                        toastr.success(changePassowrdSuccessfully);
+                    },
+                    error: function (req, status, error) {
+                        toastr.error(changePassowrdError);
+                    }
+                });
+            }
+        }
+</script>
+
+<script>
+    table = '@ViewBag.Table'.split(',');
+
+    function GetData(data) {
+        removeAllChildNodes()
+        $('#GetData').html(data);
+        let s = ["FullName", "Email", "Mobile", "Status", "CreatedOn"];
+        GetTable(s);
+    }
+</script>
+<script>
+     var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+    var changePassowrdSuccessfully = '@Localizer["Your password has been changed"]';
+    var changePassowrdError = '@Localizer["Error while Changing Password"]';
+
+
+
+</script>
+

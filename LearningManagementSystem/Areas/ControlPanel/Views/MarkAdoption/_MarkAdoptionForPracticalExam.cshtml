@@ -1,0 +1,47 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model IEnumerable<DataEntity.Models.EfModels.MarkAdoptionForPracticalExam>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject IPracticalExamService PracticalExamService
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div>
+            <h4>@Localizer["Practical Exams"]</h4>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Adopt"]
+                            </th>
+                            <th>
+                                @Localizer["Exam Name"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    <input type="checkbox" onclick="AdoptedPracticalExam(@item.PracticalExamId ,this)" @(item.Value == true ? "checked" : "") />
+                                </td>
+                                <td>
+                                    @PracticalExamService.GetPracticalExamByIdWitoutStatus(item.PracticalExamId??0, ViewBag.LangId)?.Name
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

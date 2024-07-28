@@ -1,0 +1,26 @@
+﻿@using X.PagedList.Mvc.Core
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel;
+@inject ILookupService lookupService
+
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel bg-transparent">
+        <div class="x_title">
+            <h1>@Localizer["Dashboard"]</h1>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+
+        </div>
+    </div>
+</div>
+
+@section JavaScript
+{
+    <script>
+        $('.tms-dashboard').addClass("active");
+    </script>
+}

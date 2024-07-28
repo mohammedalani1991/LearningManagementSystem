@@ -1,0 +1,295 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollCourseExamViewModel
+@using DataEntity.Models.ViewModels;
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var ViewBagListExamTemplatess = ViewBag.ListExamTemplates;
+    ViewBagListExamTemplatess.Add(new ExamTemplateViewModel { Name = Localizer["Select Exam Template"].Value, Id = 0 });
+    var ListExamTemplates = (List<ExamTemplateViewModel>)ViewBagListExamTemplatess;
+
+    var ViewBagListLessonsCourse = ViewBag.ListLessonsCourse;
+    ViewBagListLessonsCourse.Add(new DataEntity.Models.EfModels.EnrollLecture { LectureName = Localizer["Select Lesson"].Value, Id = 0 });
+    var ListLessonsCourse = (List<DataEntity.Models.EfModels.EnrollLecture>)ViewBagListLessonsCourse;
+
+    ViewData["Title"] = @Localizer["Add New Course Exam Or Quiz"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+    var TestType = LookupHelper.GetTestType((int)ViewBag.LangId);
+    var ExamValue = (int)GeneralEnums.TestType.Exam;
+}
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="CreateCourseExamLabel">@Localizer["Add New Course Exam Or Quiz"]</h1>
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+       aria-label="Close"></i>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+
+            <div class="x_content">
+                <br />
+                <form action="/Trainer/EnrollCourseExam/Create" method="post" id="EnrollCourseExam-Create" class="form-horizontal form-label-left">
+                    @Html.HiddenFor(model => model.EnrollTeacherCourseId)
+                    @Html.HiddenFor(model => model.IsOnlineLearningMethod , new { Value = ViewBag.IsOnlineLearningMethod})
+
+                    <div class="row">
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+
+
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control form-select tms-ddl", required = "required", onchange = "onDdlChangedForCreate(this)" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 TestTypeID">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Type (Exam Or Quiz )"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("TestTypeID", new SelectList(TestType, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 ExamTemplateId">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ExamTemplateId">
+                                @Localizer["Exam Templates"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("ExamTemplateId", new SelectList(ListExamTemplates.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-control form-select tms-ddl" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 EnrollLectureId">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollLectureId">
+                                @Localizer["Course Lessons"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollLectureId", new SelectList(ListLessonsCourse.OrderBy(D => D.Id).ToList(), "Id", "LectureName"), new { @class = "form-control form-select tms-ddl required", required = "required"  })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                @Localizer["Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mt-2 ">
+                            <label class="control-label col-xs-6 tms-label" for="Mark">
+                                @Localizer["Mark"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ExamFinalMark, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 1 } })
+                                @Html.ValidationMessageFor(model => model.ExamFinalMark, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 Duration">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Duration">
+                                @Localizer["Duration"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Duration, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 1 } })
+                                @Html.ValidationMessageFor(model => model.Duration, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @if (ViewBag.IsOnlineLearningMethod == false)
+                        {
+                            <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 PublishDate">
+                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="PublishDate">
+                                    @Localizer["Publish Date"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-12 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.PublishDate, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                    @Html.ValidationMessageFor(model => model.PublishDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 mb-3 PublishEndDate">
+                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="PublishEndDate">
+                                    @Localizer["Publish End Date"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-12 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.PublishEndDate, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                    @Html.ValidationMessageFor(model => model.PublishEndDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        }
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12 mt-2 Shuffle">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Shuffle">
+                                @Localizer["Shuffle Question And Answers"]
+                            </label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.CheckBoxFor(model => model.Shuffle)
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12 mt-2 IsPrerequisite">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="IsPrerequisite">
+                                @Localizer["Is Prerequisite"]
+                            </label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.CheckBoxFor(model => model.IsPrerequisite)
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 mb-3">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Description">
+                                @Localizer["Description"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.TextAreaFor(model => model.Description, new { @class = "tinyRichText" })
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div class="form-group text-center mt-2">
+                            <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .tox-tinymce {
+        height: 250px !important;
+    }
+
+    #IsPrerequisite {
+        height: 32px;
+        margin-top: 7px;
+    }
+</style>
+<script>
+    InitTinymce();
+</script>
+<script>
+    TestTypeChange($("#EnrollCourseExam-Create #TestTypeID").val());
+    $("#EnrollCourseExam-Create").on("change", "#ExamTemplateId", function () {
+        GetExamTemplateID($(this).val(), $("#LanguageId").val());
+    });
+    $("#EnrollCourseExam-Create").on("change", "#TestTypeID", function () {
+        TestTypeChange($(this).val());
+    });
+    function TestTypeChange(_this) {
+        if (_this == @ExamValue) {
+            $("#EnrollLectureId").val("0");
+
+            $(".PublishDate").show();
+            $(".PublishEndDate").show();
+            $(".ExamTemplateId").show();
+            $(".IsPrerequisite").show();
+            $(".Duration").show();
+            $(".EnrollLectureId").val("0").hide();
+
+            $(".EnrollLectureId  input,.EnrollLectureId select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', false);
+            });
+
+            $(".PublishDate  input,.PublishDate select,.PublishEndDate  input,.PublishEndDate select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', true);
+            });
+
+
+        } else {
+
+            $("#IsPrerequisite").prop('checked', false);
+            $("#PublishDate").val("");
+            $("#PublishEndDate").val("");
+            $("#ExamTemplateId").val("0");
+            $("#Duration").val("");
+
+            $(".EnrollLectureId").show();
+            $(".IsPrerequisite").prop('checked', false).hide();
+            $(".PublishDate").val("").hide();
+            $(".PublishEndDate").val("").hide();
+            $(".ExamTemplateId").val("0").hide();
+            $(".Duration").val("").hide();
+
+
+            $(".EnrollLectureId  input,.EnrollLectureId select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', true);
+            });
+
+            $(".PublishDate  input,.PublishDate select,.PublishEndDate  input,.PublishEndDate select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', false);
+            });
+        }
+    }
+    function GetExamTemplateID(ExamTemplateId, langId) {
+        ShowSpinner();
+        if (ExamTemplateId > 0) {
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/EnrollmentExams/GetExamTemplateByID",
+                data: { ExamTemplateId: ExamTemplateId, languageId: langId },
+                success: function (data) {
+                    HideSpinner();
+                    if (data != null) {
+                        $("#Name").val(data.name);
+                        $("#Duration").val(data.duration);
+                        if (data.description)
+                            tinymce.get('Description').setContent(data.description);
+                        else
+                            tinymce.get('Description').setContent("");
+
+                        $('#Shuffle').prop('checked', data.shuffle);
+
+                    } else {
+                        $("#Name").val("");
+                        $("#Duration").val("");
+                        tinymce.get('Description').setContent("");
+                        $('#Shuffle').prop('checked', false);
+                    }
+                },
+                error: function (data) {
+                    HideSpinner();
+                    $("#Name").val("");
+                    $("#Duration").val("");
+                    tinymce.get('Description').setContent("");
+                    $('#Shuffle').prop('checked', false);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                $("#Name").val("");
+                $("#Duration").val("");
+                tinymce.get('Description').setContent("");
+                $('#Shuffle').prop('checked', false);
+            });
+        } else {
+            HideSpinner();
+            $("#Name").val("");
+            $("#Duration").val("");
+            tinymce.get('Description').setContent("");
+            $('#Shuffle').prop('checked', false);
+        }
+    }
+</script>
+<script src="~/js/EnrollCourseExam/EnrollCourseExam.js?ver=62.2.66556"></script>

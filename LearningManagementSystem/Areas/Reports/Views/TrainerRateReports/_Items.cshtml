@@ -1,0 +1,73 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.ManagementRateLine>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title row w-100">
+            <div class="tms-title col-12 row">
+                <div class="col-7">
+                    <h4>@Localizer["Management Rates"] <small>@ViewData["Title"]</small></h4>
+                </div>
+
+            </div>
+            <div class="col-12">
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Name"]
+                            </th>
+                            <th>
+                                @Localizer["Date"]
+                            </th>
+                            <th>
+                                @Localizer["Value"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @item.Standard?.Standard
+                                </td>
+                                <td>
+                                    @item.ManagementRate?.CreatedOn.ToShortDateString()
+                                </td>
+                                <td>
+                                    @item.Value
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetItems", new { page, id = ViewBag.Id , user = ViewBag.User }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ItemsTableDiv" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

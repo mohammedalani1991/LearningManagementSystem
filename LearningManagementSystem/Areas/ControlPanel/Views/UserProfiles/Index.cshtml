@@ -1,0 +1,505 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Contact>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Http
+@inject IViewLocalizer Localizer
+@inject IHttpContextAccessor _httpContextAccessor
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    string title = "Contacts";
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        title = LookupHelper.GetContactIndexPagesTitle((int)ViewBag.LangId)[ViewBag.ContactTypeId];
+    }
+    else
+    {
+        ViewBag.ContactTypeId = 0;
+    }
+    ViewData["Title"] = @Localizer[title];
+
+    var pageNo = _httpContextAccessor.HttpContext?.Request?.Query["page"].ToString() ?? "1";
+    pageNo = pageNo == string.Empty ? "1" : pageNo;
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var contractType = LookupHelper.GetContactType((int)ViewBag.LangId);
+    var verifyEmail = LookupHelper.GetVerifyEmailList();
+
+    //var jobs = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Job.ToString(), ViewBag.LangId);
+    //var jobType = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.JobType.ToString(), ViewBag.LangId);
+}
+
+<style>
+    .input-group > .custom-file .custom-file-input:focus ~ .custom-file-label, .input-group > .custom-select:focus, .input-group > .form-control:focus {
+        z-index: unset;
+    }
+
+    .input-group-text {
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+
+        .input-group-text i {
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+</style>
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="bg-transparent x_panel">
+        <div class="d-flex tms-page-title">
+            <div class="tms-title">
+                <h4>
+                    <small>@Localizer[title]</small>
+                </h4>
+            </div>
+            <div class="d-flex justify-content-end tms-action">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    @using (Html.BeginForm("Index", "UserProfiles", FormMethod.Get, new { id = "Form1" }))
+                    {
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("contactTypeId", new { value = ViewBag.ContactTypeId })
+                            @Html.Hidden("table")
+                            @Html.Hidden("pagination")
+                            @Html.Hidden("page")
+                            @if (ViewBag.ContactTypeId == null || ViewBag.ContactTypeId == 0)
+                            {
+                                @*<div class="col-md-4 col-sm-3 col-xs-12">
+                        @Html.DropDownList("Job", new SelectList(jobs, "Id", "Name"), Localizer["Select Job"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        </div>
+                        <div class="col-md-4 col-sm-3 col-xs-12">
+                        @Html.DropDownList("JobType", new SelectList(jobType, "Id", "Name"), Localizer["Select Job Type"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        </div>*@
+                                <div class="col-md-5 col-sm-3 col-xs-12">
+                                    @Html.DropDownList("ContactType", new SelectList(contractType, "Value", "Text"), Localizer["Select Contact Type"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                </div>
+                            }
+                            <div class="col-md-5 col-sm-3 col-xs-12">
+
+                                @Html.DropDownList("VerifyEmailId", new SelectList(verifyEmail, "Id", "Name"), Localizer["Is Verify Email"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+
+
+                            <div class="col-md-5 col-sm-3 col-xs-12">
+                                @Html.TextBox("SearchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                            </div>
+                            <div>
+                                <input class="btn btn-primary" type="submit" value="@Localizer["Search"]" />
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Create", User.Identity.Name))
+                {
+                    <div>
+                        <button class="tms-btn" type="button" onclick="ShowCreateContact('@ViewBag.ContactTypeId','@ViewBag.CompanyId')">
+                            <img src="~/img/add-to-list.png" /> @Localizer["Add New"]
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="d-none FullName">
+                                @Localizer["Full Name"]
+                            </th>
+                            <th class="d-none Email">
+                                @Localizer["Email"]
+                            </th>
+                            <th class="d-none Mobile">
+                                @Localizer["Mobile"]
+                            </th>
+                            <th class="d-none IsEmailVerified">
+                                @Localizer["Email Verified"]
+                            </th>
+                            <th class="d-none Status">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="add-cursor btn btn-secondary btn-sm my-0 text-white" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Create", User.Identity.Name))
+                                {
+                                    @if (ViewBag.CompanyId != null)
+                                    {
+                                        <a onclick="ShowAssignStudent(@ViewBag.CompanyId)" class="add-cursor btn btn-primary btn-sm my-0" title="@Localizer["Assign"]">
+                                            <i class="fa fa-user-plus"></i>
+                                        </a>
+                                    }
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="d-none FullName">
+                                    @Html.DisplayFor(modelItem => item.FullName)
+                                </td>
+                                <td class="d-none Email">
+                                    @Html.DisplayFor(modelItem => item.Email)
+                                </td>
+                                <td class="d-none Mobile">
+                                    @(item.PhoneNumberCode + item.Mobile)
+                                </td>
+                                <td class="d-none IsEmailVerified">
+                                    @if (item.IsEmailVerified == true)
+                                    {
+                                        <span class="fa fa-check"></span>
+                                    }
+                                    else if (item.IsEmailVerified == false)
+                                    {
+                                        <span class="fa fa-times"></span>
+                                    }
+                                </td>
+                                <td class="d-none Status">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedOn d-none">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td style="width: 25%;">
+
+                                    <div class="dropdown nav-item open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="dropdown-toggle user-profile" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Edit", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowEditContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "View", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowDetailsContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" type="button" class="tms-dropdown-menu-item">@Localizer["Details"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Delete", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowDeleteContact(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" type="button" class="tms-dropdown-menu-item">@Localizer["Delete"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "DeleteNotVerifyEmail", User.Identity.Name) && item.IsEmailVerified != true)
+                                            {
+                                                <button onClick="ShowDeleteContactNotVerifyEmail(@item.Id, @ViewBag.LangId,@ViewBag.ContactTypeId)" type="button" class="tms-dropdown-menu-item">@Localizer["Delete not verify email"]</button>
+                                            }
+
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "ResetPassword", User.Identity.Name) && item.UserProfiles.Any())
+                                            {
+                                                <button onClick="ShowResetPassword(@item.UserProfiles.First().Id)" type="button" class="tms-dropdown-menu-item">@Localizer["Reset Password"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "VerifyEmail", User.Identity.Name) && item.UserProfiles.Any() && item.IsEmailVerified != true)
+                                            {
+                                                <button onClick="ShowVerifyEmail(@item.UserProfiles.First().Id)" type="button" class="tms-dropdown-menu-item">@Localizer["Verify Email"]</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new
+                    {
+                    page,
+                    searchText = ViewBag.searchText,
+                    contactTypeId = ViewBag.ContactTypeId,
+                    VerifyEmailId = ViewBag.VerifyEmailId,
+                    ContactType = ViewBag.ContactType/*,Job= ViewBag.Job,JobType=ViewBag.JobType*/
+                    }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div id='LeadInterest' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='LeadInterestDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='CreateLeadInterest' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='CreateLeadInterestDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='CreateContact' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='CreateContactDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='EditContact' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='EditContactDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='DeleteContact' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='DeleteContactDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='DeleteContactNotVerifyEmail' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='DeleteContactNotVerifyEmailDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='VerifyEmail' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='VerifyEmailDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+
+    <div id='DetailsContact' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='DetailsContactDiv' class="modal-content ">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='AssignStudent' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='AssignStudentDiv' class="modal-content ">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='LeadNotes' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div id='LeadNotesDiv' class="modal-content ">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='AddLeadNotes' style="z-index: 1050;" role="dialog" class="fade modal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div id='AddLeadNotesDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+    <div id='EditTable' style="z-index: 1050" role="dialog" class='modal'>
+        <div class="modal-dialog modal-dialog-centered">
+            <div id='EditTableDiv' class="modal-content">
+            </div>
+        </div><!-- /.modal-dialog -->
+    </div>
+</div>
+
+<div id='ResetPassword' style="z-index: 1050; min-width: 40%;" role="dialog" class="fade modal">
+    <div class="modal-dialog modal-dialog-centered" style=" min-width: 40%;">
+        <div id='ResetPasswordDiv' class="modal-content ">
+            <div class="x_panel">
+                <div class="d-flex tms-page-popup-title">
+                    <div data-dismiss="modal" class="tms-close-div">
+                        <i class="fa fa-close"></i>
+                    </div>
+                    <div class="tms-table-popup-title" style="width:97%;">
+                        @Localizer["Change Password"]
+                    </div>
+                </div>
+                <div class="x_content">
+                    <br />
+                    <form class="form-horizontal form-label-left" id="form1">
+                        <input type="hidden" id="userId" />
+                        <div class="col-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Password">
+                                @Localizer["Password"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                <div class="input-group">
+                                    <input type="password" name="Password" id="Password" class="form-control tms-input" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-eye" id="togglePassword"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ConformPassword">
+                                @Localizer["Confirm Password"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                <div class="input-group">
+                                    <input type="password" name="ConfirmPassword" id="ConfirmPassword" class="form-control tms-input" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-eye" id="toggleConfirmPassword"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" onclick="ResetPassword()" class="tms-save-btn">
+                                <i class="fa fa-save"></i> @Localizer["Saving Changes"]
+                            </button>
+
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+    {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.9.34/libphonenumber-js.min.js"></script>
+
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let obj;
+        let model;
+        window.addEventListener('load', function () {
+            $.validator.addMethod("custompassword",
+                function (value, element) {
+                    return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[^\w\s]).{8,}$/.test(value);
+                },
+                '@Localizer["Password must be at least 8 characters long contain a number , an uppercase letter and at least 1 special character."]'
+            );
+
+            $("#form1").validate({
+                errorElement: "span",
+                rules: {
+                    Password: {
+                        required: true,
+                        custompassword: true
+                    },
+                    ConformPassword: {
+                        required: true,
+                        equalTo: "#Password"
+                    },
+
+                }
+            });
+        })
+
+        $(document).ready(function () {
+            $("#togglePassword").click(function () {
+                var passwordField = $("#Password");
+                var passwordField1 = $("#UserProfileViewModel_Password");
+                var passwordFieldType = passwordField.attr("type");
+
+                if (passwordFieldType === "password") {
+                    passwordField.attr("type", "text");
+                    passwordField1.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passwordField.attr("type", "password");
+                    passwordField1.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+
+            $("#toggleConfirmPassword").click(function () {
+                var confirmPasswordField = $("#ConfirmPassword");
+                var confirmPasswordFieldType = confirmPasswordField.attr("type");
+
+                if (confirmPasswordFieldType === "password") {
+                    confirmPasswordField.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    confirmPasswordField.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+        });
+
+        function ShowResetPassword(id) {
+            $("#Password-error , #ConformPassword-error").remove();
+            $("#form1").trigger("reset");
+            $("#userId").val(id);
+            $("#ResetPassword").modal("show");
+        }
+
+        function ResetPassword() {
+            if ($("#form1").valid()) {
+                $.ajax({
+                    type: "POST",
+                    url: "/ControlPanel/UserProfiles/ResetPassword",
+                    data: {
+                        id: $("#userId").val(), password: $("#Password").val(), page: @pageNo, searchText: '@ViewBag.SearchText'
+                    },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    dataType: "json",
+                    success: function (msg) {
+                        $("#ResetPassword").modal("hide");
+                        toastr.success(changePassowrdSuccessfully)
+                    },
+                    error: function (req, status, error) {
+                        toastr.error(changePassowrdError);
+                    }
+                });
+            }
+        }
+    </script>
+    <script>
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["FullName", "Email", "Mobile", "IsEmailVerified", "Status", "CreatedOn"];
+        GetTable(s);
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var changePassowrdSuccessfully = '@Localizer["Your password has been changed"]';
+        var changePassowrdError = '@Localizer["Error while Changing Password"]';
+        var EmailMassegeError = '@Localizer["Email Already exist"]';
+        var phoneError = '@Localizer["Invalid Phone Number"]';
+        var ReactivateSucceeded = '@Localizer["Reactivate Account Succeeded"]';
+        var ReactivateFailed = '@Localizer["Reactivate Account Failed"]';
+
+
+
+        if (@ViewBag.ContactTypeId == @((int)GeneralEnums.ContactTypeEnum.Visetor)) {
+            $('.tms-operations').addClass("active");
+            $('.tms-sub-visitors').addClass("active");
+            $('.tms-sub-top-nav  .tms_sub_operation').addClass("active");
+        } else if (@ViewBag.ContactTypeId == @((int)GeneralEnums.ContactTypeEnum.Trainer)) {
+            $('.tms-training').addClass("active");
+            $('.tms-sub-trainers').addClass("active");
+            $('.tms-sub-top-nav  .tms_sub_training').addClass("active");
+        } else if (@ViewBag.ContactTypeId == @((int)GeneralEnums.ContactTypeEnum.Student)) {
+            $('.tms-companies').addClass("active");
+            $('.tms-sub-comp-students').addClass("active");
+            $('.tms-companies a').addClass("active");
+            $('.tms-sub-top-nav  .tms_sub_companies').addClass("active");
+            $('.tms-sub-comp-students a').addClass("active-link");
+        } else {
+            $('.tms-management').addClass("active");
+            $('.tms-sub-contacts').addClass("active");
+            $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+        }
+    </script>
+    <script src="~/js/UserProfiles/UserProfiles.js" async></script>
+    <script src="~/js/Country/City.js"></script>
+}

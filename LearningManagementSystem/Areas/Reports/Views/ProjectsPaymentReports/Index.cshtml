@@ -1,0 +1,74 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div id="main"></div>
+
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowCountOfEnrolledStudents' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ShowCountOfEnrolledStudentsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+    {
+    <script>
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["ProjectName", "FullName", "Email" ,"Phone", "Amount", "Status", "CreatedOn"]
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-ProjectPaymentReports').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+
+        function Get() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/ProjectsPaymentReports/GetData",
+                dataType: 'html',
+                data: { searchText: $("#searchText").val(), page: $("#page").val() },
+                success: function (data) {
+                    HideSpinner();
+                    $('#main').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        Get();
+
+        function ShowEditTable() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/ProjectsPaymentReports/ShowTable/",
+                success: function (data) {
+                    HideSpinner();
+                    $('#EditTable .modal-content').html(data);
+                    $(".td").map(function () {
+                        table.forEach(element => {
+                            if ($(this).html().trim() == element) {
+                                $(this).parent().find("input[type='checkbox']").prop('checked', true)
+                            }
+                        }
+                        );
+                    })
+                    $('#EditTable').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        function GetData(data) {
+            $('#main').html(data);
+        }
+    </script>
+}

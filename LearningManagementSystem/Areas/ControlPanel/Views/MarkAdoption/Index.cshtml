@@ -1,0 +1,151 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICourseService CourseService
+@inject ISemesterService SemesterService
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var semesters = SemesterService.GetSemestersList(ViewBag.LangId);
+}
+
+<form data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+    <div class="row justify-content-end mt-3 p-4">
+        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+            @Html.DropDownList("SemesterId", new SelectList(semesters, "Id", "Name"), Localizer["Select Semester"].Value, new { @class = "form-control chosen-select tms-ddl" , onchange="GetCourses(this)"})
+        </div>
+        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+            @Html.DropDownList("CourseId", new SelectList(Enumerable.Empty<SelectListItem>()), Localizer["Select Course"].Value, new { @class = "form-control chosen-select tms-ddl"})
+        </div>
+        <input class="btn btn-primary" type="button" onclick="Search()" value=@Localizer["Search"] style="height:35px" />
+    </div>
+</form>
+
+@if (AuthenticationHelper.CheckSuperAuthentication("MarkAdoptionForPracticalExam"))
+{
+    <div class="row" style="min-height:69vh">
+        <div id="MarkAdoptionForExam" class="col-md-6 col-12"></div>
+        <div id="MarkAdoptionForPracticalExam" class="col-md-6 col-12"></div>
+    </div>
+}
+else
+{
+    <div class="row" style="min-height:69vh">
+        <div id="MarkAdoptionForExam" class="col-12"></div>
+    </div>
+}
+
+@section JavaScript
+    {
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        var PracticalExam = '@(AuthenticationHelper.CheckSuperAuthentication("MarkAdoptionForPracticalExam"))';
+        var editMassege = '@Localizer["Edited successfully"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+
+        $('.tms-questions').addClass("active");
+        $('.tms-sub-MarkAdoption').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_questions').addClass("active");
+
+        function GetCourses(current){
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/MarkAdoption/GetCourses",
+                data: { id: current.value },
+                success: function (data) {
+                    $('#CourseId').empty();
+
+                    $('#CourseId').append($('<option>', {text: "@Localizer["Select Course"]"}));
+                    $.each(data, function (index, item) {
+                        $('#CourseId').append($('<option>', {
+                            value: item.id,
+                            text: item.courseName
+                        }));
+                    });
+
+                    $('.chosen-select').trigger('chosen:updated');
+                    HideSpinner();
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                $('#CourseId').empty();
+                HideSpinner();
+            });
+        }
+
+        function GetMarkAdoptionForExam() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/MarkAdoption/GetMarkAdoptionForExam",
+                dataType: 'html',
+                data: { semesterId: $("#SemesterId").val(), courseId: $("#CourseId").val() },
+                success: function (data) {
+                    HideSpinner();
+                    $('#MarkAdoptionForExam').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        if (PracticalExam == "True") {
+            function GetMarkAdoptionForPracticalExam() {
+                ShowSpinner();
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/MarkAdoption/GetMarkAdoptionForPracticalExam",
+                    dataType: 'html',
+                    data: { semesterId: $("#SemesterId").val(), courseId: $("#CourseId").val() },
+                    success: function (data) {
+                        HideSpinner();
+                        $('#MarkAdoptionForPracticalExam').html(data);
+                    }
+                }).fail(function (jqXHR, textStatus, error) {
+                    HideSpinner();
+                });
+            }
+        }
+
+        function Search() {
+            GetMarkAdoptionForExam()
+            if (PracticalExam == "True")
+                GetMarkAdoptionForPracticalExam()
+        }
+
+        function Adopted(examTemplateId, value) {
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/MarkAdoption/AdoptMarkAdoptionForExam",
+                data: { semesterId: $("#SemesterId").val(), courseId: $("#CourseId").val(), examTemplateId, adopted: $(value).is(":checked") },
+                success: function () {
+                    HideSpinner();
+                    toastr.success(editMassege);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+            });
+        }
+
+        if (PracticalExam == "True") {
+            function AdoptedPracticalExam(practicalExamId, value) {
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/MarkAdoption/AdoptPracticalExam",
+                    data: { semesterId: $("#SemesterId").val(), courseId: $("#CourseId").val(), practicalExamId, adopted: $(value).is(":checked") },
+                    success: function () {
+                        HideSpinner();
+                        toastr.success(editMassege);
+                    }
+                }).fail(function (jqXHR, textStatus, error) {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                });
+            }
+        }
+    </script>
+}

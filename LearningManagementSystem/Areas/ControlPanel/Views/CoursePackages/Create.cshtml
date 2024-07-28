@@ -1,0 +1,228 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CoursePackagesGeneralViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Add Course Packages"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses(ViewBag.LangId);
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add Course Packages"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/CoursePackages/Create" method="post" id="CoursePackages-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;">
+                                @Localizer["Course Packages Data"]
+
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12" style="@((ViewBag.LangId == 7)? "padding-left: 0px;" : "padding-right: 0px;") ">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required" , onchange = "onDdlChangedForCreate(this)" })
+                                @Html.ValidationMessage("LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12" style="@((ViewBag.LangId == 7)? "padding-left: 0px;" : "padding-right: 0px;") ">
+                            <label class="control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="CoursePackagesAdd_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="CoursePackageViewModel">
+                                        <div data-repeater-item class="data-repeater-item">
+                                            <div class="form-group row">
+                                                <div class="col-4">
+                                                    <label class="control-label tms-label px-0">@Localizer["Package Name"] <span class="required">*</span></label>
+                                                      @Html.Editor("PackageName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                                      @Html.ValidationMessage("PackageName", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-4" >
+                                                     <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Trainer Name"] <span class="required">*</span></label>
+                                                    @Html.DropDownList("TrainerId", new SelectList(ViewBag.ListTrainers, "Id", "Contact.FullName"), Localizer["Search In Trainers"].Value, new { @class = " form-control chosen-select tms-ddl", required = "required" })
+                                                    @Html.ValidationMessage("TrainerId", "", new { @class = "text-danger" })
+                                                </div>
+
+                                                <div class="col-4">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="CoursePackagesRelations" class="mb-5">
+                                                            <div data-repeater-item class="SearchCourseName">
+                                                                <label class="control-label tms-label">@Localizer["Course Name"]<span class="required">*</span></label>
+                                                                <div class="input-group pb-3" >
+                                                                    @Html.DropDownList("CourseId", Enumerable.Empty<SelectListItem>(),  Localizer["Select Trainer From List"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required" })
+                                                                    @Html.ValidationMessage("CourseId", "", new { @class = "text-danger" })
+                                                                    <button class="border border-secondary btn btn-icon btn-light-danger border-secondary-cust" data-repeater-delete type="button">
+                                                                        <i class="fa fa-times "></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <button class="tms-save-btn btn-light-primary tms-custom-btn" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Course"]
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="col-md-2">
+                                                    <button data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9" type="button">
+                                                        <i class="fa fa-trash btnDeleteIcon"></i>@Localizer["Delete Row"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <button data-repeater-create class="tms-save-btn  btn-light-primary" type="button">
+                                        <i class="fa fa-plus"></i> @Localizer["Add Course Package Row"]
+                                    </button>
+                                </div>
+                                <!--end::Form group-->
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+
+
+</style>
+<script type="text/javascript">
+            var PutTextToSearchinCourses = '@Localizer["Search In Courses"]';
+            var Noresultsfor = '@Localizer["No results for"]';
+
+              $(document).off('change').on('change', '#CoursePackagesAdd_Repeater_Nested #TrainerId ', function (event) {
+                  var param = $(this).val();
+                  var _this = $(this).closest(".data-repeater-item").find(".SearchCourseName"); 
+                  BindList(param,_this);
+            
+            });
+            function  BindList (param,_this){
+              
+                _this.find(".chosen-select option").remove();
+                _this.find(".chosen-select").append("<option value=''>" + PutTextToSearchinCourses + "</option>");
+                if (param) {
+                    ShowSpinner();
+                    $.ajax({
+                        type: "GET",
+                        url: '/ControlPanel/CoursePackages/TrainerCourses/',
+                        data: { TrainerId: param, LanguageId:  $("[id*=LanguageId]").first().val() },
+                        success: function (data) {
+                            if (data.length) {
+                                BindListInternal(data, _this, function (callback) {
+                                    _this.find(".chosen-select").trigger("chosen:updated");
+                                    HideSpinner();
+                                });
+                            } else {
+                                HideSpinner();
+                                _this.find(".chosen-select option").remove();
+                                _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " </option>");
+                                _this.find(".chosen-select").trigger("chosen:updated");
+
+                            }
+                        },
+                        error: function (data) {
+                            HideSpinner();
+                            _this.find(".chosen-select option").remove();
+                            _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " </option>");
+                            _this.find(".chosen-select").trigger("chosen:updated");
+
+
+
+                        }
+                    }).fail(function (jqXHR, textStatus, error) {
+                        HideSpinner();
+                        _this.find(".chosen-select option").remove();
+                        _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " </option>");
+                        _this.find(".chosen-select").trigger("chosen:updated");
+                    });
+
+                } else {
+                    HideSpinner();
+                    _this.find(".chosen-select").trigger("chosen:updated");
+                }
+            }
+            function BindListInternal(data, selector, callback) {
+                $.each(data, function (i, item) {
+                    if (selector.find(".chosen-select").find('option[value="' + item.id + '"]').length === 0) {
+                        selector.find(".chosen-select").append($('<option>', {
+                            value: item.id,
+                            text: item.courseName
+                        }));
+                    }
+                });
+                callback(true);
+            }
+
+    $('#CoursePackagesAdd_Repeater_Nested').repeater({
+        repeaters: [{
+            selector: '.inner-repeater',
+            show: function () {
+                $(this).slideDown();
+                  var param = $(this).closest(".data-repeater-item").find("#TrainerId").val();
+                  var _this = $(this).closest(".SearchCourseName"); 
+                console.log(_this.html());
+                 BindList(param,_this);
+                $(this).find(".chosen-select").chosen();
+
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        }],
+        show: function () {
+            $(this).slideDown();
+            $(this).find(".chosen-select").chosen();
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    });
+
+</script>
+<script src="~/js/CoursePackages/CoursePackages.js?ver=6.1"></script>

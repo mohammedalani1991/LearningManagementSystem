@@ -1,0 +1,154 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Generalization>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Generalizations"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    <form data-ajax="true" method="get" action="Generalization/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("table")
+                            @Html.Hidden("pagination")
+                            @Html.Hidden("page")
+                            <div class="col-md-8 col-sm-3 col-xs-12">
+                                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                            </div>
+                            <div>
+                                <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                @if (AuthenticationHelper.CheckAuthentication("Generalizations", "Create", User.Identity.Name))
+                {
+                    <div>
+                        <button class="tms-btn" type="button" onclick="ShowAddGeneralization()"><img src="~/img/add-to-list.png" /> @Localizer["Add"]</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="x_content">
+
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="Title d-none">
+                                @Localizer["Title"]
+                            </th>
+                            <th class="Description d-none">
+                                @Localizer["Description"]
+                            </th>
+                            <th class="Job d-none">
+                                @Localizer["Job"]
+                            </th>
+                            <th class="Type d-none">
+                                @Localizer["Generalization Type"]
+                            </th>
+                            <th class="Status d-none">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy d-none">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @if (AuthenticationHelper.CheckAuthentication("Generalizations", "Create", User.Identity.Name))
+                                {
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                        <tr class="tms-tr">
+                            <td class="Title d-none">
+                                @Html.DisplayFor(modelItem => item.Title)
+                            </td>
+                            <td class="Description d-none">
+                                @Html.Raw(item.Description)
+                            </td>
+                            <td class="Job d-none">
+                                @LookupHelper.GetLookupDetailsById(item.JobId.GetValueOrDefault(0), ViewBag.LangId)?.Name
+                            </td>
+                            <td class="Type d-none">
+                                @LookupHelper.GetLookupDetailsById(item.GeneralizationTypeId.GetValueOrDefault(0), ViewBag.LangId)?.Name
+                            </td>
+                            <td class="Status d-none">
+                                @LookupHelper.GetStatusById(item.Status)?.Name
+                            </td>
+                            <td class="CreatedBy d-none">
+                                @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                            </td>
+                            <td class="CreatedOn d-none">
+                                @Html.DisplayFor(modelItem => item.CreatedOn)
+                            </td>
+                            <td style="width: 25%;">
+
+                                <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                    <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                        @Localizer["Choose a process"]
+                                    </a>
+                                    <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                        @if (AuthenticationHelper.CheckAuthentication("Generalizations", "Edit", User.Identity.Name))
+                                        {
+                                            <button onClick="ShowEditGeneralization(@item.Id, @ViewBag.LangId,@ViewBag.Page)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+
+                                        }
+                                        @if (AuthenticationHelper.CheckAuthentication("Generalizations", "View", User.Identity.Name))
+                                        {
+                                            <button onclick="ShowDetailsGeneralization(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item">@Localizer["Details"]</button>
+                                        }
+                                    </div>
+                                </div>
+                                @*@if (AuthenticationHelper.CheckAuthentication("Generalizations", "Delete", User.Identity.Name))
+            {
+                <a onclick="ShowDeleteGeneralization(@item.Id, @ViewBag.LangId,@ViewBag.Page)" href="#" title="@Localizer["Delete"]" class="btn btn-sm btn-danger">
+                    <i class="fa fa-trash"></i>
+                </a>
+            }*@
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     table = '@ViewBag.Table'.split(',');
+     GetTable(s);
+</script>

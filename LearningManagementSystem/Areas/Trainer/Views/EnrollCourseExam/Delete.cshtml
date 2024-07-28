@@ -1,0 +1,85 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollCourseExamViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using  System.Web;
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="EditCoursesContentLabel"> @Localizer["Delete Course Exam"]</h1>
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+               <tr>
+                    <td class="tms-details-title">@Localizer["Type"]</td>
+                   <td class="tms-details-data">@LookupHelper.GetTestTypeById(Model.TestTypeID,ViewBag.LangId).Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Course Lesson"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollLectureName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Exam Template Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ExamTemplateName)</td>
+                </tr>
+             <tr>
+                    <td class="tms-details-title">@Localizer["Mark"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ExamFinalMark)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Is Prerequisite"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.IsPrerequisite)</td>
+                </tr>
+              <tr>
+                    <td class="tms-details-title">@Localizer["Publish Date"]</td>
+                    <td class="tms-details-data"> @LookupHelper.ConvertTimeToSystemTimeZone(Model.PublishDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Publish End Date"]</td>
+                     <td class="tms-details-data"> @LookupHelper.ConvertTimeToSystemTimeZone(Model.PublishEndDate)</td>
+                </tr>
+                 <tr>
+                    <td class="tms-details-title">@Localizer["Exam Time Zone"]</td>
+                    <td class="tms-details-data">@Html.Raw(ViewBag.TimeZone) </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Duration"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Duration)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.Description) </td>
+                </tr>
+                <tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status,ViewBag.LangId).Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center">
+                    <button class="btn btn-bg-red" type="button" onclick="ConfirmDelete(@Model.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Course Exam"]</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

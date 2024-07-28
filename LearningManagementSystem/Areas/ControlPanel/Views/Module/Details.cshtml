@@ -1,0 +1,60 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.ModuleViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Details"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Module"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Name"]</td>
+                    <td>@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Code"]</td>
+                    <td>@Html.DisplayFor(model => model.Code)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td>@Html.Raw(Model.Description)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Base Url"]</td>
+                    <td>@Html.Raw(Model.BaseUrl)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td>@LookupHelper.GetStatusById(Model.Status).Name</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td>@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td>@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+@section JavaScript
+{
+    <script>
+        $('.tms-management').addClass("active");
+        $('.tms-sub-modules').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+    </script>
+}

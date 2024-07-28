@@ -1,0 +1,175 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.ViewModels.SenangPayViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@inject IEnrollTeacherCourseService CourseService
+@inject IEnrollStudentCourseService EnrollStudentCourseService
+@inject ICurrencyService CurrencyService
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var status = LookupHelper.GetPaymentStatuses(ViewBag.LangId);
+    if ((int)ViewBag.Type == (int)GeneralEnums.PaymentType.Invoice)
+        status = LookupHelper.GetinvoicPayStatus(ViewBag.LangId);
+    var types = LookupHelper.GetPaymentType(ViewBag.LangId);
+    var fromCheckDate = (DateTime)ViewBag.FromDate;
+    var toCheckDate = (DateTime)ViewBag.ToDate;
+    var fromDateCheckFilter = $"{fromCheckDate.Date.Year}-{fromCheckDate.Date.Month:D2}-{fromCheckDate.Date.Day:D2}";
+    var toDateCheckFilter = $"{toCheckDate.Date.Year}-{toCheckDate.Date.Month:D2}-{toCheckDate.Date.Day:D2}";
+    var FromToDate = $"{fromDateCheckFilter} - {toDateCheckFilter}";
+    var courses = CourseService.GetCourseList(ViewBag.LangId);
+    var techers = CourseService.GetTeacherList(ViewBag.LangId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    var statusName = "";
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title row w-100">
+            <div class="tms-title col-12">
+            </div>
+            <div class="col-12">
+                <form data-ajax="true" method="get" action="/Reports/Student/GetStudentBalanceHistory" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    <div class="row mt-3 justify-content-end">
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("studentId")
+                        @Html.Hidden("page")
+                        @Html.Hidden("filter.SecondOpen",true)
+
+                        <div class="col-md-2 col-sm-3 col-xs-12 ">
+                            @Html.DropDownList("filter.Type", new SelectList(types, "Id", "Name" ,ViewBag.Type), Localizer["Type"].Value, new { @class = "form-control chosen-select tms-ddl" , onchange="GetStatus(this)"})
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12 ">
+                            @Html.DropDownList("filter.Course", new SelectList(courses, "Id", "CourseName" ,ViewBag.Course), Localizer["Course"].Value, new { @class = "form-control chosen-select tms-ddl"})
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12">
+                            @Html.DropDownList("filter.Teacher", new SelectList(techers, "Id", "Name" ,ViewBag.Teacher), Localizer["Teacher"].Value, new { @class = "form-control chosen-select tms-ddl"})
+                        </div>
+                        <div class="col-md-3 col-sm-5 col-xs-12 top-30">
+                            <label>@Localizer["Payment Date"]</label>
+                            <input type="text" placeholder="@Localizer["Payment Date"]" class="form-control search-control tms-search-input" value="@FromToDate" name="filter.FromToDate" id="filter_FromToDate" readonly />
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12">
+                            @Html.DropDownList("filter.Status", new SelectList(status, "Id", "Name",ViewBag.Status), Localizer["Status"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        </div>
+                        <input class="btn btn-primary" type="submit" value=@Localizer["Search"] style="height:35px" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="CourseName">
+                                @Localizer["Course Name"]
+                            </th>
+                            <th class="TeacherName">
+                                @Localizer["Teacher Name"]
+                            </th>
+                            <th class="Type">
+                                @Localizer["Type"]
+                            </th>
+                            <th class="Action">
+                                @Localizer["Action"]
+                            </th>
+                            <th class="Amount">
+                                @Localizer["Amount"] (@ViewBag.Amount @Html.Raw(currency.Icon))
+                            </th>
+                            <th class="CreatedOn">
+                                @Localizer["Payment Date"]
+                            </th>
+                            <th class="Status">
+                                @Localizer["Status"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="CourseName">
+                                    <a href="@Url.Action("EditPage", "EnrollmentCourse", new {Area = "ControlPanel" , id = item.EnrollTeacherCourseId})">@item.CourseName</a>
+                                </td>
+                                <td class="TeacherName">
+                                    @item.FullName
+                                </td>
+                                <td class="Type">
+                                    @LookupHelper.GetPaymentTypeById(item.Type ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="Action">
+                                    @Localizer[item.Title??""] @(item.Title != null ? item.CourseName : "")
+                                </td>
+                                <td class="Amount">
+                                    @item.Amount @Html.Raw(currency.Icon)
+                                </td>
+                                <td class="CreatedOn">
+                                    @item.CreatedOn.ToShortDateString()
+                                </td>
+                                <td class="Status">
+                                    @if (item.Type == (int)GeneralEnums.PaymentType.Invoice)
+                                    {
+                                        statusName = LookupHelper.GetInvoicesPayStatusById(item.Status, ViewBag.LangId)?.Name;
+                                    }
+                                    else
+                                    {
+                                        statusName = LookupHelper.GetStatusById(item.Status, ViewBag.LangId)?.Name;
+                                    }
+                                    @statusName
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div mb-5">
+                        @Html.PagedListPager(Model, page => Url.Action("GetStudentBalanceHistory", new { page, searchText = ViewBag.searchText ,FromDate = ViewBag.FromDate, ToDate = ViewBag.ToDate
+                    ,Status = ViewBag.Status,Course =ViewBag.Course , Teacher = ViewBag.Teacher ,Type =ViewBag.Type,studentId=ViewBag.StudentId,SecondOpen = true,
+                    }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "GetData" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item Number:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        $("#filter_FromToDate").setDatePickRange('@fromDateCheckFilter', '@toDateCheckFilter');
+    });
+
+    function GetStatus(current) {
+        $.ajax({
+            type: "POST",
+            url: "/Reports/PaymentReports/GetStatus/",
+            data: { id: current.value },
+            success: function (data) {
+                var dropdown = $("#filter_Status");
+                dropdown.empty();
+                dropdown.append($('<option></option>').val("").text("@Localizer["Status"]"));
+                $.each(data, function (index, item) {
+                    dropdown.append($('<option></option>').val(item.id).text(item.name));
+                });
+                dropdown.trigger("chosen:updated");
+            }
+        })
+    }
+
+</script>

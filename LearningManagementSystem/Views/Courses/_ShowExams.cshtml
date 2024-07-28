@@ -1,0 +1,143 @@
+﻿@model List<DataEntity.Models.EfModels.EnrollCourseExam>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+@{
+    Layout = null;
+    bool enroll = ViewBag.Enroll;
+    bool NeedApproval = ViewBag.NeedApproval;
+}
+
+@if (enroll)
+{
+    if (!NeedApproval)
+    {
+        @if (!Model.Any())
+        {
+            <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+        }
+        else
+        {
+            <div class="hauto-Exam-1034" style="height:100%">
+
+                @foreach (var exam in Model.OrderByDescending(r => r.Id))
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row justify-content-between">
+                                <div class="col-12 col-lg">
+                                    <h5 class="card-title">@exam.Name</h5>
+                                    @if (ViewBag.IsOnlineLearningMethod == false)
+                                    {
+                                        <p class="card-text text-primarycolor">@Localizer["Start Date"]  @LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishDate) </p>
+                                        <p class="card-text text-primarycolor">@Localizer["End Date"]  @LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishEndDate) </p>
+                                        <p class="card-text text-primarycolor">@Localizer["Exam Time Zone"] @ViewBag.TimeZone</p>
+                                    }
+                                    @{
+                                        var VDuration = ((exam.Duration.HasValue) ? exam.Duration.ToString() : "--");
+                                    }
+                                    <p class="card-text text-primarycolor">@Localizer["Duration:"] @VDuration @Localizer["min"]</p>
+                                    <p class="card-text">@Html.Raw(exam.Description)</p>
+                                </div>
+                                <div class="col-12 col-lg d-flex flex-lg-column justify-content-between align-items-end text-end">
+                                    @if (ViewBag.studentId != null)
+                                    {
+
+                                        var MarkAfterConversion = 0.0;
+                                        var FinalMark = 0.0;
+                                        var EnrollStudentExamId = 0;
+                                        if (exam.EnrollStudentExams.Count() > 0)
+                                        {
+                                            FinalMark = exam.EnrollStudentExams.FirstOrDefault().FinalMark.Value;
+                                            MarkAfterConversion = exam.EnrollStudentExams.FirstOrDefault().MarkAfterConversion.Value;
+                                            EnrollStudentExamId = exam.EnrollStudentExams.FirstOrDefault().Id;
+                                        }
+                                        if (exam.ExamFinalMark.HasValue)
+                                        {
+                                            FinalMark = exam.ExamFinalMark.Value;
+                                        }
+
+                                        if (exam.MarkAdoption == true)
+                                        {
+                                            <p class="card-text text-primarycolor">@MarkAfterConversion /@FinalMark</p>
+                                        }
+                                        else
+                                        {
+                                            <p class="card-text text-primarycolor">?/@FinalMark</p>
+                                        }
+                                        @if (exam.EnrollStudentExams.Count() == 0 && exam.EnrollCourseExamQuestions.Count() > 0)
+                                        {
+
+                                            @if (ViewBag.IsOnlineLearningMethod == false)
+                                            {
+                                                @if (LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishEndDate) >= LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now) && LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now) >= LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishDate))
+                                                {
+                                                    <a href="@Url.Action("Index","CourseExam", new { EnrollCourseExamId = exam.Id })"
+                                                       class="btn btn-primary rounded-pill shadow-none btn-card-Exam">
+                                                        @Localizer["Start Exam"]
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    if (LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishEndDate) <= LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now))
+                                                    {
+                                                        <button disabled class="btn btn-danger"> @Localizer["Expired"]</button>
+                                                    }
+                                                    else if (LookupHelper.ConvertTimeToSystemTimeZone(exam.PublishDate) > LookupHelper.ConvertTimeToSystemTimeZone(DateTime.Now))
+                                                    {
+                                                        <button disabled class="btn btn-warning"> @Localizer["You Can't Start yet"]</button>
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Action("Index","CourseExam", new { EnrollCourseExamId = exam.Id })"
+                                                   class="btn btn-primary rounded-pill shadow-none btn-card-Exam">
+                                                    @Localizer["Start Exam"]
+                                                </a>
+                                            }
+
+                                        }
+                                        else if (exam.EnrollCourseExamQuestions.Count() != 0)
+                                        {
+                                            if (exam.MarkAdoption == true)
+                                            {
+                                                <a href="#" onclick="ShowExamView(@exam.Id,@EnrollStudentExamId)"
+                                                   class="btn btn-outline-primary rounded-pill shadow-none btn-card-Exam">
+                                                    @Localizer["Solved"]
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a class="btn btn-outline-primary rounded-pill shadow-none btn-card-Exam">
+                                                    @Localizer["Not Published Yet"]
+                                                </a>
+                                            }
+                                        }
+
+
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        }
+    }
+    else
+    {
+        <div>
+            <p>@Localizer["You need to check the [Pre Requests] tab to can see the content"]</p>
+        </div>
+    }
+}
+else
+{
+    <div>
+        <p>@Localizer["Sign up to see the content"]</p>
+    </div>
+}

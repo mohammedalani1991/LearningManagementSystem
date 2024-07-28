@@ -1,0 +1,152 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CoursePrerequisiteGeneralViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Add Course Prerequisite"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses(ViewBag.LangId);
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add Course Prerequisite"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/CoursePrerequisite/Create" method="post" id="CoursePrerequisite-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;">
+                                @Localizer["Course Prerequisite Data"]
+
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12" style="@((ViewBag.LangId == 7)? "padding-left: 0px;" : "padding-right: 0px;") ">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required" , onchange = "onDdlChangedForCreate(this)" })
+                                @Html.ValidationMessage("LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12" style="@((ViewBag.LangId == 7)? "padding-left: 0px;" : "padding-right: 0px;") ">
+                            <label class="control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="CoursePrerequisiteAdd_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="CoursePrerequisiteViewModel">
+                                        <div data-repeater-item>
+                                            <div class="form-group row">
+                                                <div class="col-5 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/CoursePrerequisite/CourseSearch/">
+                                                    <label class="control-label tms-label px-0">@Localizer["Course Name"] <span class="required">*</span></label>
+                                                    @Html.DropDownList("CourseId", Enumerable.Empty<SelectListItem>(),  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required" })
+                                                    @Html.ValidationMessage("CourseId", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="PrerequisiteCourses" class="mb-5">
+                                                            <div data-repeater-item>
+                                                                <label class="control-label tms-label">@Localizer["Course Prerequisite Name"]<span class="required">*</span></label>
+                                                                <div class="input-group pb-3 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/CoursePrerequisite/CourseSearch/">
+                                                                    @Html.DropDownList("PrerequisiteCourseId", Enumerable.Empty<SelectListItem>(),  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required" })
+                                                                    @Html.ValidationMessage("PrerequisiteCourseId", "", new { @class = "text-danger" })
+                                                                    <button class="border border-secondary btn btn-icon btn-light-danger border-secondary-cust" data-repeater-delete type="button">
+                                                                        <i class="fa fa-times "></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <button class="tms-save-btn btn-light-primary tms-custom-btn" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Course Prerequisite"]
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="col-md-2">
+                                                    <button data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9" type="button">
+                                                        <i class="fa fa-trash btnDeleteIcon"></i>@Localizer["Delete Row"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <button data-repeater-create class="tms-save-btn  btn-light-primary" type="button">
+                                        <i class="fa fa-plus"></i> @Localizer["Add Course Row"]
+                                    </button>
+                                </div>
+                                <!--end::Form group-->
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+
+
+</style>
+<script type="text/javascript">
+
+    $('#CoursePrerequisiteAdd_Repeater_Nested').repeater({
+        repeaters: [{
+            selector: '.inner-repeater',
+            show: function () {
+                $(this).slideDown();
+                $(this).find(".chosen-select").chosen();
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        }],
+        show: function () {
+            $(this).slideDown();
+            $(this).find(".chosen-select").chosen();
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    });
+
+</script>
+<script src="~/js/CoursePrerequisite/CoursePrerequisite.js?ver=6.1"></script>

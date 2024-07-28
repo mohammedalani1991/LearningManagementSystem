@@ -1,0 +1,109 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@model DataEntity.Models.ViewModels.PermissionViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Add Permission"];
+    var modules = LookupHelper.GetModules(ViewBag.LangId);
+    var languages = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), ViewBag.LangId);
+    var statuses = LookupHelper.GetStatuses();
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>@Localizer["Accounts"] <small>@ViewData["Title"]</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/Permissions/Create" method="post" id="Permissions-Create" class="form-horizontal form-label-left">
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="LanguageId">
+                            @Localizer["Language"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control", required = "required" })
+                            @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                            @Localizer["Module"]  <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.DropDownListFor(model => model.ModuleId, new SelectList(modules, "Id", "Name"), null, new { @class = "form-control", required = "required" })
+                            @Html.ValidationMessageFor(model => model.ModuleId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="PageName">
+                            @Localizer["Page Name"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.PageName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.PageName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="PermissionKey">
+                            @Localizer["Permission Key"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.PermissionKey, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.PermissionKey, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Description">
+                            @Localizer["Description"]
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="PageUrl">
+                            @Localizer["Page Url"]
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.PageUrl, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.PageUrl, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                            @Localizer["Status"]  <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), string.Empty, new { @class = "form-control", required = "required" })
+                            @Html.ValidationMessageFor(model => model.Status, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                        <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                            <input type="submit" value=@Localizer["Submit"] class="btn btn-success" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Permissions/Permissions.js"></script>

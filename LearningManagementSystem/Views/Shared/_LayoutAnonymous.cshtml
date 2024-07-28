@@ -1,0 +1,148 @@
+﻿@using LearningManagementSystem.Core;
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Services.ControlPanel
+@using DataEntity.Models.EfModels
+@inject IViewLocalizer Localizer
+@inject IUserProfileService UserProfileService
+@inject UserManager<IdentityUser> UserManager
+@using static LearningManagementSystem.Core.Constants
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+}
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Safa Academy</title>
+    <link rel="shortcut icon" href="~/theme/Public/assets/images/assafa-logo.png">
+    @if (languageName != Constants.LanguageCultures.Arabic)
+    {
+        <link rel="stylesheet" href="~/theme/Public/assets/lib/bootstrap/css/bootstrap.min.css">
+    }
+    else
+    {
+        <link rel="stylesheet" href="~/theme/Public/assets/lib/bootstrap/css/bootstrap.rtl.min.css">
+    }
+    <link rel="stylesheet" href="~/theme/Public/assets/lib/font-awesome/css/all.css">
+    <link rel="stylesheet" href="~/theme/Public/assets/lib/swiper/swiper-bundle.min.css" />
+    <link href="~/theme/Public/assets/lib/animate/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/theme/Public/assets/css/login.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+
+    <link href="@Url.Content("~/lib/jquery/dist/jquery.js")" rel="stylesheet">
+    <link href="@Url.Content("~/lib/jquery/dist/jquery.min.js")" rel="stylesheet">
+    <link href="@Url.Content("~/main/autocomplete/css/chosen.css")" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/theme/Public/assets/css/index.css?ver=3.2">
+    @if (languageName == Constants.LanguageCultures.Arabic)
+    {
+        <link rel="stylesheet" href="~/theme/Public/assets/css/indexAr.css?ver=3.2">
+
+        <style>
+            html, body {
+                direction: rtl !important;
+            }
+        </style>
+    }
+    <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=c18af0f4"></script>
+
+
+    @RenderSection("Css", required: false)
+</head>
+<body>
+    <header class="bg-white">
+
+        <partial name="_NavHeaderPublicPartial" />
+
+    </header>
+
+    <!-- page content -->
+    @RenderBody()
+
+
+    <footer class="bg-footer">
+        <div class="container-fluid container-lg h-footer d-flex justify-content-center align-items-center">
+            <p class="text-center m-0 font-foot-smoll">&copy; Al-Safa Academy. All right reserved</p>
+        </div>
+    </footer>
+
+    <div class="spanner" style="z-index:2000;">
+        <div class="loader"></div>
+    </div>
+
+    <script src="~/theme/Public/assets/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/theme/Public/assets/lib/swiper/swiper-bundle.min.js"></script>
+    <script src="~/theme/Public/assets/lib/animate/aso.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/theme/Public/assets/js/index.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js" integrity="sha512-37T7leoNS06R80c8Ulq7cdCDU5MNQBwlYoy1TX/WUsLFC2eYNqtKlV0QjH7r8JpG/S0GUMZwebnVFLPd6SU5yg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+    <script src="~/js/toast.min.js"></script>
+    <script src="~/main/autocomplete/js/chosen.jquery.js"></script>
+    <script>
+        function ShowSpinner() {
+            $(".spanner").addClass("show-spanner");
+            $("body").css("overflow-y" , "hidden")
+        }
+
+        function HideSpinner() {
+            $(".spanner").removeClass("show-spanner");
+            $("body").css("overflow-y", "unset")
+        }
+
+        $(document).ajaxComplete(function () {
+            $(".chosen-select").chosen({
+                placeholder_text_multiple: '@Localizer["Select an option"]',
+                placeholder_text: '@Localizer["Select an option"]'
+            });
+
+            setTimeout(function () {
+                if (!$('body').hasClass('modal-open'))
+                    if ($(".modal-dialog").parent().hasClass("show"))
+                        $('body').addClass('modal-open');
+            }, 800)
+        });
+
+        jQuery.extend(jQuery.validator.messages, {
+            required: "@Localizer["This field is required."]",
+            remote: "Please fix this field.",
+            email: "@Localizer["Please enter a valid email address."]",
+            url: "Please enter a valid URL.",
+            date: "Please enter a valid date.",
+            step: jQuery.validator.format("@Localizer["Please enter a multiple of"]" + " " + "{0}."),
+            dateISO: "Please enter a valid date (ISO).",
+            number: "@Localizer["Please enter a valid number."]",
+            digits: "Please enter only digits.",
+            creditcard: "Please enter a valid credit card number.",
+            equalTo: "Please enter the same value again.",
+            accept: "Please enter a value with a valid extension.",
+            maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+            minlength: jQuery.validator.format("@Localizer["Please enter at least"]" + " " + "{0}" + " " + "@Localizer["characters."]"),
+            rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+            range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+            max: jQuery.validator.format("@Localizer["Please enter a value less than or equal to"]" + " " + "{0}."),
+            min: jQuery.validator.format("@Localizer["Please enter a value greater than or equal to"]" + " " + "{0}.")
+        });
+    </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Q3DLSZQN9"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6Q3DLSZQN9');
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

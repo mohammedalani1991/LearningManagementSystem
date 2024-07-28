@@ -1,0 +1,336 @@
+﻿/*Fonts*/
+body {
+    font-family: 'FF Shamel Family Unique Medium';
+}
+@font-face {
+    font-family: 'FF Shamel Family Unique Bold';
+    src: url('/fonts/SF-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'FF Shamel Family Unique Book';
+    src: url('/fonts/SF-Book.ttf');
+}
+
+@font-face {
+    font-family: 'FF Shamel Family Unique Light';
+    src: url('/fonts/SF-Light.ttf');
+}
+
+@font-face {
+    font-family: 'FF Shamel Family Unique Medium';
+    src: url('/fonts/SF-Medium.ttf');
+}
+/*End Fonts*/
+
+.Mobile {
+    direction: initial !important;
+}
+
+.chosen-choices .search-field{
+    float: right !important;
+    padding : 0 20px !important;
+}
+
+.tms-delete-msg{
+    font-family: 'FF Shamel Family Unique Book' !important; 
+}
+.tms_modules {
+    display: flex;
+    /*justify-content: center;*/
+    padding-top: 15px;
+    color: #5580BE;
+    font-weight: normal;
+    font-family: 'FF Shamel Family Unique Book' !important;
+    font-size: 15px;
+}
+
+    .tms_modules > div {
+        direction: ltr;
+    }
+
+.tms_modules .active {            
+   font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+
+.tms-nav {
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+
+.tms-user-icon {
+    padding-left: 15px;
+    padding-top: 4px;
+}
+
+.tms_sub_modules {
+    font-size:15px;
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+.tms_sub_modules .active {        
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+
+.tms-headings > th {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}    
+
+.tms-tr > td {  
+    font-family: 'FF Shamel Family Unique Book' !important;  
+}
+
+.tms-title {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+.tms-btn, .tms-save-btn {
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+.tms-save-btn, .tms-delete-btn {
+    font-family: 'FF Shamel Family Unique Medium' !important;
+}
+
+.tms-table-popup-title {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+.tms-label {    
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+.tms-input, .tms-ddl {    
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+.tms-notification {    
+    top: 0px !important;
+    left: 0px !important;
+}
+
+.tms-notification-item {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+.tms-search-input, .tms-search-ddl {
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+
+.tms-col-nav > .tms-col-nav-item {    
+    font-family: 'FF Shamel Family Unique Book' !important;
+    margin-left: 25px;
+    margin-right: 0px;    
+}
+
+.tms-col-nav > .tms-col-nav-sep {    
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.tms-col-nav-item .tms-col-nav-item-text > a {    
+    font-family: 'FF Shamel Family Unique Book' !important;
+}
+
+.tms-col-nav-item .tms-col-nav-item-text .active {    
+    font-family: 'FF Shamel Family Unique Bold' !important;
+    border-left: none;
+    border-right: 3px solid #2B61AE;
+}
+
+.tms-login-frm {
+    direction: rtl !important;
+}
+
+.first, #loginButton, .underlineHover {
+    font-family: 'FF Shamel Family Unique Medium' !important;
+}
+
+.second, .remember-me {
+    font-family: 'FF Shamel Family Unique Light' !important;
+}
+
+.tms-dir-icon:before {
+    font-family: "FontAwesome";
+    font-weight: 400;
+    content: "\f0d9" !important;
+}
+
+.tms-notification-btn {
+    margin: 5px 0px 0px 7px !important;
+    padding: 0 7px !important;
+}
+.tms_setting{
+   margin-left : 0 !important;
+    margin-right: auto !important;
+}
+@media (max-width: 991px) {
+    .tms_setting {
+        margin-right:auto !important;
+        margin-left: unset !important;
+    }
+}
+@media (max-width: 329px) {
+    .tms_setting {
+        margin: 0 auto !important;
+    }
+}
+@media (min-width: 992px) {
+    footer {
+        /*margin-left: 230px;*/
+    }
+}
+
+@media (max-width: 991px) {
+    .nav-md .container.body .col-md-3.left_col1 {
+        display: none !important;
+    }
+
+    .nav-md .container.body .right_col {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-offset-3 {
+        margin-left: 25%;
+    }
+
+    .col-md-7 {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .form-horizontal .control-label {
+        padding-top: 7px;
+        margin-bottom: 0;
+        text-align: right;
+    }
+}
+
+@media (max-width: 768px) {
+    .x_panel {
+        padding: 0;
+    }
+
+    .col-md-12, .col-sm-12, .col-xs-12 {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .wizard-inner .nav-tabs > li a .round-tab {
+        width: 25px !important;
+        height: 25px !important;
+        border: 1px solid #0BB8D4 !important;
+        padding-top: 3px !important;
+    }
+
+    .page-ath-content {
+        padding: 40px 15px 10px !important;
+    }
+
+    .step-btn span {
+        font-size: 14px !important;
+    }
+
+    .vl {
+        height: 0;
+    }
+
+    .site-title {
+        font-size: 20px;
+    }
+
+    .site-title-sm {
+        font-size: 17px;
+    }
+
+    .fa-chevron-left {
+        margin-top: 3px;
+    }
+}
+
+.table-actions {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+
+    .table-actions .btn {
+        margin: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+.modal-content-larg {
+    margin-left: -80% !important;
+    max-width: 1300px;
+}
+
+/*Side Nav Bar*/
+
+.nav-sm .nav.tms-side-menu li a {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+
+.nav-sm ul.nav.child_menu {
+    right: 102%;
+}
+.nav.tms-side-menu > li > a, .nav.child_menu > li > a {
+    text-align: right;
+}
+
+.nav > li > a {
+    text-align: justify;
+}
+
+.nav {
+    padding-right: 0;
+}
+.main_menu_side {
+    padding: 0;
+    border-left: 1px solid #dbdbdb;
+}
+
+.nav.tms-side-menu > li.active > a {
+    border-left: 0px;
+    border-right: 4px solid #2B61AE;
+}
+
+.nav li.current-page   {
+    border-right: 4px solid #2B61AE;
+    border-left:0px;
+}
+
+.nav-sm .nav.tms-side-menu li .child_menu a {
+    font-family: 'FF Shamel Family Unique Bold' !important;
+}
+/*End Side Nab Bar*/
+
+.Repeater_Nested .input-group > .custom-select:not(:last-child), .Repeater_Nested .input-group > .form-control:not(:last-child) {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.Repeater_Nested .btn {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    margin-right: 0px;
+}
+.Repeater_Nested .border-secondary-cust {
+    position: absolute;
+    left: -4px;
+    border-radius: 7px !important;
+    top: -1px;
+    right: inherit !important;
+}

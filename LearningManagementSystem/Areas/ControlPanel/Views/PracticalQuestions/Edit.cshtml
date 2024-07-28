@@ -1,0 +1,112 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@model DataEntity.Models.ViewModels.PracticalQuestionViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var types = lookups[GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString()];
+
+    ViewData["Title"] = @Localizer["Edit Practical Question"];
+    var languages = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), ViewBag.LangId);
+    var statuses = LookupHelper.GetStatuses(ViewBag.LangId);
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Edit Rating"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/PracticalQuestions/Edit" method="post" id="PracticalQuestion-Edit" class="form-horizontal form-label-left">
+                    <div class="row">
+                        @Html.HiddenFor(r=>r.Id)
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required", onchange="onDdlChanged(this)" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                @Localizer["Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                @Localizer["Mark"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Mark, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Mark, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        @* <div class="form-group col-lg-6 col-sm-12 col-xs-12 ">
+                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                        @Localizer["Type"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                        @Html.DropDownList("Type", new SelectList(types, "Id", "Name"), new { @class = " form-control chosen-select tms-ddl", required = "required" })
+                        @Html.ValidationMessage("Type", "", new { @class = "text-danger" })
+                        </div>
+                        </div>*@
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Main">
+                                @Localizer["Main"]
+                            </label>
+                            <div class="col-xs-12">
+                                @Html.CheckBoxFor(model => model.Main, new { @class = "form-control tms-input" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="IsDiscountFromTotal">
+                                @Localizer["Discount From Total"]
+                            </label>
+                            <div class="col-xs-12">
+                                @Html.CheckBoxFor(model => model.IsDiscountFromTotal, new { @class = "form-control tms-input" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Description">
+                                @Localizer["Description"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Description, new { htmlAttributes = new {@class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="button" onclick="EditPracticalQuestion()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

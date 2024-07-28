@@ -1,0 +1,45 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@using LearningManagementSystem.Core.Extensions
+@model List<DataEntity.Models.EfModels.EnrollCourseTime>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="mb-5">
+    <h3>@Localizer["Course Times"]</h3>
+    <div class="CourseTime-table table-responsiv">
+        <table class="table ">
+            <thead class="first-thead">
+                <tr>
+                    <th>@Localizer["Day"]</th>
+                    <th>@Localizer["From Time"]</th>
+                    <th>@Localizer["To Time"]</th>
+                    @*<th>@Localizer["Learning Method"]</th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @LookupHelper.GetDaysOfTheWeekById(item.DayId,ViewBag.LangId)?.Name
+                        </td>
+                        <td>
+                            @(item.FromTime.ConvertTimeSpanToString())
+                        </td>
+                        <td>
+                            @(item.ToTime.ConvertTimeSpanToString())
+
+                        </td>
+                        @*<td>
+                    @LookupHelper.GetLookupDetailsById(item.LearningMethodId ?? 0)?.Name
+                    </td>*@
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

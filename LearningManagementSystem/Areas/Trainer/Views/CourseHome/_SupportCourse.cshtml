@@ -1,0 +1,44 @@
+﻿@model DataEntity.Models.ViewModels.EnrollTeacherCourseViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core;
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="row courses-title align-items-center">
+    <div class="col-md-8 col-12 d-flex justify-content-start ">
+        <span class="My-Cources">@Localizer["My Courses"]</span>
+        <span class="quran-Basic">/ @ViewBag.CourseName</span>
+    </div>
+</div>
+<div class="Course-Contant"> @Localizer["Course Data"] </div>
+<div class="col-12 dropdown d-block d-lg-none mb-3">
+    <button class="btn w-100 form-select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span id="nameprofile">
+            <i class="fa-solid fa-bars"></i> @Localizer["Menu"]
+        </span>
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetSupportPracticalExams(@ViewBag.EnrollTeacherCourseById);">@Localizer["Practical Exams"]</button>
+            }
+        </li>
+    </ul>
+</div>
+
+<div class="courses-tab menu-sliders">
+    <button class="tablinkss menu-slide TrainerEnrollCoursesContent" id="defaultTrainerEnrollCoursesContent" onclick="openCourse(event, 'Details'); GetSupportDetails(@ViewBag.EnrollTeacherCourseById);">@Localizer["Details"]</button>
+    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetSupportPracticalExams(@ViewBag.EnrollTeacherCourseById);">@Localizer["Practical Exams"]</button>
+    }
+</div>
+
+<div id="Details" class="tabcontentt"></div>
+<div id="UserProfile_PracticalExams" class="tabcontentt"></div>
+
+<script>
+    document.getElementById("defaultTrainerEnrollCoursesContent").click();
+</script>

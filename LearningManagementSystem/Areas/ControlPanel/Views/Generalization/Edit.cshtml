@@ -1,0 +1,170 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralizationViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.Job.ToString(),
+     GeneralEnums.MasterLookupCodeEnums.GeneralizationTypes.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Edit Generalization"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses();
+    var branches = LookupHelper.GetBranches(ViewBag.LangId);
+    var jobs = lookups[GeneralEnums.MasterLookupCodeEnums.Job.ToString()];
+    var generalizationTypes = lookups[GeneralEnums.MasterLookupCodeEnums.GeneralizationTypes.ToString()];
+    var display = "block";
+    if (Model.SelectEmployee != true)
+    {
+        display = "none";
+    }
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Edit Generalization"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/Generalization/Edit" method="post" id="Generalization-Edit" class="form-horizontal form-label-left">
+                    <div class="row">
+                        @Html.HiddenFor(r => r.Id)
+                        @Html.HiddenFor(r => r.Page)
+                        @Html.HiddenFor(model => model.GeneralizationContactsText)
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required", onchange = "onDdlChanged(this)" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                @Localizer["Title"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Title, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Status">
+                                @Localizer["Generalization Type"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownListFor(model => model.GeneralizationTypeId, new SelectList(generalizationTypes, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.GeneralizationTypeId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Status">
+                                @Localizer["Job"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownListFor(model => model.JobId, new SelectList(jobs, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", onchange = "GetEmployeesEdit()" })
+                                @Html.ValidationMessageFor(model => model.JobId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Status">
+                                @Localizer["Branch"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownListFor(model => model.BranchId, new SelectList(branches, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", onchange = "GetEmployeesEdit()" })
+                                @Html.ValidationMessageFor(model => model.Status, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Value">
+                                @Localizer["Description"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.TextAreaFor(model => model.Description, new { @class = "tinyRichText" })
+                                <label id="Description-error" class="error" style="display:none" for="Description">This field is required.</label>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Status">
+                                @Localizer["Select Employees"]
+                            </label>
+                            <div class="col-md-1 col-sm-6 col-xs-12">
+                                @Html.CheckBoxFor(model => model.SelectEmployee, new { @class = "form-control col-md-5 col-sm-3 col-xs-12", @onclick = "ShowEmployeeDivEdit()" })
+                            </div>
+                        </div>
+                        <div class="form-group col-12">
+                            <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                            </label>
+                            <div class="col-12" id="EmployeesDivEdit" style="display:@display;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        tinymce.get("Description").setContent('@Model.Description');
+    });
+
+    InitTinymce();
+
+    function ShowEmployeeDivEdit() {
+        $('#EmployeesDivEdit').toggle();
+    }
+
+    GetEmployeesEdit();
+    function GetEmployeesEdit() {
+        $('#CreateGeneralizationDiv').empty();
+        var page = $("#pagination").val();
+        var jobId = $("#JobId").val();
+        var branchId = $("#BranchId").val();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/Generalization/GetEmployeesCreate/",
+            data: { pagination: page, jobId: jobId, generalizationId: '@Model.Id', branchId: branchId },
+            success: function (data) {
+                $('#EmployeesDivEdit').html(data);
+            }
+        });
+    }
+
+    $(document).on('click', '.SelectAll', function (e) {
+        var $checks = $('.IsSelect');
+        $checks.prop('checked', !$checks.is(':checked'));
+        e.stopPropagation();
+        SetSelectedEmployees();
+    });
+
+    function SetSelectedEmployees() {
+        var employeeIds = [];
+        $('#GeneralizationContactsText').val("");
+        $("input[name=ActiveCheckBox]:checked").each(function () {
+            var parent = $(this).parent();
+            var id = parent.attr("id");
+            employeeIds.push(id);
+        });
+        $("#GeneralizationContactsText").val(employeeIds.join(","));
+    }
+
+</script>
+
+<script src="~/js/Generalization/Generalization.js"></script>

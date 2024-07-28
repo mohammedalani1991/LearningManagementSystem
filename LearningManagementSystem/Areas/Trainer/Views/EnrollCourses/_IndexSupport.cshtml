@@ -1,0 +1,127 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollTeacherCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+<div class="row">
+        <div class="d-flex justify-content-start align-items-start  courses-title">
+    <span class="My-Cources">@Localizer["Support Courses"]</span>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                </div>
+            </div>
+
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Id">
+                                @Localizer["Id"]
+                            </th>
+                            <th class="CourseId">
+                                @Localizer["Course Name"]
+                            </th>
+                            <th class="CreatedBy">
+                                @Localizer["Teacher"]
+                            </th>
+                            <th class="LearningMethodId">
+                                @Localizer["Learning Method"]
+                            </th>
+                            <th class="SemesterId">
+                                @Localizer["Semester Name"]
+                            </th>
+                            <th class="SectionName">
+                                @Localizer["Section Name"]
+                            </th>
+
+                            <th class="Status">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedOn">
+                                @Localizer["Created On"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="Id ">
+                                    @Html.DisplayFor(modelItem => item.CourseId)
+                                </td>
+                                <td class="CourseId ">
+                                    <a class="tablelink" style="cursor:pointer" onclick="GetSupportCourse(@item.Id)">
+                                        @Html.DisplayFor(modelItem => item.CourseName)
+                                    </a>
+
+                                </td>
+                                <td class="CreatedBy ">
+                                    @item.Teacher.Contact.FullName
+                                </td>
+
+                                @if (item.LearningMethodId != null)
+                                {
+                                    <td class="LearningMethodId">@LookupHelper.GetLookupDetailsById(item.LearningMethodId ?? 0,(int)ViewBag.LangId).Name</td>
+                                }
+                                else
+                                {
+                                    <td class="LearningMethodId">--</td>
+                                }
+                                <td class="SemesterId">
+                                    @if (item.Semester != null)
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Semester.Name)
+                                    }
+                                    else
+                                    {
+                                        <span>--</span>
+                                    }
+                                </td>
+                                <td class="SectionName ">
+                                    @if (!string.IsNullOrEmpty(item.SectionName))
+                                    {
+                                        @Html.DisplayFor(modelItem => item.SectionName)
+                                    }
+                                    else
+                                    {
+                                        <span>--</span>
+                                    }
+                                </td>
+
+                                <td class="Status ">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedOn ">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetSupportData", new { page}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "MySupportCourses" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

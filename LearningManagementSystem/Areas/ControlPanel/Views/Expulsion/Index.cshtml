@@ -1,0 +1,80 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='CreateExpulsion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateRegimentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditExpulsion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditRegimentTendersDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsExpulsion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered ">
+        <div id='DetailsCompanyDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='StudensModal' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='StudensModalDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+<div id="CancelExpulsionModal" class="modal fade">
+    <div class="modal-dialog modal-confirm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <div class="icon-box d-flex align-items-center justify-content-center" style="border:3px solid #60c7c1">
+                    <h1 class="m-0" style="color:#60c7c1">X</h1>
+                </div>
+                <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>@Localizer["Do you really want to Cancel Expulsion For This Student?"]</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <input type="hidden" id="CancelExpelStudentId" />
+                <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                <button id="Expel_Modal" type="button" class="btn btn-success shadow-lg" style="margin-top:6px" onclick="CancelExpulsion()">@Localizer["Cancel Expulsion"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section JavaScript
+    {
+    <script>
+        var Token = '@tokenSet.RequestToken';
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        let CancelExpelMassege = '@Localizer["Expulsion Cancelled Successfully"]';
+        let CancelExpelMassegeError = '@Localizer["An error occurred while Cancelling"]';
+        $('.tms-management').addClass("active");
+        $('.tms-sub-expulsion').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+    </script>
+
+    <script src="~/js/Expulsion/Expulsion.js"></script>
+}

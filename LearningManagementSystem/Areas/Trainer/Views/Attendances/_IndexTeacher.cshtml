@@ -1,0 +1,277 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.TeacherAttendance>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using System.Globalization;
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var s = ViewBag.DateTime.ToString("yyyy-MM-dd");
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    CultureInfo arCulture = new CultureInfo("ar-SA");
+    DateTimeFormatInfo arDateTimeFormat = arCulture.DateTimeFormat;
+    CultureInfo enCulture = new CultureInfo("en");
+    DateTimeFormatInfo enDateTimeFormat = enCulture.DateTimeFormat;
+}
+
+<style>
+    .prev1 {
+        border-radius: 0 7px 7px 0;
+    }
+
+    .next1 {
+        border-radius: 7px 0 0 7px;
+    }
+
+    .btn:hover{
+        color: #1088A2;
+    }
+</style>
+
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="row mb-3 px-2">
+            </div>
+            <div class="row w-100">
+                <div class="col-md-6 col-sm-12 row mb-2 justify-content-center">
+                    <button id="today1" class="btn btn-primary col-2">@Localizer["Today"]</button>
+                    <div class="col-6">
+                        <input type="date" id="date1" class="form-control" onchange="GetTeacherAttendance()" value="@s" />
+                    </div>
+                    <button id="prev1" class="btn btn-primary col-2 prev1"><i class="fa fa-arrow-left"></i></button>
+                    <button id="next1" class="btn btn-primary col-2 next1"><i class="fa fa-arrow-right"></i></button>
+                </div>
+                <div class="col-md-6 col-sm-12 col-xs-12 d-flex justify-content-center my-2">
+                    <div class="btn-group btn-group" role="group" id="Buttons">
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered mt-4">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Date"]
+                            </th>
+                            <th>
+                                @Localizer["Absence Note"]
+                            </th>
+                            <th>
+                                @Localizer["Attend"]
+                            </th>
+                            <th>
+                                @Localizer["Choose a process"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @if (ViewBag.LangId == 7)
+                                    {
+                                        @(arDateTimeFormat.GetDayName(item.Date.DayOfWeek) + " " + Localizer[enDateTimeFormat.GetMonthName(item.Date.Month)].Value + " " + item.Date.ToShortDateString())
+                                    }
+                                    else
+                                    {
+                                        @item.Date.ToLongDateString()
+                                    }
+                                </td>
+                                <td>
+                                    @item.Note
+                                </td>
+                                <td>
+                                    @Html.Raw((item.Attended == true ?  "<button class='btn btn-primary' disabled>"+@Localizer["Attended"].Value+"</button>" : "<button class='btn btn-danger'disabled>"+@Localizer["Did Not Attended"].Value +"</button>"))
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>   <a class="dropdown-item" href="javascript:void(0);" onclick="Delete(@item.Id)"><i class="fa-solid fa-trash"></i>@Localizer["Delete"]</a> </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                @Html.PagedListPager(Model, page => Url.Action("GetTeacherData", new { CourseId = ViewBag.CourseId, page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_TeacherAttendances" }))
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="NoteModal" tabindex="-1" aria-labelledby="NoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="NoteModalDiv">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="CreateCourseExamLabel">@Localizer["Add Attendance"]</h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+
+                        <div class="x_content">
+                            <br />
+                            <form id="NoteForm" class="form-horizontal form-label-left">
+                                <div class="form-group col-12 mb-3">
+                                    <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                        @Localizer["Absence Note"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-12 col-sm-6 col-xs-12">
+                                        <input id="Note" name="Note" required class="form-control tms-input col-md-7 col-xs-12" />
+                                    </div>
+                                </div>
+                                <div class="row">
+
+                                    <div class="form-group text-center mt-2">
+                                        <button class="btn btn-primary" type="button" onclick="AddAttendance(false , false)"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var Token = '@tokenSet.RequestToken';
+    var today1 = new Date('@s');
+    var text = '@Localizer["There is no Class Today."]';
+
+    $(document).ready(function () {
+        GetTeacherAttendance();
+    });
+
+    $('#today1').click(function () {
+        today1 = new Date();
+        $('#date1').val(today1.toISOString().substring(0, 10));
+        GetTeacherAttendance();
+    })
+    $('#prev1').click(function () {
+        today1.setDate(today1.getDate() - 1);
+        $('#date1').val(today1.toISOString().substring(0, 10));
+        GetTeacherAttendance();
+    });
+    // Hook up next button event
+    $('#next1').click(function () {
+        today1.setDate(today1.getDate() + 1);
+        $('#date1').val(today1.toISOString().substring(0, 10))
+        GetTeacherAttendance();
+    });
+
+    function GetTeacherAttendance() {
+        $.ajax({
+            type: "Get",
+            url: "/Trainer/Attendances/GetTeacherAttendance",
+            data: {
+                courseId: '@ViewBag.CourseId', date: $('#date1').val()
+            },
+            success: function (data) {
+                $("#Buttons").empty();
+                if (data != null) {
+                    $("#Buttons").append("<button class='btn' disabled>" + (data.attended ? "@Localizer["Attended"]" : "@Localizer["Did Not Attended"]") + "</button>");
+                } else {
+                    $("#Buttons").append("<button class='btn btn-danger' onclick='AddAttendance(false , true)'>@Localizer["Did Not Attended"]</button>");
+                    $("#Buttons").append("<button class='btn btn-primary' onclick='AddAttendance(true , false)'>@Localizer["Attended"]</button>");
+                }
+            },
+            error: function (data) {
+            },
+        });
+    }
+
+    function AddAttendance(attended, show) {
+        if (show)
+            $("#NoteModal").modal("show");
+        else {
+            var date = $('#date1').val();
+            var today2 = today1;
+            $.ajax({
+                type: "POST",
+                url: "/Trainer/Attendances/AddAttendance",
+                data: {
+                    courseId: '@ViewBag.CourseId', date: $('#date1').val(), note: $("#Note").val(), attended
+                },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    if (data.success) {
+                        $("#NoteModal").modal("hide");
+                        toastr.success(addMassege);
+                        GetTeacherAttendances('@ViewBag.CourseId')
+                        setTimeout(function () {
+                            $('#date1').val(date);
+                            GetTeacherAttendance()
+                            today1 = today2
+                        }, (500))
+                        $("#NoteForm").trigger("reset");
+                    }
+                    else
+                        toastr.warning("@Localizer["There is No Class Today."]");
+
+                },
+                error: function (data) {
+                    toastr.error(addMassegeError);
+                },
+            });
+        }
+    }
+
+    function Delete(id) {
+        var date = $('#date1').val();
+        var today2 = today1;
+        $.ajax({
+            type: "POST",
+            url: "/Trainer/Attendances/Delete",
+            data: {
+                id: id
+            },
+            headers: {
+                'RequestVerificationToken': Token
+            },
+            success: function (data) {
+                toastr.success('@Localizer["Deleted Successfully"]');
+                GetTeacherAttendances('@ViewBag.CourseId')
+                setTimeout(function () {
+                    $('#date1').val(date);
+                    GetTeacherAttendance()
+                    today1 = today2
+                }, (500))
+            },
+            error: function (data) {
+                toastr.error("@Localizer["Error Occurred While Deleting"]");
+            },
+        });
+    }
+</script>

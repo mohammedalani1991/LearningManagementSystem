@@ -1,0 +1,117 @@
+﻿@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<QuestionViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    List<StatusViewModel> questionType = LookupHelper.GetQuestionsType(ViewBag.LangId);
+    var ListExamQuestions = (List<EnrollCourseExamQuestion>)ViewBag.ExamQuestions;
+    var x = Model.Where(r => ListExamQuestions.Select(s => s.Question.QuestionId).Contains(r.Id)).Count();
+}
+
+<div class="col-12">
+    <div class="x_panel bg-transparent">
+        <div class="x_panel bg-transparent">
+            <div class="tms-page-title d-flex">
+                <div class="tms-title" style="width: 40%;">
+                    <h4><small>@Localizer["The number of questions in the template:"] <span>@x</span></small></h4>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive table-bordered EnrollBankExamQuestions">
+            <table class="table text-center m-0">
+                <thead class="table-primary">
+                    <tr class="tms-headings">
+                        <th class="Choose ">
+                            @Localizer["Choose"]
+                        </th>
+                        <th class="Name ">
+                            @Localizer["Question Name"]
+                        </th>
+
+                        <th class="Type ">
+                            @Localizer["Type"]
+                        </th>
+                        <th class="CourseId ">
+                            @Localizer["Course"]
+                        </th>
+                        <th class="CategoryId ">
+                            @Localizer["Category"]
+                        </th>
+                        <th class="Mark">
+                            @Localizer["Mark"]
+                        </th>
+                        <th class="Status ">
+                            @Localizer["Status"]
+                        </th>
+
+                        <th class="CreatedOn ">
+                            @Localizer["Created On"]
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Count == 0)
+                    {
+                        <tr class="tms-tr">
+                            <td colspan="8">@Localizer["No questions matching the filter !"] </td>
+                        </tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr class="tms-tr">
+                            <td>
+                                @if (ListExamQuestions.Select(s => s.Question.QuestionId).Contains(item.Id))
+                                {
+                                    <input attr-enrollCourseExam-id="@ViewBag.EnrollCourseExamId" attr-Question-id="@item.Id" type="checkbox" checked />
+                                }
+                                else
+                                {
+                                    <input attr-enrollCourseExam-id="@ViewBag.EnrollCourseExamId" attr-Question-id="@item.Id" type="checkbox" />
+                                }
+                            </td>
+                            <td class="Name ">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td class="Type ">
+                                @(questionType.FirstOrDefault(r => r.Id == item.Type)?.Name ?? "")
+                            </td>
+                            <td class="CourseId ">
+                                @Html.DisplayFor(modelItem => item.CourseName)
+                            </td>
+                            <td class="CategoryId ">
+                                @Html.DisplayFor(modelItem => item.CategoryName)
+                            </td>
+                            <td class="Mark">
+                                @Html.DisplayFor(modelItem => item.Mark)
+                            </td>
+                            <td class="Status ">
+                                @LookupHelper.GetStatusById(item.Status)?.Name
+                            </td>
+
+                            <td class="CreatedOn ">
+                                @Html.DisplayFor(modelItem => item.CreatedOn)
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (Model.PageCount > 0)
+            {
+                <div class="paging-div mt-3">
+                    @Html.PagedListPager(Model, page => Url.Action("TemplateBankExamQuestionsGetData", new { page, QuestionName = ViewBag.QuestionName,CourseCategoryId=ViewBag.CourseCategoryId ,CourseId=ViewBag.CourseId,id=ViewBag.id,TypeQuestion=ViewBag.TypeQuestion}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "TemplateBankExamQuestionsGetData" }))
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,179 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.Calendar>
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Core;
+@using Microsoft.AspNetCore.Antiforgery
+@inject IViewLocalizer Localizer
+@inject IAntiforgery Antiforgery
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Calendar"];
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.CalendarType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var CalenderType = lookups[GeneralEnums.MasterLookupCodeEnums.CalendarType.ToString()];
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+
+<div class="container-fluid container-lg Calendar">
+    <div class="row justify-content-between mb-4 mt-5 align-items-end px-3">
+        <p class="col-1 Calendar-tite ">@Localizer["Calendar"] </p>
+        <!-- <span class="botm-title40"></span> -->
+        <p class="col d-block d-lg-none text-end">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                @Localizer["Search and Filter"]
+            </button>
+        </p>
+
+        <div class=" col-12 col-lg-10 collapse d-lg-block" id="collapseExample">
+            <div class="row g-3 g-lg-0 d-flex align-items-center">
+                <input id="txtCalendarSearch" type="text" class="col form-control Search" placeholder="&#xf002; @Localizer["Search"]">
+                @Html.DropDownList("ddlCalendarType", new SelectList(CalenderType, "Id", "Name"), Localizer["Select Type"].Value, new { @class = "col-3 form-select select2C" })
+                <div class="col d-flex">
+                    <button type="button" id="txtExportCalendarData" class="btn btn-outline-primary mx-2 p-0 btn-Export ">@Localizer["Export"] </button>
+                    <button type="button" id="btnCalendarSerach" class="btn btn-primary p-0 btn-Export">@Localizer["Submit"] </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="d-none d-lg-block m-0" style="color:#cfcfcf;">
+    <div class="bg-white bg-Calendar">
+        <div id='calendar'></div>
+    </div>
+</div>
+<div class="modal fade" id="DetailsCalendar" tabindex="-1" aria-labelledby="DetailsCalendarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5"></h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+
+                        <div class="x_content">
+                            <br />
+                            <div class="CalendarDescription">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+        .fc-event{
+        cursor: pointer;
+    }
+</style>
+@section Scripts
+    {
+
+    <script type="text/javascript">
+        $(function() {
+            var CalendarTitle='@Localizer["Title :"]';
+            var Calendardescription='@Localizer["Description :"]';
+            var Token = '@tokenSet.RequestToken';
+            var fetchInfoStart;
+            var fetchInfoEnd;
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                timeZone: 'UTC',
+                initialView: "dayGridMonth",
+                initialDate: "@ViewBag.initialDate",
+                lazyFetching: false,
+                navLinks: true, // can click day/week names to navigate views
+                editable: false,
+                responsive: true,
+                eventLimit: true, // allow "more" link when too many events
+                headerToolbar: {
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+                },
+                eventClick: function(info) {
+                    var eventObj = info.event;
+                    $('#DetailsCalendar .modal-content .modal-title').html(CalendarTitle +' '+ ((info.event.title)?info.event.title:'--'));
+                    $('#DetailsCalendar .modal-content .CalendarDescription').html(Calendardescription +' <br /><br />'+ ((info.event.extendedProps.description)?info.event.extendedProps.description:'--'));
+                    $('#DetailsCalendar').modal("show");
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    ShowSpinner();
+                    fetchInfoStart = fetchInfo.startStr;
+                    fetchInfoEnd = fetchInfo.endStr;
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("GetCalendarData","Calendar", new { Area = "" })",
+                        data: {
+                            Name: $("#txtCalendarSearch").val(),
+                            TypeID: $("#ddlCalendarType").val(),
+                            startDate: fetchInfo.startStr,
+                            endDate: fetchInfo.endStr,
+                        },
+                        headers: {
+                            'RequestVerificationToken': Token
+                        },
+                        success: function(data) {
+                            HideSpinner();
+                            var events = [];
+                            $.each(data, function(i, item) {
+                                events.push({
+                                    title: data[i].name,
+                                    start: data[i].startDate,
+                                    end: data[i].endDate,
+                                    color: "#00c0ef",
+                                    description: data[i].description,
+                                });
+                            });
+                            successCallback(events);
+
+                        }, error: function() {
+                            HideSpinner();
+                        }
+                    });
+                },
+                eventColor: '#378006',
+                loading: function(isLoading) {
+                    if (isLoading) {
+                        ShowSpinner();
+                    }
+                    else {
+                        HideSpinner();
+                        $(".fc-header-toolbar").removeClass("fc-toolbar-ltr");
+                    }
+
+                }
+
+            });
+        @if (languageName == Constants.LanguageCultures.Arabic)
+        {
+            @:calendar.setOption('locale', 'ar');
+            @:calendar.setOption('direction', 'rtl');
+
+        }
+                calendar.render();
+
+
+            $("#btnCalendarSerach").click(function() {
+                calendar.refetchEvents();
+            });
+            $("#txtExportCalendarData").click(function(e) {
+                e.preventDefault();
+                location.href = 'Calendar/ExportForGoogleCalendar?Name=' + $("#txtCalendarSearch").val() + '&TypeID=' + $("#ddlCalendarType").val() + '&startDate=' + fetchInfoStart + '&endDate=' + fetchInfoEnd + '';
+            });
+
+
+        });
+
+    </script>
+    }

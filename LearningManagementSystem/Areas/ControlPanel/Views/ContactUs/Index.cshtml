@@ -1,0 +1,25 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.ContactU>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        $('.tms-management').addClass("active");
+        $('.tms-sub-contact-us').addClass("active");
+     $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+    </script>
+
+    <script src="~/js/ContactUs/ContactUs.js?ver=1.1"></script>
+}

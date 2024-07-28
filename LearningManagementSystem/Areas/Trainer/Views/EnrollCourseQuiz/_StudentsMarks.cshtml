@@ -1,0 +1,110 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DataEntity.Models.EfModels
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject IEnrollCourseQuizService EnrollCourseQuizService
+@{
+    var QuizLowPoint = (decimal)ViewBag.QuizLowPoint;
+}
+
+<div class="row">
+    <div class="col-12 courses-title row pb-2">
+        <div class="col-6 d-flex justify-content-start align-items-center">
+            <span class="My-Cources mb-0">@Localizer["Enrolled Students"]</span>
+        </div>
+        <form class="col-6 d-flex align-items-center justify-content-between" data-ajax="true" method="get" action="/Trainer/EnrollCourseQuiz/ShowEnrolledStudentsForMarks" id="Form1" data-ajax-success="GetEnrolledStudentsData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+            @Html.Hidden("Page")
+            @Html.Hidden("QuizId")
+            @Html.Hidden("EnrollTeacherCourseId")
+            <div class="col-md-8 col-sm-3 col-xs-12">
+                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+            </div>
+            <div>
+                <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+            </div>
+        </form>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Id"]
+                            </th>
+                            <th>
+                                @Localizer["Student Name"]
+                            </th>
+                            <th>
+                                @Localizer["Delays"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Action"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="12">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Student.Id)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Student.Contact.FullName)
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuizPointes", User.Identity.Name))
+                                    {
+                                        <button class="btn btn-danger" onclick="ShowStudentQuizMarks(@item.Id ,@ViewBag.EnrollTeacherCourseId)">
+                                            @EnrollCourseQuizService.GetFailuresCount(item.Id)
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-danger">
+                                            @EnrollCourseQuizService.GetFailuresCount(item.Id)
+                                        </button>
+                                    }
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuizPointes", User.Identity.Name))
+                                    {
+                                        <button class="btn btn-primary" onclick="ShowStudentQuizMarks(@item.Id ,@ViewBag.EnrollTeacherCourseId)">@Localizer["Details"]</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("ShowEnrolledStudentsForMarks", new { page, quizId = ViewBag.QuizId, enrollTeacherCourseId = ViewBag.enrollTeacherCourseId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowStudentForQuizDiv" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

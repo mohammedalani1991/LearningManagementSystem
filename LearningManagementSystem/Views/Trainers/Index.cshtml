@@ -1,0 +1,115 @@
+﻿@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Trainer>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels;
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Our Trainers"];
+
+    var ViewBagGeneralSpecialty = ViewBag.GeneralSpecialty;
+    ViewBagGeneralSpecialty.Add(new DetailsLookupViewModel { Name = Localizer["Select Specialty"].Value, Id = 0 });
+    var ListGeneralSpecialty = (List<DetailsLookupViewModel>)ViewBagGeneralSpecialty;
+
+
+    List<DetailsLookupViewModel> generalSpecialization = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(), ViewBag.LangId);
+    var dicGeneralSpecialization = generalSpecialization.ToDictionary(item => item.Id,
+                     item => item.Name);
+
+
+}
+
+
+
+
+<div id="Team">
+    <div class="container-fluid p-0">
+        <div class="div-img-title">
+            <div class="position-absolute top-50 end-0 translate-middle-y">
+                <img src="~/theme/Public/assets/images/About/A-right.png" class="img-fluid">
+            </div>
+            <div class="position-absolute top-50 start-50 translate-middle mx-auto w-100">
+                <h1 class="fs-titlebag text-center text-white">@Localizer["Our Trainers"]</h1>
+                <div class="spas-titlebag shadow-sm mx-auto"></div>
+            </div>
+            <div class="position-absolute top-50 start-0 translate-middle-y">
+                <img src="~/theme/Public/assets/images/About/A-left.png" class="img-fluid">
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid container-lg pt-Team">
+
+
+        <p class="d-block d-lg-none text-end">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                @Localizer["Search and Filter"]
+            </button>
+        </p>
+
+        <div class="collapse d-lg-block" id="collapseExample">
+            <form method="Get">
+                <div class="row px-3 d-flex align-items-center mb-5 Se-div">
+                    <input type="text" class="form-control Search" id="search" name="search" placeholder="&#xf002; @Localizer["Search"].Value" value="@ViewBag.Search">
+
+                    @Html.DropDownList("Specialty", new SelectList(ListGeneralSpecialty.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-select select2C" })
+
+
+                    <button class="btn Csubmit ms-auto">@Localizer["Submit"]</button>
+                </div>
+            </form>
+        </div>
+
+        <hr class="d-none d-lg-block m-0" style="color:#cfcfcf;">
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <h2>@Localizer["There Is no Trainers"]</h2>
+            </div>
+        }
+        else
+        {
+            <div class="container-fluid p-0 m-0">
+                <div class="row pdding-topCors gutter-cor">
+                    @foreach (var item in Model)
+                    {
+                        var trainer = (Trainer)item;
+                        <div class="col-12 col-md-6 col-xl-3" data-aos="fade-up" data-aos-duration="1500">
+                            <a href="@Url.Action("Details","Trainers",new {Id=trainer.Id })" style="min-height:200px">
+                                <div class="bg-white shadow-sm rounded-5 p-Cbgwhite">
+                                    <img src="@(trainer.ImageUrl??"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")" class="img-fluid w-100 heightstat rounded-5">
+                                    <h5 class="text-center fs-tit-Trainers">
+                                        @trainer.Contact.FirstName @trainer.Contact.LastName
+                                    </h5>
+                                    @if (item.GeneralSpecialtyId != null)
+                                    {
+                                        <p class="text-center fs-sup-Trainers">@dicGeneralSpecialization[item.GeneralSpecialtyId.Value]</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-center fs-sup-Trainers">@Localizer["No Specialty"]</p>
+                                    }
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="paddtop-Page">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { search = ViewBag.Search, specialty = ViewBag.Specialty, page }))
+                    </ul>
+                </nav>
+            </div>
+        }
+
+    </div>
+</div>

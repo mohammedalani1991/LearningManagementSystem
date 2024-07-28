@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<style>
+    .modal-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+    }
+
+        .modal-nav h5 {
+            display: block;
+            cursor: pointer;
+            margin: 1rem;
+            color: #73879C;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+            .modal-nav h5:hover {
+                color: #0366d6;
+                font-weight: 500;
+            }
+
+    .main-card {
+        border: 1px solid #3337;
+        min-height: 40vh;
+        margin: 0 0 15px 0;
+        display:flex;
+        flex-direction:column;
+    }
+
+    .modal-nav .active {
+        color: #0366d6 !important;
+        font-weight: 500;
+    }
+</style>
+
+<div class="row">
+    <input type="hidden" id="EnrollStudentCourseId" value="@ViewBag.EnrollStudentCourseId" />
+    <div class="col-12 modal-nav">
+        <h5 id="GetDetails">@Localizer["Details"]</h5>
+        <h5 id="ShowLessons">@Localizer["Lessons"]</h5>
+        <h5 id="ShowExams">@Localizer["Exams"]</h5>
+        <h5 id="ShowAssignments">@Localizer["Assignments"]</h5>
+        <h5 id="ShowAttendances">@Localizer["Attendances"]</h5>
+        <h5 id="ShowAlerts">@Localizer["Alerts"]</h5>
+        <h5 id="ShowMarks">@Localizer["Quiz Marks"]</h5>
+        <h5 id="ShowPreRequests">@Localizer["Prerequisites"]</h5>
+    </div>
+    <div class="col-12">
+        <div id="CourseDetails" class="main-card shadow">
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.modal-nav h5').on('click', function () {
+            $('.modal-nav h5').removeClass('active');
+            $(this).addClass('active');
+            var get = $(this).attr('id');
+            GetDetails('@ViewBag.EnrollStudentCourseId', get);
+        });
+
+        $("#GetDetails").click();
+    });
+</script>

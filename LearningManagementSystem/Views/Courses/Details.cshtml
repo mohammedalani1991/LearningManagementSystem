@@ -1,0 +1,452 @@
+﻿@model DataEntity.Models.ViewModels.CourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels;
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+@inject IEnrollStudentCourseService EnrollStudentCourseService
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    ViewData["Title"] = @Localizer["Details"];
+
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    var enrollTeacherCourse = LookupHelper.GetEnrollTeacherCourse((int)ViewBag.LangId, Model.Id);
+    var isThereEnrollTeacherCourse = !enrollTeacherCourse.Any();
+    var checkIfClassOnline = LookupHelper.CheckIfClassOnline(Model.Id);
+    bool enroll = ViewBag.Enroll;
+
+    if (!enroll)
+    {
+        var fullCourceIds = LookupHelper.GetFullCourses(Model.Id);
+
+        enrollTeacherCourse = enrollTeacherCourse.Where(s => !fullCourceIds.Contains(s.Id)).ToList();
+    }
+
+    var selectedEnrollTeacherCourseId = ViewBag.EnrollTeacherCourseId ?? enrollTeacherCourse.LastOrDefault()?.Id;
+    var showAddAttachment = enroll && !(bool)ViewBag.EnrollStudentCourseAttachment && Model.NeedQuestion;
+    var enrollTeacherCourseData = (EnrollTeacherCourseViewModel)null;
+    if (ViewBag.enrollTeacherCourseData != null)
+    {
+        enrollTeacherCourseData = (EnrollTeacherCourseViewModel)ViewBag.enrollTeacherCourseData;
+    }
+
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var IsStudent = AuthenticationHelper.CheckIsStudent(User.Identity.Name);
+}
+
+<style>
+    @@media (max-width: 778px) {
+        #CourseTrainerEnrollDetails {
+            overflow: auto;
+        }
+    }
+</style>
+
+<div class="container-fluid container-lg px-0 px-lg-3 ">
+    <div class="bg-white About-Courses ">
+        <div class="row mar-padd">
+            <div class="col-12 col-lg-5 px-lg-3 text-center">
+                <img src="@(Model.ImageUrl??"https://images.indianexpress.com/2020/04/online759.jpg")" alt="" class="img-fluid h-imgACourses" />
+            </div>
+            <div class="col-12 col-lg-7">
+                <div class="d-flex justify-content-between">
+                    <h2 class="m-0">@Model.CourseName</h2>
+                    <p class="text-primarycolor fs-23 d-flex align-items-center">@(Model.CourseExchangePrice != null && Model.CourseExchangePrice > 0 ? Model.CourseExchangePrice : Localizer["Free"].Value) @Html.Raw(Model.CourseExchangePrice > 0 ? currency.Icon : "")</p>
+                    <input type="hidden" id="CoursePrice" name="CoursePrice" value="@Model.CoursePrice" />
+                </div>
+                <p class="font-Aboutsup-sty">
+                    @Html.Raw(Model.Notes)
+                </p>
+                <div class="d-flex">
+
+                    @if (enrollTeacherCourse.Count() == 1 || enroll)
+                    {
+                        if (selectedEnrollTeacherCourseId != null && selectedEnrollTeacherCourseId != 0)
+                        {
+                            <input type="hidden" id="EnrollTeacherCourseId" name="EnrollTeacherCourseId" value="@selectedEnrollTeacherCourseId" />
+                        }
+                        else
+                        {
+                            <input type="hidden" id="EnrollTeacherCourseId" name="EnrollTeacherCourseId" value="@enrollTeacherCourse.First().Id" />
+
+                        }
+                    }
+                    else if (enrollTeacherCourse.Count() > 0)
+                    {
+                        <div class="mb-3">
+                            @Html.DropDownList("EnrollTeacherCourseId", new SelectList(enrollTeacherCourse, "Id", "Name"), new { @class = "form-select select-class", required = "required", onchange = "ShowCourseTrainer();ShowCourseTimes();CourseTrainerEnrollDetails();ShowExams();ShowLessons();ShowAssignments();ShowPreRequests();" })
+                        </div>
+                    }
+                    else if (isThereEnrollTeacherCourse)
+                    {
+                        <div class="mb-3">
+                            <button class="btn btn-primary" disabled>@Localizer["There is no sections right now"]</button>
+                        </div>
+                    }
+                    else if (enrollTeacherCourse.Count() == 0)
+                    {
+                        <div class="mb-3">
+                            <button class="btn btn-primary" disabled>@Localizer["The Course is Full"] || @Localizer["Register time is up"]</button>
+                        </div>
+                    }
+
+                    @if (!enroll && enrollTeacherCourse.Count() > 0 && IsStudent)
+                    {
+                        if (User.Identity.IsAuthenticated)
+                        {
+                            <button class="btn btn-model-color" onclick="@(Model.CourseExchangePrice != null && Model.CourseExchangePrice > 0 ? "ShowSelectPayMethod()" : "SignUp()")">
+                                @Localizer["Sign Up"]
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-model-color" onclick="location.href='@(Url.Action("Login", "Account", new { area = "Identity",returnUrl="/Courses/Details/" + Model.Id }))'">
+                                @Localizer["Sign Up"]
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row mar-padd">
+            <div class="col overflow-auto">
+                <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a href="" class="nav-link active" id="pills-Course-tab" data-bs-toggle="pill"
+                           data-bs-target="#pills-Course" role="tab" aria-controls="pills-Course"
+                           aria-selected="true">@Localizer["About The Course"]</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="" onclick="ShowLessons()" class="nav-link" id="pills-Lessons-tab" data-bs-toggle="pill"
+                           data-bs-target="#pills-Lessons" role="tab" aria-controls="pills-Lessons"
+                           aria-selected="false">@Localizer["Lessons"]</a>
+                    </li>
+                    @if (enroll)
+                    {
+                        <li class="nav-item" role="presentation">
+                            <a href="" onclick="ShowExams()" class="nav-link" id="pills-Exams-tab" data-bs-toggle="pill"
+                               data-bs-target="#pills-Exams" role="tab" aria-controls="pills-Exams"
+                               aria-selected="false">@Localizer["Exams"]</a>
+                        </li>
+                        if (AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                        {
+                            <li class="nav-item" role="presentation">
+                                <a href="" onclick="ShowPracticalExams()" class="nav-link" id="pills-PracticalExams-tab" data-bs-toggle="pill"
+                                   data-bs-target="#pills-PracticalExams" role="tab" aria-controls="pills-PracticalExams"
+                                   aria-selected="false">@Localizer["Practical Exams"]</a>
+                            </li>
+                        }
+                        <li class="nav-item" role="presentation">
+                            <a href="" onclick="ShowAssignments()" class="nav-link" id="pills-Assignments-tab" data-bs-toggle="pill"
+                               data-bs-target="#pills-Assignments" role="tab" aria-controls="pills-Assignments"
+                               aria-selected="false">@Localizer["Assignments"]</a>
+                        </li>
+                    }
+                    <li class="nav-item" role="presentation">
+                        <a href="" onclick="ShowPreRequests()" class="nav-link" id="pills-Requests-tab" data-bs-toggle="pill"
+                           data-bs-target="#pills-Requests" role="tab" aria-controls="pills-Requests"
+                           aria-selected="false">@Localizer["Prerequisites"]</a>
+                    </li>
+                    @if (enroll && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+                    {
+                        <li class="nav-item" role="presentation">
+                            <a href="" onclick="ShowMarks()" class="nav-link" id="pills-Marks-tab" data-bs-toggle="pill"
+                               data-bs-target="#pills-Marks" role="tab" aria-controls="pills-Marks"
+                               aria-selected="false">@Localizer["Daily recitation"]</a>
+                        </li>
+                    }
+                    @if (enroll && !checkIfClassOnline)
+                    {
+                        <li class="nav-item" role="presentation">
+                            <a href="" onclick="ShowAttendances()" class="nav-link" id="pills-Attendances-tab" data-bs-toggle="pill"
+                               data-bs-target="#pills-Attendances" role="tab" aria-controls="pills-Attendances"
+                               aria-selected="false">@Localizer["Attendances"]</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-Course" role="tabpanel"
+                     aria-labelledby="pills-Course-tab" tabindex="0">
+                    <div class="row flex-column-reverse flex-lg-row">
+                        <div class="col-12 col-lg-7 pt-4 pt-lg-0">
+
+                            @*Enroll Student*@
+                            @* @if (selectedEnrollTeacherCourseId != null && selectedEnrollTeacherCourseId != 0)
+                            {
+                            <div class="mb-5">
+                            <h3>@Localizer["Section"]</h3>
+                            @(enrollTeacherCourse.FirstOrDefault(s => s.Id == (int)selectedEnrollTeacherCourseId)?.Name ?? "")
+                            </div>
+
+                            }*@
+                            @if (ViewBag.enrollTeacherCourseData != null)
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Learning Method"]</h3>
+                                    @if (enrollTeacherCourseData.LearningMethodId != null)
+                                    {
+                                        @Html.Raw(@LookupHelper.GetLookupDetailsById(enrollTeacherCourseData.LearningMethodId ?? 0, ViewBag.LangId).Name)
+                                    }
+                                    else
+                                    {
+                                        <span>--</span>
+                                    }
+                                </div>
+                            }
+                            @if (ViewBag.enrollTeacherCourseData != null)
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Age Allowed For Registration"]</h3>
+                                    @Html.Raw(enrollTeacherCourseData.AgeAllowedForRegistration)
+                                </div>
+                            }
+                            @if (ViewBag.enrollTeacherCourseData != null)
+                            {
+
+                                <div class="mb-5">
+                                    <h3>@Localizer["Age Group"]</h3>
+                                    @if (enrollTeacherCourseData.AgeGroup != 0)
+                                    {
+                                        @Html.Raw(LookupHelper.GetLookupDetailsById(enrollTeacherCourseData.AgeGroup, ViewBag.LangId).Name)
+
+                                    }
+
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.AcquiredSkills))
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Acquired Skills"]</h3>
+                                    @Html.Raw(Model.AcquiredSkills)
+                                </div>
+
+                            }
+
+
+
+                            @if (!string.IsNullOrEmpty(Model.TargetGroup))
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Target Group"]</h3>
+                                    @Html.Raw(Model.TargetGroup)
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Requirements))
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Requirements"]</h3>
+                                    @Html.Raw(Model.Requirements)
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Notes))
+                            {
+                                <div class="mb-5">
+                                    <h3>@Localizer["Notes"]</h3>
+                                    @Html.Raw(Model.Notes)
+
+                                </div>
+                            }
+
+                            <div class="mb-5">
+                                <h3>@Localizer["Course Duration/Hours"]</h3>
+                                <p class="text-primarycolor">@Model.CourseDuration @Localizer["Hour"]</p>
+                            </div>
+
+                            <div class="mb-5">
+                                <h3>@Localizer["Course Category"]</h3>
+                                <p class="text-primarycolor">@Model.CategoryName</p>
+                            </div>
+
+                            <div class="col-12 col-lg text-start">
+                                <div id="CourseTrainerEnrollDetails"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg text-start">
+                            <div id="CourseTrainer"></div>
+                        </div>
+                        @if (!checkIfClassOnline)
+                        {
+                            <div id="CourseTimes" class="col-12 col-lg-4 pt-4 pt-lg-0"></div>
+                        }
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="pills-Lessons" role="tabpanel" aria-labelledby="pills-Lessons-tab"
+                     tabindex="0">
+                    <div id="ShowLessons"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-Exams" role="tabpanel" aria-labellsedby="pills-Exams-tab"
+                     tabindex="0">
+                    <div id="ShowExams"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-PracticalExams" role="tabpanel" aria-labellsedby="pills-PracticalExams-tab"
+                     tabindex="0">
+                    <div id="ShowPracticalExams"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-Assignments" role="tabpanel"
+                     aria-labelledby="pills-Assignments-tab" tabindex="0">
+                    <div id="ShowAssignments"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-Requests" role="tabpanel" aria-labelledby="pills-Requests-tab"
+                     tabindex="0">
+                    <div id="ShowPreRequests"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-Assignments" role="tabpanel"
+                     aria-labelledby="pills-Assignments-tab" tabindex="0">
+                    <div id="ShowAssignments"></div>
+                </div>
+                <div class="tab-pane fade" id="pills-Marks" role="tabpanel"
+                     aria-labelledby="pills-Marks-tab" tabindex="0">
+                    <div id="ShowMarks" class=" tabcontent"></div>
+                </div>
+                @if (enroll && !checkIfClassOnline)
+                {
+                    <div class="tab-pane fade" id="pills-Attendances" role="tabpanel" aria-labelledby="pills-Attendances-tab"
+                         tabindex="0">
+                        <div id="ShowAttendances" class="tabcontent"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div id='ShowAddAttachment' style="z-index: 1055;" role="dialog" data-keyboard="false" data-backdrop="static" class="fade modal">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ShowAddAttachmentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="SelectPayMethod" tabindex="-1" aria-labelledby="SelectPayMethodLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="SelectPayMethodtDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ShowExamView" tabindex="-1" aria-labelledby="ShowExamViewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="ShowExamViewDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ShowExamPrerequisite" tabindex="-1" aria-labelledby="ShowExamPrerequisiteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="ShowExamPrerequisiteDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ConfirmSubmitExamPrerequisite" tabindex="-1" aria-labelledby="ConfirmSubmitExamPrerequisiteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ConfirmSubmitExamPrerequisiteDiv">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="ConfirmSubmitExamPrerequisiteLabel">@Localizer["Are you sure you want to submit the exam?"]</h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="text-center mt-5">
+                <button class="btn btn-success" type="button" id="btnConfirmSubmitExamPrerequisite"><i class="fa fa-save"></i> @Localizer["Ok"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ResultSubmitExamPrerequisite" tabindex="-1" aria-labelledby="ResultSubmitExamPrerequisiteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ResultSubmitExamPrerequisiteDiv">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="ResultSubmitExamPrerequisiteLabel"></h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="text-center mt-5">
+                <button class="btn btn-success" type="button" id="btnResultSubmitExamPrerequisite"><i class="fa fa-times"></i> @Localizer["Close"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="Pdf" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='PdfDiv' class="modal-content">
+            <div class="modal-header">
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <embed id="PdfView" src="" frameborder="0" style="height:85vh; width:100% ;z-index:2450">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ImageM" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ImageMDiv' class="modal-content">
+            <div class="modal-header">
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <img id="ImageMView" src="" style="height:85vh; width:100% ;z-index:2450">
+        </div>
+    </div>
+</div>
+<script src="https://cdn.tiny.cloud/1/1bjwtmr4qw3nyx3or98iw46353588p9bxfds2ou5llsoac3l/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+
+
+
+<script src="~/theme/ControlPanel/vendors/echarts/test/lib/jquery.min.js"></script>
+<script src="~/js/Course/Details.js?ver=18.1" async></script>
+
+<script>
+    var Token = '@tokenSet.RequestToken';
+    let limit;
+    let subjectValues = {};
+    var FailExpilled = '@Localizer["You have Been Expelled Until"]';
+    var FailMaxEnrollStudent = '@Localizer["You have exceeded the maximum number of students on the course!"]';
+    var FailExistsStudent = '@Localizer["The student you want to add already exists!"]';
+    var FailAgeAllowedForRegistration = '@Localizer["The student to be added does not meet the requirements of the course in terms of age allowed for registration!"]';
+    var FailAgeGroup = '@Localizer["The student to be added does not meet the requirements of the course in terms of age group (Male, Female)!"]';
+    var HasPreRequestsCourse = '@Localizer["You cannot enroll in this course, Please check the [Pre Requests] tab and finish the required courses!"]';
+    var addMassege = '@Localizer["Added successfully"]';
+    var addMassegeError = '@Localizer["An error occurred while adding"]';
+    var addMassegeAddBefore = '@Localizer["You have added a request before!"]';
+
+
+    function OpenPdf(file) {
+        $('#PdfView').attr("src", file)
+        $('#Pdf').modal("show")
+    }
+    function ImageM(file) {
+        $('#ImageMView').attr("src", file)
+        $('#ImageM').modal("show")
+    }
+    if ('@showAddAttachment' == 'True') {
+        $(document).ready(function () {
+            ShowAddAttachment();
+        });
+    }
+</script>
+

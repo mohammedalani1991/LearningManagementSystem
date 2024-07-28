@@ -1,0 +1,287 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CmsProjectViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+@{
+    var lookupName = new HashSet<string>()
+    {
+        GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.ProjectStatus.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.PaymentTypeForProject.ToString()
+    };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var ProjectStatus = lookups[GeneralEnums.MasterLookupCodeEnums.ProjectStatus.ToString()];
+    var PaymentType = lookups[GeneralEnums.MasterLookupCodeEnums.PaymentTypeForProject.ToString()];
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+
+    int image = (int)GeneralEnums.FileEnum.Image;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+
+    List<SelectListItem> porjectCategories = LookupHelper.GetProjectCategoryList(ViewBag.LangId);
+    ViewData["Title"] = @Localizer["Edit CmsProject"];
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Edit CmsProject"]
+                </div>
+            </div>
+            <div class="x_content">
+                <form action="/ControlPanel/CmsProject/Edit" method="post" id="CmsProject-Edit" class="form-horizontal form-label-left">
+                    @Html.HiddenFor(r => r.Id)
+                    <input type="hidden" value="@Model.Id" name="CmsProjectId" id="CmsProjectId" />
+                    <div class="row">
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required", onchange = "onDdlChanged(this)" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Name">
+                                @Localizer["Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12 tms-input" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @*  <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                        <label class="col-xs-6 control-label tms-label" for="ShortDescription">
+                        @Localizer["Short Description"]
+                        </label>
+                        <div class="col-lg-12">
+                        @Html.EditorFor(model => model.ShortDescription, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 tms-input" } })
+                        @Html.ValidationMessageFor(model => model.ShortDescription, "", new { @class = "text-danger" })
+                        </div>
+                        </div>*@
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="SortOrder">
+                                @Localizer["Sort Order"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.SortOrder, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 tms-input", @type = "number" } })
+                                @Html.ValidationMessageFor(model => model.SortOrder, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ProjectCost">
+                                @Localizer["Project Cost"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ProjectCost, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 tms-input", @type = "number",min=1, required = "required" } })
+                                @Html.ValidationMessageFor(model => model.ProjectCost, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="OneObjectFees">
+                                @Localizer["One Object Fees"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.OneObjectFees, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 tms-input", @type = "number",min=1 , required = "required" } })
+                                @Html.ValidationMessageFor(model => model.OneObjectFees, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ProjectCategoryId">
+                                @Localizer["Category"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("ProjectCategoryId", porjectCategories, Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.ProjectCategoryId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        @*  <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                        <label class="col-xs-6 control-label tms-label" for="ProjectStatus">
+                        @Localizer["Project Status"]
+                        </label>
+                        <div class="col-lg-12">
+                        @Html.DropDownList("ProjectStatus", new SelectList(ProjectStatus, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        @Html.ValidationMessageFor(model => model.ProjectStatus, "", new { @class = "text-danger" })
+                        </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                        <label class="col-xs-6 control-label tms-label" for="PaymentType">
+                        @Localizer["PaymentType"]
+                        </label>
+                        <div class="col-lg-12">
+                        @Html.DropDownList("PaymentType", new SelectList(PaymentType, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        @Html.ValidationMessageFor(model => model.PaymentType, "", new { @class = "text-danger" })
+                        </div>
+                        </div>*@
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="PublishDate">
+                                @Localizer["Publish Date"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.PublishDate, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12" } })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EndDate">
+                                @Localizer["End Date"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12" } })
+                            </div>
+                        </div>
+
+                        @*<div class="form-group field col-lg-3 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="IsFeatured">
+                        @Localizer["Is Featured"]
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                        @Html.CheckBoxFor(model => model.IsFeatured, new { @class = "form-control tms-input col-md-5 col-sm-3 col-xs-12" })
+                        </div>
+                        </div>*@
+
+                        <div class="form-group field col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ShowInHomePage">
+                                @Localizer["Show In Home"]
+                            </label>
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                @Html.CheckBoxFor(model => model.ShowInHomePage, new { @class = "form-control tms-input col-md-5 col-sm-3 col-xs-12" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ImageUrl">
+                                @Localizer["Image Url"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <label class="custom-file-upload">
+                                    <input type="file" accept="image/*" onchange="UploadProfilePhoto(event)" />
+                                    <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                </label>
+                                @Html.HiddenFor(r => r.ImageUrl)
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.Status, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Keyword">
+                                @Localizer["Keywords"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Keyword, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @data_role = "tagsinput" } })
+                                @Html.ValidationMessageFor(model => model.Keyword, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Value">
+                                @Localizer["Description"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.TextAreaFor(model => model.Description, new { @class = "tinyRichText form-control col-md-7 col-xs-12" })
+                                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Value">
+                                @Localizer["Second Description"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.TextAreaFor(model => model.SecondDescription, new { @class = "tinyRichText form-control col-md-7 col-xs-12" })
+                                @Html.ValidationMessageFor(model => model.SecondDescription, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="tms-save-btn">
+                                <i class="fa fa-save"></i> @Localizer["Saving Changes"]
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(document).ready(function () {
+        tinymce.get("Description").setContent('@Model.Description');
+        $('#Keyword').tagsinput('refresh');
+    });
+
+    InitTinymce();
+
+    $("#CmsProject-Edit").on("keydown", ".bootstrap-tagsinput input", function (event) {
+        if (event.which == 13) {
+            $(this).blur();
+            $(this).focus();
+            return false;
+        }
+    });
+    function UploadProfilePhoto(e) {
+        var files = e.target.files;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var formData = new FormData();
+                formData.append("fileType", @image);
+                for (var i = 0; i != files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("UploadFiles", "Files", new {Area = "ControlPanel"})",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        '@tokenSet.HeaderName': '@tokenSet.RequestToken'
+                    },
+                    success: function (result) {
+                        console.log(result);
+                        $("#ImageUrl").val(result[0]);
+                    },
+                    error: function (req, status, error) {
+                        alert("Error while adding the Image");
+                    }
+                });
+            } else {
+                alert("This browser doesn't support HTML5 file uploads!");
+            }
+        }
+    }
+</script>
+
+
+<link href="~/lib/bootstrap-tagsinput-latest/bootstrap-tagsinput.css" rel="stylesheet" />
+<script src="~/lib/bootstrap-tagsinput-latest/bootstrap-tagsinput.js"></script>
+<script src="~/js/CmsProject/CmsProjects.js?ver=1.1" async></script>
+<style>
+    .bootstrap-tagsinput {
+        display: block !important;
+    }
+</style>

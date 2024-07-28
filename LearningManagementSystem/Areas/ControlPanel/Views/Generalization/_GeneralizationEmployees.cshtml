@@ -1,0 +1,107 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.ViewModels.GeneralizationEmployeeViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{    
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+<div style="background-color:#e5e5e5;padding:5px;">
+        <div class="d-flex justify-content-end col-sm-12">
+            <div class="col-md-4 col-sm-3 col-xs-12">
+                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value, onkeyup = "Search()" })
+            </div>
+        </div>
+        @*<div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="col-md-3">
+                    @Html.DropDownList("pagination", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "form-control", required = "required", @onchange = "ChangePagenation()" })
+                </div>
+         </div>*@
+    <div class="table-responsive" style="overflow-x: scroll !important;">
+        <table id="tableEmployees" class="tms-table">
+            <thead>
+                <tr class="tms-headings">
+                    <th>
+                        @if (Model.Where(a => a.Selected == true).Count() > 0)
+                        {
+                            <input type="checkbox" class="SelectAll" checked>
+                        }
+                        else
+                        {
+                            <input type="checkbox" class="SelectAll">
+                        }
+                    </th>
+                    <th>
+                        @Localizer["User Number"]
+                    </th>
+                    <th>
+                        @Localizer["Full Name"]
+                    </th>
+                    <th>
+                        @Localizer["Gender"]
+                    </th>
+                    <th>
+                        @Localizer["Job"]
+                    </th>
+                    <th>
+                        @Localizer["Branch"]
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr  class="tms-tr">
+                        <td id="@item.ContactId">
+                            @if (item.Selected == true)
+                            {
+                                <input type="checkbox" class="IsSelect" onclick="SetSelectedEmployees()" name="ActiveCheckBox" checked>
+                            }
+                            else
+                            {
+                                <input type="checkbox" class="IsSelect" onclick="SetSelectedEmployees()" name="ActiveCheckBox">
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ContactId)
+                        </td>
+                        <td class="UserName">@item.UserName?.Trim()</td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UserGender)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UserJob)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UserBranch)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @*@if (Model.PageCount > 0)
+        {
+            <div class="paging-div">
+                @Html.PagedListPager(Model, page => Url.Action("GetEmployeesCreate", new { page, searchText = ViewBag.searchText }))
+            </div>
+        }*@
+    </div>
+</div>
+<script>
+    function Search() {
+    
+    var searchText = $("#searchText").val();
+    if (searchText.trim() !== "") {
+        $("#tableEmployees tr").show();        
+        $("#tableEmployees tr:visible .UserName:not(:contains('"
+            + searchText+ "'))").parent().hide();
+    } else {
+        $("#tableEmployees tr").show();
+    }    
+
+};
+</script>    

@@ -1,0 +1,322 @@
+﻿@model DataEntity.Models.ViewModels.InvoicesPayViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@using static LearningManagementSystem.Core.Constants
+
+@inject ICookieService Cookie
+@inject ICurrencyService CurrencyService
+
+@{
+    ViewData["Title"] = @Localizer["Select Pay Method"];
+    int Image = (int)GeneralEnums.FileEnum.Image;
+    var cooke = Cookie.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        Cookie.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = Cookie.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+
+    var coursePrice = CurrencyService.GetValue((decimal)ViewBag.Course.CoursePrice);
+    var balance = CurrencyService.GetValue((decimal)ViewBag.Balance);
+}
+
+<style>
+    .payment-options {
+        display: flex;
+        justify-content: center !important;
+        flex-wrap: wrap;
+    }
+
+    .payment-option {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        height: 200px;
+    }
+
+        .payment-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+    .payment-icon {
+        font-size: 30px;
+        color: #1088A2;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .payment-text h3 {
+        text-align: center;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+
+    .payment-text p {
+        text-align: center;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .card {
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+        padding: 10px 0;
+    }
+
+        .card-header h2 {
+            margin: 0;
+            text-align: center;
+        }
+
+    .card-body {
+        margin-bottom: 20px;
+    }
+
+    .row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .col {
+        flex: 1;
+        text-align: right;
+    }
+
+    .card-footer {
+        text-align: center;
+    }
+
+</style>
+
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="SelectPayMethodLabel">@Localizer["Select Pay Method"]</h1>
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+       aria-label="Close"></i>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_content">
+                <br />
+                <div class="payment-options row">
+                    <div class="col-6 col-md-4" onclick="SenangPay()">
+                        <div class="payment-option col-12">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-text">
+                                <h3>@Localizer["Senang Pay"]</h3>
+                                <p>@Localizer["Select this option to pay using Senang Pay."]</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4" onclick="ShowInvoice()">
+                        <div class="payment-option col-12">
+                            <div class="payment-icon">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div class="payment-text">
+                                <h3>@Localizer["Upload Invoice"]</h3>
+                                <p>@Localizer["Select this option to upload an invoice."]</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4" onclick="ShowBalance()">
+                        <div class="payment-option col-12">
+                            <div class="payment-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="payment-text">
+                                <h3>@Localizer["Your Balance"]</h3>
+                                <p>@Localizer["Select this option to use your account balance to pay."]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form action="/Courses/AddInvoicesPay" method="post" id="AddInvoicesPay" class="form-horizontal form-label-left" style="display:none">
+                    <div class="row">
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 FormUploadInvoice">
+                            <div class="list-group mt-4 shadow-sm">
+                                <li class="list-group-item"> @Localizer["Add the invoice file or image"] </li>
+                                <li class="list-group-item">
+
+                                    <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="AttachmentUrl">
+                                            @Localizer["Invoice Attachment"] <span class="required font-monospace">*</span>
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            <label class="custom-file-upload">
+                                                <input type="file" accept="image/*" onchange="UploadFile(event)" required class="required" />
+                                                <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                            </label>
+                                            @Html.HiddenFor(r => r.AttachmentUrl)
+                                            <span class="error" id="AttachmentUrlError" style="color:red;display:none">@Localizer["Upload A File"]</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-12 col-sm-12 col-xs-12 mt-3">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ReceiptNo">
+                                            @Localizer["Receipt No"] <span class="required font-monospace">*</span>
+                                        </label>
+                                        <div class="col-12">
+                                            @Html.EditorFor(model => model.ReceiptNo, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                            @Html.ValidationMessageFor(model => model.ReceiptNo, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Notes">
+                                            @Localizer["Notes"]
+                                        </label>
+                                        <div class="col-12">
+                                            @Html.TextAreaFor(model => model.Notes, new { @class = "form-control tms-input" ,style="min-height:200px"})
+                                        </div>
+                                    </div>
+                                </li>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary" type="button" onclick="AddInvoicesPay()"><i class="fa fa-save"></i> @Localizer["Submit"]</button>
+                    </div>
+                </form>
+                <div id="AddBalance" style="display:none">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>@Localizer["Course Price and Balance"]</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <p>@Localizer["Course Price"]</p>
+                                    <p>@Localizer["Your Balance"]</p>
+                                </div>
+                                <div class="col">
+                                    <p>@coursePrice @Html.Raw(currency.Icon)</p>
+                                    <p>@balance @Html.Raw(currency.Icon)</p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col">
+                                    <p>@Localizer["Remaining Balance after buying"] @ViewBag.Course.CourseName</p>
+                                </div>
+                                <div class="col">
+                                    <p>@(balance - coursePrice) @Html.Raw(currency.Icon)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-primary" type="button" onclick="EnrollNow()"><i class="fa fa-save"></i> @Localizer["Enroll Now"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function ShowInvoice() {
+        $("#AddInvoicesPay").show();
+        $("#AddBalance").hide();
+
+    }
+    function ShowBalance() {
+        $("#AddInvoicesPay").hide();
+        $("#AddBalance").show();
+    }
+
+    function EnrollNow() {
+        if ('@(balance - coursePrice)' >= 0) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/Courses/EnrollNow",
+                data: { id: '@ViewBag.selectedEnrollTeacherCourseId' },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (result) {
+                    location.reload();
+                },
+                error: function (req, status, error) {
+                    alert("Error while Enrolling");
+                    HideSpinner();
+                }
+            });
+        } else
+            toastr.error("@Localizer["You Don't have Enough Balance"]");
+    }
+
+    function UploadFile(e) {
+        var files = e.target.files;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var formData = new FormData();
+                formData.append("fileType", @Image);
+                for (var i = 0; i != files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+                ShowSpinner();
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("UploadInvoiceFiles", "Files", new {Area = "ControlPanel"})",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (result) {
+                        $("#AttachmentUrl").val(result[0]);
+                        HideSpinner();
+                    },
+                    error: function (req, status, error) {
+                        alert("Error while adding the File");
+                        HideSpinner();
+                    }
+                });
+            } else {
+                alert("This browser doesn't support HTML5 file uploads!");
+                HideSpinner();
+            }
+        }
+    }
+
+</script>

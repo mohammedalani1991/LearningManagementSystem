@@ -1,0 +1,385 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollLecturesContentViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using  System.Web;
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Lectures Content (Resource)"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    int File = (int)GeneralEnums.FileEnum.File;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Lectures Content (Resource)"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/Trainer/EnrollLecturesContent/Edit" method="post" id="LecturesContent-Edit" class="form-horizontal form-label-left">
+                    <div class="row">
+
+
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollSectionOfCourseViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl Filter", required = "required" , onchange = "onDdlChanged(this)" })
+                                @Html.ValidationMessage("EnrollSectionOfCourseViewModel.LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-7 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" >
+                                @Localizer["Section Name"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Hidden("EnrollSectionOfCourseViewModel.ForEditModleID",Model.EnrollSectionOfCourseViewModel.Id)
+                                @Html.Hidden("EnrollSectionOfCourseViewModel.EnrollCourseId",Model.EnrollSectionOfCourseViewModel.EnrollCourseId)
+                                @Html.Editor("EnrollSectionOfCourseViewModel.SectionName", new { htmlAttributes = new { required = "required", @class = "form-control tms-ddl Filter col-md-7 col-xs-12",@readonly="true" ,style="background-color: #e9ecef" } })
+                                @Html.ValidationMessage("EnrollSectionOfCourseViewModel.SectionName", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 17px;margin-top: 19px;font-weight: bold;">
+                                @Localizer["Lectures Content (Resource)"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="LecturesContent_Repeater_Nested" class="Repeater_Nested"> 
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="EnrollLectureViewModel">
+                                        @foreach (var Lecture in Model.EnrollLectureViewModel)
+                                        {
+                                            <div data-repeater-item>
+                                                <div class="row ">
+                                                  <div class="col-md-12" style="color: white;background-color: #8AAAE5;font-weight: bold;font-size: 11pt;border-radius: 7px;padding: 11px;">
+                                                        <label class="control-label col-md-6 col-sm-6 col-xs-12 tms-label">@Localizer["Lecture Name"] : @Html.Editor("LectureName", new { htmlAttributes = new { required = "required", @class = "tms-input  removeBorder",AddedValue=Lecture.LectureName ,@readonly="true" ,@style="font-weight: bold;font-size: 12pt;"} })</label>
+                                                        @Html.Hidden("ForEditModleID",Lecture.Id)
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <div class="inner-repeater">
+                                                            <div data-repeater-list="EnrollCourseResourceViewModel" class="mb-4">
+                                                                @if (Lecture.EnrollCourseResourceViewModel != null && Lecture.EnrollCourseResourceViewModel.Count !=0)
+                                                                {
+                                                                    @foreach (var CourseResource in Lecture.EnrollCourseResourceViewModel)
+                                                                    {
+                                                                        <div data-repeater-item>
+                                                                               <div class="row mb-3 mt-2">
+                                                                            <div class=" form-group col-md-3 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Resource Name"]<span class="required">*</span>
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.Hidden("ForEditModleID",CourseResource.Id)
+                                                                                    @Html.Editor("Name", new { htmlAttributes = new { required = "required", @class = "form-control tms-input" ,AddedValue=CourseResource.Name} })
+                                                                                    @Html.ValidationMessage("Name", "", new { @class = "text-danger" })
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="form-group col-md-2 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Upload Method"]<span class="required">*</span>
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.DropDownList("Source", Html.GetEnumSelectList<GeneralEnums.ResourceSourceEnum>(), new { @class = "form-control chosen-select tms-ddl Filter", required = "required" ,AddedValue=CourseResource.Source  })
+                                                                                    @Html.ValidationMessage("Source", "", new { @class = "text-danger" })
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="form-group col-md-4 col-sm-12 col-xs-12 Linkgroup" >
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Link"]<span class="required">*</span>
+                                                                                </label>
+                                                                               <div class="input-group p-0 m-0 col-md-12 col-sm-6 col-xs-12 pb-4">
+                                                                                        @Html.Editor("Link", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" ,AddedValue=CourseResource.Link } })
+                                                                                    <div class="input-group-append">
+                                                                                            @Html.DropDownList("Type", Html.GetEnumSelectList<GeneralEnums.ResourceTypeEnum>(), new { @class = "form-control chosen-select tms-input", required = "required" ,@style="margin-bottom: 0px"  ,AddedValue=CourseResource.Type  })
+                                                                                    </div>
+                                                                            </div>
+                                                                          </div>
+
+                                                                          <div class=" p-0 m-0 form-group col-md-4 col-sm-12 col-xs-12 Filegroup">
+                                                                                <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Upload File"]<span class="required">*</span>
+                                                                                </label>
+                                                                                    
+                                                                                        <div class="input-group col-md-12 col-sm-6 col-xs-12 mt-2">
+                                                                                                <label class="custom-file-upload">
+                                                                                                    <input type="file" accept="image/*,audio/*,video/*,application/msword,application/vnd.ms-excel, application/vnd.ms-powerpoint,application/pdf"   />
+                                                                                                    <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                                                                                </label>
+                                                                                           @* <input type="file" accept="image/*,audio/*,video/*,application/msword,application/vnd.ms-excel, application/vnd.ms-powerpoint,application/pdf"   />*@
+                                                                                        @if (CourseResource.Source == (int)GeneralEnums.ResourceSourceEnum.UploadFile)
+                                                                                        {
+                                                                                            <div class="input-group-append">
+                                                                                                <a href="/ControlPanel/EnrollLecturesContent/DownloadDocument?filePath=@HttpUtility.UrlEncode(CourseResource.Link)" class="tms-imageview-btn">
+                                                                                                    <img src="/img/download.png">
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        }
+                                                                                    </div>
+                                                                       </div>
+                                                                            <div class="  form-group col-md-2 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Description"]
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.Editor("Description", new { htmlAttributes = new {  @class = "form-control tms-input" ,AddedValue=CourseResource.Description} })
+                                                                                
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="  form-group col-md-1 col-sm-12 col-xs-12">
+                                                                                <button  data-repeater-delete class="btn btn-danger mt-4 mt-md-9" type="button">
+                                                                                    <i class="fa fa-trash btnDeleteIcon"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        </div>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div data-repeater-item>
+                                                                        <div class="row mb-3 mt-2">
+                                                                            <div class=" form-group col-md-3 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Resource Name"]<span class="required">*</span>
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.Editor("Name", new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                                                                    @Html.ValidationMessage("Name", "", new { @class = "text-danger" })
+                                                                                </div>
+                                                                            </div>
+                                                                                <div class="form-group col-md-2 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Upload Method"]<span class="required">*</span>
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.DropDownList("Source", Html.GetEnumSelectList<GeneralEnums.ResourceSourceEnum>(), new { @class = "form-control chosen-select tms-ddl Filter", required = "required"  })
+                                                                                    @Html.ValidationMessage("Source", "", new { @class = "text-danger" })
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="form-group col-md-4 col-sm-12 col-xs-12 Linkgroup" >
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Link"]<span class="required">*</span>
+                                                                                </label>
+                                                                               <div class="input-group p-0 m-0 col-md-12 col-sm-6 col-xs-12 pb-4">
+                                                                                    @Html.Editor("Link", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                                                                    <div class="input-group-append">
+                                                                                        @Html.DropDownList("Type", Html.GetEnumSelectList<GeneralEnums.ResourceTypeEnum>(), new { @class = "form-control chosen-select tms-input", required = "required" ,@style="margin-bottom: 0px"  })
+                                                                                    </div>
+                                                                            </div>
+                                                                          </div>
+                                                                            <div class=" p-0 m-0 form-group col-md-4 col-sm-12 col-xs-12 Filegroup">
+                                                                                <div class="col-md-12 col-sm-6 col-xs-12" style="margin-top:15px">
+                                                                                    <label class="custom-file-upload">
+                                                                                        <input type="file" accept="image/*,audio/*,video/*,application/msword,application/vnd.ms-excel, application/vnd.ms-powerpoint,application/pdf" />
+                                                                                        <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload File"]
+                                                                                    </label>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="  form-group col-md-2 col-sm-12 col-xs-12">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Description"]
+                                                                                </label>
+                                                                                <div class=" col-md-12 col-sm-6 col-xs-12">
+                                                                                    @Html.Editor("Description", new { htmlAttributes = new {  @class = "form-control tms-input" } })
+                                                                                    @Html.ValidationMessage("Description", "", new { @class = "text-danger" })
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="  form-group col-md-1 col-sm-12 col-xs-12">
+                                                                                <button data-repeater-delete class="btn btn-danger mt-4 mt-md-9" type="button">
+                                                                                    <i class="fa fa-trash btnDeleteIcon"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+
+                                                            </div>
+
+                                                            <button class="btn btn-outline-primary btn-light-primary tms-custom-btn mb-2" data-repeater-create type="button">
+                                                                <i class="fa fa-plus"></i> @Localizer["Add Resource"]
+                                                            </button>
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+<style>
+    .custom-file-upload {
+    margin-top: 1px !important;
+}
+       .form-controlE{
+        width: auto !important;
+    }
+    .removeBorder{
+        color: white;
+    border: none !important;
+    background-color: #8AAAE5 !important;
+    }
+    .HiddenCust{
+    position: absolute;
+    opacity: 0;
+    z-index: -10000000;
+    }
+    .tms-imageview-btn {
+border: 2px solid #000000;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    width: 34px;
+    height: 34px;
+    padding: 0px 0px;
+        padding-bottom: 5px;
+}
+</style>
+<script type="text/javascript">
+    $(function() {
+    $("[AddedValue]").each(function() {
+            if($(this).attr("AddedValue"))
+              $(this).val($(this).attr("AddedValue"));
+        });
+
+
+    $("#LecturesContent_Repeater_Nested #Source").each(function() {
+           SourceRestDiv($(this))
+         });
+     $("#LecturesContent_Repeater_Nested").on("change","#Source", function() { 
+           SourceRestDiv($(this));
+        });
+     $("#LecturesContent_Repeater_Nested").on("change","[type=file]", function(e) { 
+         var _this = $(this);
+           ShowSpinner();
+         var files = e.target.files;
+          if (files.length > 0) {
+              if (window.FormData !== undefined) {
+                  var formData = new FormData();
+                  formData.append("fileType", @File);
+                  for (var i = 0; i != files.length; i++) {
+                      formData.append("files", files[i]);
+                  }
+                  $.ajax({
+                      type: "POST",
+                      url: "@Url.Action("UploadFiles", "Files", new {Area = "ControlPanel"})",
+                      data: formData,
+                      contentType: false,
+                      processData: false,
+                      headers: {
+                          '@tokenSet.HeaderName': '@tokenSet.RequestToken'
+                      },
+                      success: function(result) {
+                          HideSpinner();
+                           _this.closest("[data-repeater-item]").find(".Linkgroup").find("#Link").val(result[0]);
+                           _this.closest("[data-repeater-item]").find(".Linkgroup").find("#Type").val("3129");
+                      },
+                      error: function(req, status, error) {
+                          HideSpinner();
+                          alert("Error while adding the File");
+                      }
+                  });
+              } else {
+                  HideSpinner();
+                  alert("This browser doesn't support HTML5 file uploads!");
+              }
+          }
+        });
+
+        $('#LecturesContent_Repeater_Nested').repeater({
+            initEmpty: false,
+            repeaters: [{
+                selector: '.inner-repeater',
+                show: function() {
+                    $(this).slideDown();
+                      $(this).find("#Type").val($(this).find("#Type option:first").val());
+                     $(this).find("#Link").val("").removeAttr("addedvalue");
+                     $(this).find(".tms-imageview-btn").remove();
+                     $(this).find("#Source").val($(this).find("#Source option:first").val()).trigger("change");
+                },
+
+                hide: function(deleteElement) {
+                    $(this).slideUp(deleteElement);
+                }
+            }],
+            show: function() {
+                $(this).slideDown();
+            },
+
+            hide: function(deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        });
+
+       function SourceRestDiv(_this){
+                    
+            var _checkSourceValue=_this.val();
+            if(_checkSourceValue == "1")//ExternalUrl
+            {
+                   var _thisLinkgroup = _this.closest("[data-repeater-item]").find(".Linkgroup").find("#Link");
+                   if(_thisLinkgroup.attr("addedvalue") && _thisLinkgroup.attr("addedvalue").toLowerCase().search("/document/") >=0) //UploadFile
+                    _thisLinkgroup.val("");
+                    else
+                    _thisLinkgroup.val(_thisLinkgroup.attr("addedvalue"));
+
+                _this.closest("[data-repeater-item]").find(".Linkgroup").removeClass("HiddenCust");
+                _this.closest("[data-repeater-item]").find(".Filegroup").addClass("HiddenCust");
+                _this.closest("[data-repeater-item]").find(".Linkgroup").removeAttr("style");
+
+            }else if(_checkSourceValue == "2"){ //UploadFile
+                  var _thisLinkgroup = _this.closest("[data-repeater-item]").find(".Linkgroup").find("#Link");
+                  if(_thisLinkgroup.attr("addedvalue") && _thisLinkgroup.attr("addedvalue").toLowerCase().search("/document/") < 0) //ExternalUrl
+                   _thisLinkgroup.val("");
+                   else
+                    _thisLinkgroup.val(_thisLinkgroup.attr("addedvalue"));
+
+                  _this.closest("[data-repeater-item]").find(".Linkgroup").addClass("HiddenCust");
+                  _this.closest("[data-repeater-item]").find(".Filegroup").removeClass("HiddenCust");
+                  _this.closest("[data-repeater-item]").find(".Linkgroup").css({"left":_this.closest("[data-repeater-item]").find(".Filegroup").position().left , "right":_this.closest("[data-repeater-item]").find(".Filegroup").position().right})
+
+            }
+      
+       }
+    });
+</script>
+<script src="~/js/EnrollLecturesContent/AdminEnrollLecturesContent.js?ver=8.1"></script>

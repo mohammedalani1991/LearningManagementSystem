@@ -1,0 +1,158 @@
+﻿@model List<DataEntity.Models.EfModels.EnrollCourseResource>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using DataEntity.Models.EfModels;
+@inject IViewLocalizer Localizer
+@{
+    Layout = null;
+
+    var firstEnrollCourseResourcesVideo = Model.FirstOrDefault(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Video);
+    var courseResourcesVideos = Model.Where(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Video);
+    var courseResourcesPdfs = Model.Where(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Pdf);
+    var courseResourcesDocs = Model.Where(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Doc);
+    var courseResourcesImage = Model.Where(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Image);
+    var courseResourcesOther = Model.Where(s => s.Type == (int)GeneralEnums.ResourceTypeEnum.Other);
+    bool enroll = ViewBag.Enroll;
+    var ListCourseLessonQuiz = (List<EnrollCourseExam>)ViewBag.CourseLessonQuiz;
+
+}
+
+<div class="col-12">
+    @if (User.Identity.IsAuthenticated && enroll)
+    {
+        <button onclick="moreLesson()"
+                class="btn btn-primary text-center mb-2 d-inline d-lg-none">
+            <i class="fa-solid fa-bars"></i>more Section
+        </button>
+
+
+        @if (!string.IsNullOrEmpty(firstEnrollCourseResourcesVideo?.Link))
+        {
+            <iframe class="w-100 h-vedLesson-iframe"
+                    src="@firstEnrollCourseResourcesVideo?.Link"></iframe>
+        }
+
+
+
+        @if (!string.IsNullOrEmpty(firstEnrollCourseResourcesVideo?.Description))
+        {
+            <div class="bg-p-E3F2F6">
+                <h4>@Localizer["Lesson Notes:"]</h4>
+                <p>@firstEnrollCourseResourcesVideo?.Description
+            </div>
+        }
+
+        <div class="bg-p-E3F2F6">
+            <h4>@Localizer["Lesson Attachments:"]</h4>
+
+
+            @foreach (var video in courseResourcesVideos)
+            {
+                <p>
+                    <a href="@video.Link" target="_blank">
+                        <img src="~/theme/Public/assets/images/lesson/video.png" alt="video"><span class="mx-2">@video.Name</span>
+                    </a>
+                </p>
+            }
+
+            @foreach (var pdf in courseResourcesPdfs)
+            {
+                <p>
+                    <a href="@pdf.Link" download target="_blank">
+                        <img src="~/theme/Public/assets/images/lesson/pdf.png" alt="pdf"><span class="mx-2">@pdf.Name</span>
+                    </a>
+                </p>
+            }
+            @foreach (var doc in courseResourcesDocs)
+            {
+                <p>
+                    <a href="@doc.Link" download target="_blank">
+                        <img src="~/theme/Public/assets/images/lesson/Doc.png" alt="Doc"><span class="mx-2">@doc.Name</span>
+                    </a>
+                </p>
+            }
+             @foreach (var image in courseResourcesImage)
+            {
+                <p>
+                    <a href="@image.Link" download target="_blank">
+                        <img src="~/theme/Public/assets/images/lesson/image.png" alt="Image"><span class="mx-2">@image.Name</span>
+                    </a>
+                </p>
+            }
+            @foreach (var other in courseResourcesOther)
+            {
+                <p>
+                    <a href="@other.Link" download target="_blank">
+                        <img src="~/theme/Public/assets/images/lesson/other.png" alt="other"><span class="mx-2">@other.Name</span>
+                    </a>
+                </p>
+            }
+        </div>
+
+        @if (ListCourseLessonQuiz.Count > 0)
+        {
+            <div class="bg-p-E3F2F6">
+                <h4>@Localizer["Lesson Quizzes:"]</h4>
+
+                @foreach (var exam in ListCourseLessonQuiz)
+                {
+
+                                    @if (ViewBag.studentId != null  )
+                                    {
+                                     
+                                        var MarkAfterConversion = 0.0;
+                                        var Cal_FinalMark = 0.0;
+                                        var FinalMark = 0.0;
+                                        var MarkHeGot = 0.0;
+                                        var NeedCorectionFromTrainer = 0;
+                                        var EnrollStudentExamID = 0;
+                                        if (exam.EnrollStudentExams.Count() > 0)
+                                        {
+                                            Cal_FinalMark = exam.EnrollStudentExams.FirstOrDefault().FinalMark.Value;
+                                            FinalMark = exam.EnrollStudentExams.FirstOrDefault().FinalMark.Value;
+                                            MarkHeGot = exam.EnrollStudentExams.FirstOrDefault().MarkHeGot.Value;
+                                            MarkAfterConversion = exam.EnrollStudentExams.FirstOrDefault().MarkAfterConversion.Value;
+                                            NeedCorectionFromTrainer = exam.EnrollStudentExams.Where(e => e.EnrollStudentExamAnswers.Any(x => x.IsCorrect == null)).Count();
+                                            EnrollStudentExamID = exam.EnrollStudentExams.FirstOrDefault().Id;
+                                        }
+                                        if (exam.ExamFinalMark.HasValue)
+                                        {
+                                            FinalMark = exam.ExamFinalMark.Value;
+                                        }
+
+                                        
+                                        @if (exam.EnrollCourseExamQuestions.Count() > 0)
+                                        {
+                                            <p class="card-text text-primarycolor float-right">@MarkAfterConversion /@FinalMark</p>
+                                            @if (exam.EnrollStudentExams.Count() == 0)
+                                            {
+                                                  <p>
+                                                <a href="#" onclick="ShowExamPrerequisite(@exam.Id)">
+                                                    <img src="~/theme/Public/assets/images/lesson/quiz.png" alt="video"><span class="mx-2">@exam.Name</span>
+                                                </a>
+                                                  </p>
+                                            }
+
+                                            else if (exam.EnrollCourseExamQuestions.Count() != 0)
+                                            {
+                                                  <p>
+                                                <a href="#" onclick="ShowExamView(@exam.Id,@EnrollStudentExamID)">
+                                                  <img src="~/theme/Public/assets/images/lesson/quiz.png" alt="video"><span class="mx-2">@exam.Name</span>
+                                                </a>
+                                                 </p>
+                                            }
+                                        }
+                                    }
+                   
+                }
+             </div>
+        }
+    }
+    else
+    {
+        <div>
+            <p>@Localizer["Sign up to see the content"]</p>
+        </div>
+    }
+</div>

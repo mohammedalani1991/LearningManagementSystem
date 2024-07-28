@@ -1,0 +1,59 @@
+﻿@model DataEntity.Models.ViewModels.EnrollTeacherCourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Create Team Meeting"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form id="TeamForm">
+                    @Html.HiddenFor(r=>r.Id , new{id ="EnrollTeacherCourseId"})
+                    <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.PublicationDate">
+                            @Localizer["Meeting Start Date"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                            @Html.Editor("WorkStartDate", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                            @Html.ValidationMessage("WorkStartDate", "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.PublicationEndDate">
+                            @Localizer["Meeting End Date"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                            @Html.Editor("WorkEndDate", new { htmlAttributes = new { required = "required",@class = "form-control tms-input col-md-7 col-xs-12"} })
+                            @Html.ValidationMessage("WorkEndDate", "", new { @class = "text-danger" })
+
+                        </div>
+                    </div>
+
+                    <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.PublicationEndDate">
+                            @Localizer["Link"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                            @Html.TextAreaFor(model => model.NotesForEnrolled, new { @class = "tinyRichText" ,disabled ="disabled"})
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="button" onclick="CreateMeeting()"><i class="fa fa-save"></i> @Localizer["Generate Link"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        InitTinymce();
+    </script>

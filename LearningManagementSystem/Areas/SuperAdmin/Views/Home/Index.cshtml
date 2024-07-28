@@ -1,0 +1,252 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<link href="~/css/coloris.css" rel="stylesheet" />
+
+<div id="main" style="min-height:83vh"></div>
+
+<div id='Auth' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='AuthDiv' class="modal-content">
+            <form class="form-horizontal form-label-left" id="Authenticate">
+                <div class="text-center">
+                    <h3 class="text-center">@Localizer["Authenticate"]</h3>
+                </div>
+                <div class="row py-2">
+                    <div class="form-group col-lg-12">
+                        <label class="control-label col-xs-6 tms-label" for="Password">
+                            @Localizer["Password"]<span class="required">*</span>
+                        </label>
+                        <div class="col-lg-12">
+                            <input class="form-control col-md-7 col-xs-12 tms-input" type="password" id="Password" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center pb-2">
+                    <button class="tms-save-btn" type="button" onclick="Authenticate()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                </div>
+            </form>
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='Create' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateDiv' class="modal-content">
+            <form class="form-horizontal form-label-left" id="Validation">
+                <div class="text-center">
+                    <h3 class="text-center">@Localizer["Create New Validation"]</h3>
+                </div>
+                <div class="row py-2">
+                    <div class="form-group col-lg-12">
+                        <label class="control-label col-xs-6 tms-label" for="Name">
+                            @Localizer["Name"]<span class="required">*</span>
+                        </label>
+                        <div class="col-lg-12">
+                            <input class="form-control col-md-7 col-xs-12 tms-input" type="text" id="Name" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center pb-2">
+                    <button class="tms-save-btn" type="button" onclick="AddMore()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id='Info' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='InfoDiv' class="modal-content">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+                        <div class="d-flex tms-page-popup-title">
+                            <div data-dismiss="modal" class="tms-close-div">
+                                <i class="fa fa-close"></i>
+                            </div>
+                            <div class="tms-table-popup-title" style="width:97%;">
+                                @Localizer["How To Add"]
+                            </div>
+                        </div>
+                        <div class="x_content mt-3">
+                            <div class="p-2 mb-3">
+                                <h4>@Localizer["To Add For Controller"]</h4>
+                                <div class="px-3 py-4 shadow-sm mt-3" style="border-radius:5px ; background:#eee;border:1px solid #9995">
+                                    <h4 class="mb-0" style="color:black">
+                                        [CheckSuperAdmin(PageName = "The Name of the Validation")]
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="p-2 mb-3">
+                                <h4>@Localizer["To Add For Viewer"]</h4>
+                                <div class="px-3 py-4 shadow-sm mt-3" style="border-radius:5px ; background:#eee;border:1px solid #9995">
+                                    <h4 class="mb-0" style="color:black">
+                                        AuthenticationHelper.CheckSuperAuthentication("The Name of the Validation")
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section JavaScript
+    {
+    <script src="~/js/coloris.js"></script>
+
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        $(document).ready(function () {
+            if ("@ViewBag.Allow" == "True")
+                Authenticate();
+            else
+                $("#Auth").modal('show');
+        });
+
+        function Authenticate() {
+            if ($("#Authenticate").valid()) {
+                ShowSpinner();
+                $.ajax({
+                    type: "POST",
+                    url: "/SuperAdmin/Home/Authenticate",
+                    data: { password: $("#Password").val() },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        HideSpinner();
+                        $("#Auth").modal('hide');
+                        $("#main").html(data);
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        $("#Password").val("");
+                        toastr.error("@Localizer["The Password is Wrong"]");
+                    }
+                });
+            }
+        }
+
+        function ShowAddMore() {
+            $("#Name").val("");
+            $("#Create").modal('show');
+        }
+
+        function AddMore() {
+            if ($("#Validation").valid()) {
+                ShowSpinner();
+                $.ajax({
+                    type: "POST",
+                    url: "/SuperAdmin/Home/Create",
+                    data: { name: $("#Name").val() },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        HideSpinner();
+                        $("#Name").val("");
+                        $("#Create").modal('hide');
+                        $("#main").html(data);
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        $("#Name").val("");
+                        toastr.error("@Localizer["Error Occurred"]");
+                    }
+                });
+            }
+        }
+
+        function ShowInfo() {
+            $("#Info").modal('show');
+        }
+
+        function SetValue(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/SuperAdmin/Home/SetValue",
+                data: { id },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    HideSpinner();
+                    $("#main").html(data);
+                    toastr.success("@Localizer["Edited Successfully"]");
+                },
+                error: function (data) {
+                    HideSpinner();
+                    toastr.error("@Localizer["Error Occurred"]");
+                }
+            });
+        }
+
+        function UploadProfilePhoto(e, en) {
+            var files = e.target.files;
+            if (files.length > 0) {
+                if (window.FormData !== undefined) {
+                    var formData = new FormData();
+                    for (var i = 0; i != files.length; i++) {
+                        formData.append("files", files[i]);
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("UploadFiles", "Files", new {Area = "ControlPanel"})",
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        headers: {
+                            'RequestVerificationToken': Token
+                        },
+                        success: function (result) {
+                            if(en){
+                            $("#ImageUrl").val(result[0]);
+                            $("#Logo").attr("src", result[0]);
+                            }else{
+                                $("#ImageUrlAr").val(result[0]);
+                                $("#LogoAr").attr("src", result[0]);
+                            }
+                            ChangeSettings();
+                        },
+                        error: function (req, status, error) {
+                            alert("Error while adding the Image");
+                        }
+                    });
+                } else {
+                    alert("This browser doesn't support HTML5 file uploads!");
+                }
+            }
+        }
+
+        function ChangeSettings() {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/SuperAdmin/Home/ChangeSettings",
+                data: { img: $("#ImageUrl").val(), imgAr: $("#ImageUrlAr").val(), english: $("#NameEnglish").val(), arabic: $("#NameArabic").val(), color: $("#Color").val(), secondaryColor: $("#SecondaryColor").val() },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    HideSpinner();
+                    toastr.success("@Localizer["Edited Successfully"]");
+                },
+                error: function (data) {
+                    HideSpinner();
+                    toastr.error("@Localizer["Error Occurred"]");
+                }
+            });
+        }
+    </script>
+    }

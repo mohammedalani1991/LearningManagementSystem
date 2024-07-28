@@ -1,0 +1,137 @@
+﻿@using LearningManagementSystem.Services.General
+@inject ISettingService Setting
+@model List<DataEntity.Models.ViewModels.AcademicSupervisionRateViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var fromDate = (DateTime)ViewBag.Date;
+    var fromDateFilter = $"{fromDate.Date.Year}-{fromDate.Date.Month:D2}-{fromDate.Date.Day:D2}";
+    var max = Setting.GetOrCreate("Max_Rate_Value","3").Value;
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Academic Supervision Rate"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-6 col-sm-12 col-xs-12">
+                    <form data-ajax="true" method="get" action="/ControlPanel/TrainerRate/GetEnrollAcademicSupervisionRates" id="Form1" data-ajax-success="GetAssigmentData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        @Html.Hidden("CourseId")
+                        <input type="hidden" id="enrollId" name="enrollId" value="@ViewBag.EnrollId" />
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        <input type="date" id="date" name="date" class="form-control tms-input" value="@fromDateFilter" onchange="$('#Form1').submit()" />
+                    </form>
+                </div>
+            </div>
+        </div>
+        <form onsubmit="AddRate(event)">
+            <div class="x_content">
+                <div class="table-responsive">
+                    <table class="tms-table" id="academicTable">
+                        <thead>
+                            <tr class="tms-headings">
+                                <th class="Standard">
+                                    @Localizer["Standard"]
+                                </th>
+                                <th class="Rate">
+                                    @Localizer["Rate"]
+                                </th>
+                                <th class="Note">
+                                    @Localizer["Note"]
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="tms-tr">
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Standard)
+                                        <input type="hidden" class="form-control StandardId" name="StandardId" value="@item.StandardId" />
+                                    </td>
+                                    <td>
+                                        <input class="form-control tms-input Rate" type="number" name="Rate" value="@item.Rate" />
+                                    </td>
+                                    <td>
+                                        <input class="form-control tms-input Note" type="text" name="Note" value="@item.Note" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    @@media (min-width: 1200px) {
+        .modal-xl {
+            --bs-modal-width: 1140px !important;
+        }
+    }
+
+    #academicTable {
+        border-spacing: 10px;
+        border-collapse: separate;
+    }
+
+    .custmSelect {
+        display: inline-block !important;
+        width: 290px !important;
+        padding-top: 2px;
+    }
+
+    .table-responsive {
+        overflow: inherit !important;
+    }
+</style>
+<script>
+    var max = parseInt('@max');
+    function AddRate(event) {
+        event.preventDefault();
+        var rates = [];
+        let count = 0;
+        $("#academicTable tbody tr").each(function (index) {
+            var val = $(this).find('input.Rate').val();
+            if (val != "") {
+                val = parseInt(val);
+                if (val > max || val < 1) {
+                    count++;
+                }
+            }
+            rates.push({
+                "StandardId": $(this).find('input.StandardId').val(),
+                "Rate": $(this).find('input.Rate').val(),
+                "Note": $(this).find('input.Note').val(),
+                "EnrollTeacherCourseId": $("#enrollId").val(),
+                "CreatedOn": $("#date").val(),
+            });
+        });
+        if (count == 0) {
+            $.post("/ControlPanel/TrainerRate/AddEditAcademicSupervisionRates",
+            { rates: rates },
+            function (data) {
+                if (data.check == true) {
+                    toastr.success('@Localizer["Added successfully"]');
+                } else {
+                    toastr.error('@Localizer["An error occurred while adding"]');
+                    HideSpinner();
+                }
+            }).fail(function (data) {
+                toastr.error('@Localizer["An error occurred while adding"]');
+                HideSpinner();
+        });
+        } else {
+            toastr.error('@Localizer["The rate should be between 1-"]'+max);
+        }
+    }
+
+</script>

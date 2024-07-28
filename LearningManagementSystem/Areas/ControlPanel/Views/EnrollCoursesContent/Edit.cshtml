@@ -1,0 +1,218 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollCoursesContentViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Edit Courses Content (Sections, Lectures)"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Edit Courses Content (Sections, Lectures)"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/EnrollCoursesContent/Edit" method="post" id="CoursesContent-Edit" class="form-horizontal form-label-left">
+                    <div class="row">
+
+
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl Filter", required = "required" , onchange = "onDdlChanged(this)" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-7 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Id">
+                                @Localizer["Course Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Hidden("EnrollTeacherCourseViewModel.Id",Model.EnrollTeacherCourseViewModel?.Id)
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.Id", new SelectList(ViewBag.TrainerCourses, "Id", "CourseName"), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl Filter", required = "required" ,@disabled="disabled" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.Id", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 mt-3">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;">
+                                @Localizer["Sections And Lectures Data"]
+
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="CoursesContentEdit_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="EnrollSectionOfCourseViewModel">
+                                        <div data-repeater-item>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Section Name"] <span class="required">*</span></label>
+                                                    <input type="hidden" value="@Model.EnrollSectionOfCourseViewModel[0].Id" name="SectionId" id="SectionId" />
+                                                    @Html.Hidden("Id",Model.EnrollSectionOfCourseViewModel[0].Id)
+                                                    @Html.Editor("SectionName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12",AddedValue=Model.EnrollSectionOfCourseViewModel[0].SectionName} })
+                                                    @Html.ValidationMessage("SectionName", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Section Description"]</label>
+                                                    @Html.Editor("Description", new { htmlAttributes = new {  @class = "form-control tms-input col-md-7 col-xs-12" ,AddedValue=(Model.EnrollSectionOfCourseViewModel[0].Description != null) ? Model.EnrollSectionOfCourseViewModel[0].Description : "" } })
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="EnrollLectureViewModel">
+                                                            @foreach (var Lectur in Model.EnrollSectionOfCourseViewModel[0].EnrollLecture)
+                                                            {
+                                                                <div data-repeater-item>
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Order"]<span class="required">*</span></label>
+                                                                    <div class="input-group">
+                                                                        @Html.Hidden("ForEditModleID",Lectur.Id)
+                                                                        @Html.Editor("Order", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12",AddedValue=Lectur.Order } })
+                                                                        @Html.ValidationMessage("Order", "", new { @class = "text-danger" })
+                                                                        <button class="border border-secondary btn btn-icon btn-light-danger my-0" data-repeater-delete type="button">
+                                                                            <i class="fa fa-times "></i>
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Name"]<span class="required">*</span></label>
+                                                                    <div class="input-group ">
+                                                                        @Html.Editor("LectureName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 form-controlE",AddedValue=Lectur.LectureName } })
+                                                                        @Html.ValidationMessage("LectureName", "", new { @class = "text-danger" })
+                                                                    </div>
+
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Description"]</label>
+                                                                    <div class="input-group pb-4">
+                                                                        @Html.TextArea("Description",  new {@class = "form-control col-md-7 col-xs-12" ,style="min-height:120px",AddedValue=Lectur.Description})
+                                                                    </div>
+                                                                </div>
+                                                            }
+
+                                                            @if (Model.EnrollSectionOfCourseViewModel[0].EnrollLecture.Count == 0)
+                                                            {
+                                                                <div data-repeater-item>
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Order"]<span class="required">*</span></label>
+                                                                    <div class="input-group">
+                                                                        @Html.Editor("Order", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                                                        @Html.ValidationMessage("Order", "", new { @class = "text-danger" })
+                                                                        <button class="border border-secondary btn btn-icon btn-light-danger my-0" data-repeater-delete type="button">
+                                                                            <i class="fa fa-times "></i>
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Name"]<span class="required">*</span></label>
+                                                                    <div class="input-group ">
+                                                                        @Html.Editor("LectureName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 form-controlE" } })
+                                                                        @Html.ValidationMessage("LectureName", "", new { @class = "text-danger" })
+                                                                    </div>
+
+
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Description"]</label>
+                                                                    <div class="input-group pb-4">
+                                                                        @Html.TextArea("Description",  new {@class = "form-control col-md-7 col-xs-12" ,style="min-height:120px"})z
+                                                                    </div>
+                                                                </div>
+                                                            }
+
+                                                        </div>
+
+                                                        <button class="tms-save-btn tms-save-btn tms-custom-btn mb-4" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Lecture"]
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .form-controlE {
+        width: auto !important;
+    }
+
+    #CoursesContentEdit_Repeater_Nested .inner-repeater {
+        background: #8AAAE5;
+        border-radius: 7px;
+        padding: 6px;
+    }
+
+        #CoursesContentEdit_Repeater_Nested .inner-repeater .control-label {
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+
+    $(function () {
+        $('#CoursesContentEdit_Repeater_Nested').repeater({
+            initEmpty: false,
+            repeaters: [{
+                selector: '.inner-repeater',
+                show: function () {
+                    $(this).slideDown();
+                },
+
+                hide: function (deleteElement) {
+                    $(this).slideUp(deleteElement);
+                }
+            }],
+            show: function () {
+                $(this).slideDown();
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+
+
+        });
+
+        $("[AddedValue]").each(function () {
+            $(this).val($(this).attr("AddedValue"));
+        });
+
+
+    });
+
+
+</script>
+<script src="~/js/EnrollCoursesContent/EnrollCoursesContent.js?ver=10.1"></script>

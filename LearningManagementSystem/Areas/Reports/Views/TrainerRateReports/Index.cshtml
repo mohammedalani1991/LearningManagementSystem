@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div id="main"></div>
+
+<div id='ItemsTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ItemsTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+    {
+    <script>
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-TrainerRateReports').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+
+        function Get() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/TrainerRateReports/GetData",
+                dataType: 'html',
+                data: { searchText: $("#searchText").val(), page: $("#page").val() },
+                success: function (data) {
+                    HideSpinner();
+                    $('#main').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        Get();
+
+        function GetData(data){
+            $('#main').html(data);
+        }
+
+        function GetItems(id, user) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/TrainerRateReports/GetItems",
+                data: { id, user },
+                success: function (data) {
+                    HideSpinner();
+                    $('#ItemsTableDiv').html(data);
+                    $('#ItemsTable').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+    </script>
+}

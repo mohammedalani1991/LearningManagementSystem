@@ -1,0 +1,581 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@model DataEntity.Models.EfModels.Student
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject IStudentService StudentService
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.CalendarType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    ViewData["Title"] = @Localizer["Student Details"];
+    var currency = CurrencyService.GetPrimaryCurrency();
+    var attendence = StudentService.GetStudentAttendence(Model.Id);
+    var paidAmount = StudentService.GetPaymentAmount(Model.Id);
+    var courseNumber = StudentService.GetCourseCount(Model.Id);
+    var CalenderType = lookups[GeneralEnums.MasterLookupCodeEnums.CalendarType.ToString()];
+}
+
+@section Css{
+    <link rel="stylesheet" href="~/theme/Public/assets/lib/calendar/main.min.css">
+    <style>
+        .studentSummary td {
+            padding: .455rem;
+            color: #464545;
+            font-weight: 100;
+            border-bottom: 1px solid white;
+        }
+
+        .studentSummary-title {
+            background-color: #5580BE;
+            color: white !important;
+        }
+
+        .studentSummary-data {
+            background-color: #eef1f5;
+        }
+
+        .financialSummary td {
+            border-bottom: 1px solid #f5f5f5;
+            color: #464545;
+            font-weight: 100;
+        }
+
+        .financialSummary .first-financial {
+            color: #1a94db;
+            font-weight: 600;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="tms-page-title">
+                <div class="tms-title noPrint row" style="padding: 10px 25px 0px 25px;width:100%;">
+                    <h5 class="col-6">@ViewData["Title"]</h5>
+                    <input type="hidden" value="@Model.Id" id="StudentId" />
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <div class="row noPrint" style="padding: 10px 25px 0px 25px;">
+
+                <div class="studentSummary col-lg-6 col-sm-12 col-xs-12">
+                    <p style="text-align: start">@Localizer["Student Personal Info"]</p>
+                    <div class="row">
+                        <table class="table col-lg-6 col-sm-12 col-xs-12">
+                            <tr>
+                                <td class="studentSummary-title">@Localizer["Full Name"]</td>
+                                <td class="studentSummary-data">@Model.Contact.FullName</td>
+                            </tr>
+                            <tr>
+                                <td class="studentSummary-title">@Localizer["Mobile"]</td>
+                                <td class="studentSummary-data">@Model.Contact.Mobile</td>
+                            </tr>
+                            <tr>
+                                <td class="studentSummary-title"> @Localizer["Gender"]</td>
+                                <td class="studentSummary-data">@LookupHelper.GetLookupDetailsById(Model.Contact.GenderId ?? 0, ViewBag.LangId)?.Name</td>
+                            </tr>
+                            <tr>
+                                <td class="studentSummary-title"> @Localizer["Birth Date"]</td>
+                                <td class="studentSummary-data">@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("MM/dd/yyyy") : null)</td>
+                            </tr>
+
+                        </table>
+                        <table class="table col-lg-6 col-sm-12 col-xs-12">
+                            <tr>
+                                <td class="studentSummary-title">@Localizer["Email"]</td>
+                                <td class="studentSummary-data">
+                                    @Model.Contact.Email
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="studentSummary-title">@Localizer["Country"]</td>
+                                <td class="studentSummary-data">
+                                    @LookupHelper.GetCountryById(Model.Contact.CountryId??0, ViewBag.LangId)
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td class="studentSummary-title">@Localizer["City"]</td>
+                                <td class="studentSummary-data">
+                                    @LookupHelper.GetCityById(Model.Contact.CityId??0, ViewBag.LangId)
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </div>
+                <div class="financialSummary  col-lg-6 col-sm-12 col-xs-12">
+                    <p style="text-align: start">@Localizer["Student Info"]</p>
+                    <div class="row">
+                        <div class="col-lg-6 col-sm-12 col-xs-12">
+                            <table class="table">
+                                <tr>
+                                    <td> @Localizer["Number Of Courses"]</td>
+                                    <td class="first-financial">
+                                        @Model.EnrollStudentCourses.Where(r=>r.Status == (int)GeneralEnums.StatusEnum.Active).Count()
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>@Localizer["Number Of Succeed Courses"]</td>
+                                    <td class="first-financial">
+                                        @Model.EnrollStudentCourses.Where(r=>r.Status == (int)GeneralEnums.StatusEnum.Active && r.IsPass == true).Count()
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td> @Localizer["Number Of Failed Courses"]</td>
+                                    <td class="first-financial">
+                                        @Model.EnrollStudentCourses.Where(r=>r.Status == (int)GeneralEnums.StatusEnum.Active && r.IsPass == false).Count()
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12">
+                            <table class="table">
+                                <tr>
+                                    <td>@Localizer["Paid Amount"]</td>
+                                    <td class="first-financial">
+                                        @paidAmount @Html.Raw(currency.Icon)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>@Localizer["Student Balance"]</td>
+                                    <td class="first-financial">
+                                        @(Model.Balance ?? 0) @Html.Raw(currency.Icon)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>@Localizer["Attendance"]</td>
+                                    <td class="first-financial">
+                                        @attendence
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-12 mt-4">
+                <input type='hidden' id='Id' value='@Model.Id' />
+                <input type='hidden' id='LangId' value='@ViewBag.LangId' />
+                <input type="hidden" value="@Model.ContactId" name="ContactId" id="ContactId" />
+                <section>
+                    <div class="d-lg-none d-sm-block nav toggle my-auto" id="EditCompanyToggle" onclick="Toggles()">
+                        <a id="sidenav_toggle">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                    </div>
+                    <div class="d-flex tms-nav-div-container" style="margin-bottom:40px;">
+                        <div class="tms-nav-div" onclick="Toggles()" style="width:20%;">
+                            <ul class="tms-col-nav flex-column" id="myTab" role="tablist">
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "Edit", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link " id="firsttab" onclick="ShowEditContact(@Model.ContactId, @ViewBag.LangId)" data-toggle="tab" href="#firsttab" role="tab" aria-controls="firsttab" aria-selected="false">@Localizer["Edit Student"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "Courses", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link active" id="secondtab" onclick="GetEnrollStudentCourses(@Model.Id)"
+                                               data-toggle="tab" href="#secondtab" role="tab" aria-controls="secondtab" aria-selected="false">@Localizer["Courses"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon active"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "PaymentHistory", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link" id="theredtab" onclick="GetStudentBalanceHistory(@Model.Id)"
+                                               data-toggle="tab" href="#theredtab" role="tab" aria-controls="theredtab" aria-selected="false">@Localizer["Payment History"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "Certificates", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link" id="fourthtab" onclick="GetStudentCertificates(@Model.Id)"
+                                               data-toggle="tab" href="#fourthtab" role="tab" aria-controls="fourthtab" aria-selected="false">@Localizer["Certificates"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "Calendar", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link" id="fifthtab" onclick="GetCalendar(@Model.Id)"
+                                               data-toggle="tab" href="#fifthhtab" role="tab" aria-controls="fifthhtab" aria-selected="false">@Localizer["Calendar"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                                @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "ExpulsionHistory", User.Identity.Name))
+                                {
+                                    <li class="tms-col-nav-item">
+                                        <div class="tms-col-nav-item-text">
+                                            <a class="tms-nav-link" id="sixthtab" onclick="GetExpulsionsHistory(@Model.Id)"
+                                               data-toggle="tab" href="#sixthtab" role="tab" aria-controls="sixthtab" aria-selected="false">@Localizer["Expulsions History"]</a>
+                                        </div>
+                                        <div class="tms-col-nav-item-icon">
+                                            <i class="font-awesome-icons tms-dir-icon"></i>
+                                        </div>
+                                    </li>
+                                    <li class="tms-col-nav-sep">
+                                        <hr />
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="tab-content" id="myTabContent" style="width:80%">
+                            <div id='GetData'>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="DetailsEnrollCourse" tabindex="-1" aria-labelledby="DetailsEnrollCourseLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DetailsEnrollCourseDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="DetailsCalendar" tabindex="-1" aria-labelledby="DetailsCalendarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <h3 class="modal-title fs-5"></h3>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <br />
+                            <div class="CalendarDescription">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section JavaScript{
+    <script src="~/theme/Public/assets/lib/calendar/main.js"></script>
+    <script src="~/theme/Public/assets/lib/calendar/locales/ar.js"></script>
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        $(document).ready(function () {
+            $("#secondtab").click();
+        })
+
+        function Toggles() {
+            if ($("#EditCompanyToggle").is(":hidden"))
+                return;
+            $(".tms-nav-div").toggle();
+            $("#myTabContent").toggle();
+        }
+
+        $(".tms-nav-link").click(function (event) {
+            $(".tms-nav-link").removeClass("active");
+            $(".tms-col-nav-item-icon i").removeClass("active");
+            $(this).addClass("active");
+            $(this).parent().parent().children().eq(1).children().eq(0).addClass("active");
+        });
+
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var EmailMassegeError = '@Localizer["Email Already exist"]';
+
+        function GetEnrollStudentCourses(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetEnrollStudentCourses",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetEnrollSectionOfCourses(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetEnrollSectionOfCourses",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetStudentBalanceHistory(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetStudentBalanceHistory",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetStudentCertificates(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetStudentCertificates",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetCalendar(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetCalendar",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetExpulsionsHistory(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/GetExpulsionsHistory",
+                data: { studentId: id },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+
+        function ShowCourseDetiles(enrollStudentCourseId) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: "/Reports/Student/ShowCourseDetiles",
+                data: { enrollStudentCourseId },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#DetailsEnrollCourse .modal-content').html(data);
+                    $("#DetailsEnrollCourse").modal("show");
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function GetDetails(enrollStudentCourseId, get) {
+            ShowSpinner();
+            $.ajax({
+                type: "Get",
+                url: `/Reports/Student/${get}`,
+                data: { enrollStudentCourseId },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#CourseDetails').html(data);
+                },
+                error: function (data) {
+                    HideSpinner();
+                },
+            });
+        }
+
+        function ShowLessonDetails(id, enrollStudentCourseId) {
+            $.ajax({
+                type: "GET",
+                url: "/Reports/Student/ShowLessonDetails",
+                data: { id: id, enrollStudentCourseId },
+                success: function (data) {
+                    if (data !== null) {
+                        $('#LessonDetails').html(data);
+                    }
+                }
+            });
+        }
+
+        function ShowEditContact(id, langId, contactTypeId, companyId) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/UserProfiles/ShowEdit/",
+                data: { id: id, languageId: langId, contactTypeId: contactTypeId, companyId: companyId },
+                dataType: 'html',
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                    $(".tms-page-popup-title").remove();
+                    $("#SelectContactType").hide();
+                    $("#Title").html("@Localizer["Student Info"]");
+                    model.userProfileViewModel.roles.map((x, i) => {
+                        $(".select_Roles option[value='" + x.roleId + "']").prop("selected", true);
+                    })
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        function EditContact() {
+            var ContactEditFrm = $('#ContactForm-Edit');
+            $("#ContactForm-Edit").validate({
+                errorElement: "span",
+                rules: {
+                    'ContactViewModel.Mobile': {
+                        number: true,
+                        minlength: 9,
+                        maxlength: 12
+                    },
+                    'ContactViewModel.IdNumber': {
+                        number: true,
+                    },
+                }
+            });
+            if (ContactEditFrm.valid()) {
+                ShowSpinner();
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/UserProfiles/CheckIfUserExist/",
+                    data: { email: $("#ContactViewModel_Email").val(), id: $("#ContactViewModel_Id").val() },
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        if (data.exist) {
+                            toastr.warning(EmailMassegeError);
+                            HideSpinner();
+                        }
+                        else
+                            $.ajax({
+                                type: ContactEditFrm.attr('method'),
+                                url: ContactEditFrm.attr('action'),
+                                data: ContactEditFrm.serialize(),
+                                headers: {
+                                    'RequestVerificationToken': Token
+                                },
+                                success: function (data) {
+                                    HideSpinner();
+                                    if (data.success)
+                                        toastr.success(editMassege);
+                                    else if (!data.success && data.message)
+                                        toastr.error(data.message);
+                                    else
+                                        toastr.error(editMassegeError);
+                                },
+                                error: function (data) {
+                                    HideSpinner();
+                                    toastr.error(editMassegeError);
+                                },
+                            });
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                    },
+                })
+            }
+        }
+
+        function GetData(data) {
+            $("#GetData").html(data)
+        }
+
+    </script>
+}

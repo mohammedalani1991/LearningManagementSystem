@@ -1,0 +1,347 @@
+﻿@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Services.ControlPanel
+@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core
+@using Microsoft.AspNetCore.Antiforgery
+@using static LearningManagementSystem.Core.Constants
+@inject IViewLocalizer Localizer
+@inject IUserProfileService UserProfileService
+@inject ISettingService SettingService
+@inject UserManager<IdentityUser> UserManager
+@inject IAntiforgery Antiforgery
+@inject IAboutDicService AboutDicService
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var userProfile = !string.IsNullOrWhiteSpace(User.Identity?.Name)
+        ? UserProfileService.GetUserProfileByUsername(User.Identity?.Name) : new UserProfile();
+    var username = string.IsNullOrWhiteSpace(userProfile?.Contact?.FullName) ? User.Identity?.Name : userProfile.Contact.FullName;
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+
+    var SystemSettings =await SettingService.GetMultipleSystemSettings(new string[] {
+        Constants.SystemSettings.ContactUs_Email,
+        Constants.SystemSettings.ContactUs_Phone,
+        Constants.SystemSettings.ContactUs_Youtube,
+        Constants.SystemSettings.ContactUs_facebook,
+        Constants.SystemSettings.ContactUs_instagram,
+        Constants.SystemSettings.ContactUs_tiktok } );
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var settings = LookupHelper.GetSettings();
+}
+
+<!DOCTYPE html>
+@if (languageName != Constants.LanguageCultures.Arabic)
+{
+    @:<html lang="en" dir="ltr">
+}
+else
+{
+    @:<html lang="ar" dir="rtl">
+}
+      <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>@(languageName != Constants.LanguageCultures.Arabic ? settings.NameEnglish : settings.NameArabic)</title>
+          <link rel="shortcut icon" href="@(languageName == Constants.LanguageCultures.Arabic ? settings.ImageUrlAr : settings.ImageUrl)">
+          <link rel="stylesheet" href="~/theme/Public/assets/lib/font-awesome/css/all.css">
+          <link rel="stylesheet" href="~/theme/Public/assets/lib/swiper/swiper-bundle.min.css" />
+          <link href="~/theme/Public/assets/lib/animate/aos.css" rel="stylesheet">
+          <link href="@Url.Content("~/main/autocomplete/css/chosen.css")" rel="stylesheet" />
+          <link rel="stylesheet" href="~/css/custom-fonts.css" />
+
+          <link rel="stylesheet" href="~/theme/Public/assets/lib/calendar/main.min.css">
+          @if (languageName != Constants.LanguageCultures.Arabic)
+          {
+              <link rel="stylesheet" href="~/theme/Public/assets/lib/bootstrap/css/bootstrap.min.css">
+          }
+          else
+          {
+              <link rel="stylesheet" href="~/theme/Public/assets/lib/bootstrap/css/bootstrap.rtl.min.css">
+          }
+
+
+
+          <link rel="stylesheet" href="~/theme/Public/assets/css/Font.css">
+          <link rel="stylesheet" href="/dynamic-css">
+
+            @if (languageName == Constants.LanguageCultures.Arabic)
+            {
+                <link rel="stylesheet" href="~/theme/Public/assets/css/indexAr.css?ver=3.1">
+            }
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+            @RenderSection("Css", required: false)
+
+
+        <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=c18af0f4"></script> 
+
+
+      </head>
+      <body>
+     <div style="position: relative;">
+          <header class="bg-white">
+
+              <partial name="_NavHeaderPublicPartial" />
+
+          </header>
+
+          <!-- page content -->
+
+          @RenderBody()
+
+
+          <footer class="bg-footer pt-5 pb-1">
+              <div class="container-fluid container-lg">
+                  <div class="row reverss pb-4">
+                      <div class="col"> </div>
+                      <div class="col-auto d-none d-lg-block">
+                          <p class="fs-footer-tit">@Localizer["Browse Pages"] </p>
+                          @*<p class="font-foot-smoll mb-1"><a class="text-white" href="@Url.Action("Index","Page",new { code=StaticContentDescription?.GroupName??""})">@Localizer["Al-Safa Academy"] </a> </p>*@
+                          <p class="font-foot-smoll mb-1"><a class="text-white" href="@Url.Action("Index","Page",new { code=StaticContentDescription.TermsAndConditions})">@Localizer["Terms and conditions"] </a></p>
+                          <p class="font-foot-smoll mb-1"><a class="text-white" href="@Url.Action("Index","Page",new { code=StaticContentDescription.PrivacyPolicy})">@Localizer["Privacy policy"] </a></p>
+                          <p class="font-foot-smoll mb-1"><a class="text-white" href="@Url.Action("Index","Courses")">@Localizer["Cources"] </a></p>
+                          <p class="font-foot-smoll mb-1"><a class="text-white" href="@Url.Action("Index","Trainers")">@Localizer["Trainers"] </a></p>
+                          @*<p class="font-foot-smoll mb-1"><a class="text-white" href="Projects.html">@Localizer["Projects"] </a></p>*@
+                      </div>
+                      <div class="col"> </div>
+
+                      <div class="col-auto col-lg">
+                          @{
+                              var PEmail = "mailto:" + @SystemSettings.Where(r => r.Name == "ContactUs_Email").Select(r => r.Value).FirstOrDefault();
+                              var Ptel = "tel:" + @SystemSettings.Where(r => r.Name == "ContactUs_Phone").Select(r => r.Value).FirstOrDefault();
+                          }
+                          <p class="fs-footer-tit mt-4 mt-lg-0">@Localizer["Get In Touch"] </p>
+                          <p class="font-foot-smoll mb-1">@(languageName != Constants.LanguageCultures.Arabic ? settings.NameEnglish : settings.NameArabic) @Localizer["Training Center"] </p>
+                          <p class="font-foot-smoll textinfooter text-white text-opacity-75 mb-1">
+                              @Html.Raw(AboutDicService.GetAboutDicByCode("FooterContent" , (languageName != Constants.LanguageCultures.Arabic ? 8 : 7)).Value)
+                          </p>
+                          <p class="font-foot-smoll mb-1">
+                              <a href="@Ptel" class="text-white">@Localizer["Phone:"] @SystemSettings.Where(r => r.Name == "ContactUs_Phone").Select(r => r.Value).FirstOrDefault()  </a>
+                          </p>
+                          <p class="font-foot-smoll mb-1">
+
+                              <a href="@PEmail" class="text-white">@Localizer["E-mail:"] @SystemSettings.Where(r => r.Name == "ContactUs_Email").Select(r => r.Value).FirstOrDefault() </a>
+                          </p>
+                      </div>
+                      <div class="col"> </div>
+
+                      <div class="col-auto col-lg-3 ">
+
+                          <p class="fs-footer-tit mb-1">@Localizer["Subscribe Newsletter"] </p>
+                          <p class="font-foot-smoll mb-3">@Localizer["Subscribe to our Weekly newspaper"] </p>
+                          <form action="/Subscribers/AddSubscribersForGuest" method="post" id="Subscribers-Create">
+                              @Html.Editor("Email", new { htmlAttributes = new { required = "required", type = "email", @class = "form-control shadow-none p-3", placeholder = Localizer["Enter your email"].Value } })
+                              <button type="submit" class="rounded-3 btn btncolossub p-3 mt-3 w-100">@Localizer["Subscribe"] </button>
+                          </form>
+                          <div class="d-flex iconfooter align-items-center d-none d-lg-block">
+                              @if (!string.IsNullOrEmpty(SystemSettings.Where(r => r.Name == "ContactUs_Youtube").Select(r => r.Value).FirstOrDefault()))
+                              {
+                                  <a target="_blank" href="@SystemSettings.Where(r=> r.Name=="ContactUs_Youtube").Select(r=>r.Value).FirstOrDefault()" class="text-white rounded-circle" title="youtube"><i class="fa-brands fa-youtube"></i></a>
+                              }
+                              @if (!string.IsNullOrEmpty(SystemSettings.Where(r => r.Name == "ContactUs_facebook").Select(r => r.Value).FirstOrDefault()))
+                              {
+                                  <a target="_blank" href="@SystemSettings.Where(r=> r.Name=="ContactUs_facebook").Select(r=>r.Value).FirstOrDefault()" class="text-white rounded-circle" title="facebook"><i class="fa-brands fa-facebook"></i></a>
+                              }
+                              @if (!string.IsNullOrEmpty(SystemSettings.Where(r => r.Name == "ContactUs_instagram").Select(r => r.Value).FirstOrDefault()))
+                              {
+                                  <a target="_blank" href="@SystemSettings.Where(r=> r.Name=="ContactUs_instagram").Select(r=>r.Value).FirstOrDefault()" class="text-white rounded-circle" title="instagram"><i class="fa-brands fa-instagram"></i></a>
+                              }
+                              @if (!string.IsNullOrEmpty(SystemSettings.Where(r => r.Name == "ContactUs_tiktok").Select(r => r.Value).FirstOrDefault()))
+                              {
+                                  <a target="_blank" href="@SystemSettings.Where(r=> r.Name=="ContactUs_tiktok").Select(r=>r.Value).FirstOrDefault()" class="text-white rounded-circle" title="tiktok"><i class="fa-brands fa-tiktok"></i></a>
+                              }
+
+                          </div>
+                      </div>
+                      <div class="col"> </div>
+                  </div>
+                  <div>
+                      <p class="text-center font-foot-smoll">@Localizer["&copy;"] @(languageName != Constants.LanguageCultures.Arabic ? settings.NameEnglish : settings.NameArabic). @Localizer["All right reserved"] </p>
+                  </div>
+              </div>
+          </footer>
+
+          <div class="spanner" style="z-index:2000;">
+              <div class="loader"></div>
+          </div>
+     </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js" integrity="sha512-37T7leoNS06R80c8Ulq7cdCDU5MNQBwlYoy1TX/WUsLFC2eYNqtKlV0QjH7r8JpG/S0GUMZwebnVFLPd6SU5yg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+          <script src="~/theme/Public/assets/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+          <script src="~/theme/Public/assets/lib/swiper/swiper-bundle.min.js"></script>
+          <script src="~/theme/Public/assets/lib/animate/aso.js"></script>
+          <script src="~/theme/Public/assets/js/index.js?ver=1.1"></script>
+          <script src="~/js/jquery.unobtrusive-ajax.min.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.repeater/1.2.1/jquery.repeater.min.js" integrity="sha512-foIijUdV0fR0Zew7vmw98E6mOWd9gkGWQBWaoA1EOFAx+pY+N8FmmtIYAVj64R98KeD2wzZh1aHK0JSpKmRH8w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script src="~/theme/Public/assets/lib/calendar/main.js"></script>
+          <script src="~/theme/Public/assets/lib/calendar/locales/ar.js"></script>
+          <script src="https://cdn.tiny.cloud/1/1bjwtmr4qw3nyx3or98iw46353588p9bxfds2ou5llsoac3l/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+          <script src="~/js/toast.min.js"></script>
+              <script src="~/main/autocomplete/js/chosen.jquery.js"></script>
+
+          <partial name="_ValidationScriptsPartial" />
+
+          <script type="text/javascript">
+               function InitTinymce() {
+                    tinymce.remove();
+                    tinymce.init({
+                        selector: 'textarea.tinyRichText',
+                        browser_spellcheck: true,
+                        plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak table directionality',
+                        toolbar_mode: 'wrap',
+                        toolbar: "undo redo | styleselect | fontselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent",
+                        font_formats: " Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Symbol=symbol;Tahoma=tahoma,arial,helvetica,sans-serif;Terminal=terminal,monaco;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;Webdings=webdings;Wingdings=wingdings,zapf dingbats;"
+                            + "Al Jazeera Arabic Regular=Al-Jazeera-Arabic-Regular; Cairo=Cairo, sans-serif;Tajawal=Tajawal, sans-serif; TEWarshTharwatEmara=TEWarshTharwatEmara;" +
+                            "Al Jazeera Arabic Bold= Al-Jazeera-Arabic-Bold ;ae_AlMateen = ae_AlMateen; aga-islamic-phrases =aga-islamic-phrases; ARABSQ =ARABSQ ;ARBSQDTP=ARBSQDTP;",
+                        toolbar2: 'alignleft aligncenter alignright | forecolor backcolor | bullist numlist | ltr rtl ',
+                        directionality: "ltr",
+                        height: "400",
+                        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 30pt',
+                        content_css: '@Url.Content("~/css/custom-fonts.css")',
+                        contextmenu: false,
+                        content_style: "body { font-family: 'Al-Jazeera-Arabic-Regular'; }"
+                    });
+                }
+
+             function ShowSpinner() {
+                    $(".spanner").addClass("show-spanner");
+                    $("body").css("overflow-y" , "hidden")
+                }
+
+                function HideSpinner() {
+                    $(".spanner").removeClass("show-spanner");
+                    $("body").css("overflow-y", "unset")
+                }
+
+          $(function() {
+            var Token = '@tokenSet.RequestToken';
+            var SubscribersFrm = $('#Subscribers-Create');
+            var AddedSuccess = '@Localizer["Added successfully, Thank You."]';
+            var AddedError = '@Localizer["Failed added, Please try again!"]';
+            var RegisterError = '@Localizer["You are already registered in the newsletter"]';
+            SubscribersFrm.submit(function (e) {
+                e.preventDefault();
+                ShowSpinner();
+
+                $.ajax({
+                    type: SubscribersFrm.attr('method'),
+                    url: SubscribersFrm.attr('action'),
+                    data: SubscribersFrm.serialize(),
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function(data) {
+                        HideSpinner();
+
+                    if (data > 0) {
+                        toastr.success(AddedSuccess);
+                        $('#Subscribers-Create').find("input[type=text],input[type=email],textarea").each(function() {
+                            $(this).val('');
+                        });
+                    } else {
+                        toastr.warning(RegisterError);
+                    }
+                    },
+                    error: function(data) {
+                        HideSpinner();
+                        toastr.error(AddedError);
+                    },
+                });
+
+            });
+
+        });
+
+          </script>
+          <script>
+            jQuery.extend(jQuery.validator.messages, {
+                required: "@Localizer["This field is required."]",
+                remote: "Please fix this field.",
+                email: "@Localizer["Please enter a valid email address."]",
+                url: "Please enter a valid URL.",
+                date: "Please enter a valid date.",
+                step: jQuery.validator.format("@Localizer["Please enter a multiple of"]" + " " + "{0}."),
+                dateISO: "Please enter a valid date (ISO).",
+                number: "@Localizer["Please enter a valid number."]",
+                digits: "Please enter only digits.",
+                creditcard: "Please enter a valid credit card number.",
+                equalTo: "Please enter the same value again.",
+                accept: "Please enter a value with a valid extension.",
+                maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+                minlength: jQuery.validator.format("@Localizer["Please enter at least"]" + " "+ "{0}"+ " " + "@Localizer["characters."]"),
+                rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+                range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+                max: jQuery.validator.format("@Localizer["Please enter a value less than or equal to"]" + " " + "{0}."),
+                min: jQuery.validator.format("@Localizer["Please enter a value greater than or equal to"]" + " " + "{0}.")
+            });
+            jQuery.fn.extend({
+                setDatePickRange: function (fromDate, toDate) {
+                    debugger;
+                    var _this = this;
+                    _this.daterangepicker({
+                        startDate: fromDate !== '1-01-01' ? new Date(fromDate.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")) : moment(),
+                        endDate: toDate !== '1-01-01' ? new Date(toDate.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")) : moment(),
+                        ranges: {
+                            '@Localizer["Clear"]': [moment(), null],
+                            '@Localizer["Today"]': [moment(), moment()],
+                            '@Localizer["Yesterday"]': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            '@Localizer["This Month"]': [moment().startOf('month'), moment().endOf('month')],
+                            '@Localizer["Last Month"]': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                            '@Localizer["This Year"]': [moment().startOf('year'), moment().endOf('year')],
+                            '@Localizer["Last Year"]': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+                            '@Localizer["This Quarter"]': [moment().startOf('quarter'), moment().endOf('quarter')],
+                            '@Localizer["Last Quarter"]': [moment().subtract(1, 'quarter').startOf('quarter'), moment().subtract(1, 'quarter').endOf('quarter')],
+                        },
+                        locale: {
+                            customRangeLabel: '@Localizer["Specific Date"]'
+                        },
+                        "showDropdowns": true,
+                        "linkedCalendars": false,
+                        "minYear": 2008,
+                        "maxYear": 2030,
+                    });
+                    if (fromDate === "1-01-01")
+                        _this.val('');
+                    this.on('change', function (e) {
+                        var selectedDate = e.target.value;
+                        if (selectedDate.includes('Invalid date'))
+                            _this.val('');
+                        if (selectedDate === "01/01/2001 - 01/01/2001" && (fromDate === "1-01-01" || toDate === "1-01-01")) {
+                            _this.val('');
+                        }
+
+                    });
+                },
+            });
+
+                $(document).ajaxComplete(function () {
+                    $(".chosen-select").chosen({
+                        placeholder_text_multiple: '@Localizer["Select an option"]',
+                        placeholder_text: '@Localizer["Select an option"]'
+                    });
+                });
+
+               
+
+
+            </script>
+
+            <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6Q3DLSZQN9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6Q3DLSZQN9');
+</script>
+
+            @RenderSection("Scripts", required: false)
+      </body>
+</html>

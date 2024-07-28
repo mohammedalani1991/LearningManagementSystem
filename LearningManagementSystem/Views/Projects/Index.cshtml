@@ -1,0 +1,89 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.CmsProject>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+}
+
+<div id="Projects" class="w-100 px-5">
+    <div class="container-fluid container-lg w-100">
+        <div class="row px-3 w-100">
+            <p class="fs-title40 m-0">@Localizer["Active Projects"]</p>
+            <span class="botm-title40"></span>
+        </div>
+        <div class="row gutter-md w-100">
+            @if (!Model.Where(r => r.PublishDate <= DateTime.Now && r.EndDate >= DateTime.Now).Any())
+            {
+                <div class="text-center py-5">
+                    <h2>@Localizer["There Is no Projects"]</h2>
+                </div>
+            }
+            @foreach (var item in Model.Where(r => r.PublishDate <= DateTime.Now && r.EndDate >= DateTime.Now))
+            {
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card" onclick="ShowDetails(@item.Id ,true)">
+                        <img src="@(item.ImageUrl??"https://images.unsplash.com/photo-1572177812156-58036aae439c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80")" class="card-img" style="object-fit: cover;" alt="...">
+                        <div class="card-img-overlay bg-imgProjects">
+                            <p class="position-absolute bottom-0 start-0 fs-3 text-white text-fomat px-2">@item.Name</p>
+                            <a href="@Url.Action("ProjectDetails", "Projects",new {id = item.Id ,Area = ""})" class="position-absolute bottom-0 end-0 m-3 iconhove text-dark">
+                                <i class="fa-solid fa-arrow-right rounded-circle bg-white p-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row px-3 w-100">
+        <p class="fs-title40 m-0">@Localizer["Old Projects"]</p>
+        <span class="botm-title40"></span>
+    </div>
+    <div class="row gutter-md w-100">
+        @if (!Model.Where(r => r.PublishDate > DateTime.Now || r.EndDate < DateTime.Now).Any())
+        {
+            <div class="text-center py-5">
+                <h2>@Localizer["There Is no Projects"]</h2>
+            </div>
+        }
+        @foreach (var item in Model.Where(r => r.PublishDate > DateTime.Now || r.EndDate < DateTime.Now))
+        {
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card" onclick="ShowDetails(@item.Id ,false)">
+                    <img src="@item.ImageUrl" class="card-img" alt="...">
+                    <div class="card-img-overlay bg-imgProjects">
+                        <p class="position-absolute bottom-0 start-0 fs-3 text-white text-fomat px-2">@item.Name</p>
+                        <a href="@Url.Action("ProjectDetails", "Projects",new {id = item.Id ,Area = ""})" class="position-absolute bottom-0 end-0 m-3 iconhove text-dark">
+                            <i class="fa-solid fa-arrow-right rounded-circle bg-white p-3"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Modal --->
+    <div class="modal fade" id="ProjectDetails" tabindex="-1" aria-labelledby="ProjectDetails" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        function ShowDetails(id, active) {
+            $.ajax({
+                type: "GET",
+                url: "/Projects/ProjectModelDetails",
+                data: { id: id, active: active },
+                success: function (data) {
+                    $('#ProjectDetails .modal-content').html(data);
+                    $('#ProjectDetails').modal("show");
+                }
+            });
+        }
+    </script>
+}

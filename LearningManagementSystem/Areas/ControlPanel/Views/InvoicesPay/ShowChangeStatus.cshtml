@@ -1,0 +1,42 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.InvoicesPayViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Change Status for Invoice Pay"]
+            </div>
+        </div>
+          <div class="x_content">
+                <br />
+                <form action="/ControlPanel/InvoicesPay/ChangeInvoicesPayStatus" method="post" id="ChangeInvoicesPayStatus-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                         @Html.Editor("Id", new { htmlAttributes = new {  type="hidden"  } })
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ProcessStatus">
+                                @Localizer["Process Status"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                              @Html.DropDownList("ProcessStatus",new SelectList(LookupHelper.GetinvoicPayStatus(ViewBag.languageId), "Id", "Name") , Localizer["Select the Status"].Value, new { @class = " form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessage("ProcessStatus", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+
+    </div>
+</div>
+ <script src="~/js/InvoicesPays/InvoicesPay.js?ver=14.1"></script>
+ 

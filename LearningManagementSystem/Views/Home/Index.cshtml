@@ -1,0 +1,416 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels
+@using DataEntity.Models.ViewModels
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Services.ControlPanel
+@using System.Linq;
+
+@inject ICmsPageService CmsPageService
+@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Core
+@using static LearningManagementSystem.Core.Constants
+
+@inject ISettingService _SettingService
+@inject ICmsProjectService CmsProjectService
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Home Page"];
+
+
+    List<DetailsLookupViewModel> generalSpecialization = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(), ViewBag.LangId);
+    var dicGeneralSpecialization = generalSpecialization.ToDictionary(item => item.Id,
+                     item => item.Name);
+
+    var homePageContent = (AboutDicViewModel)ViewBag.HomePageContent;
+    var DataSystemSettings = ViewBag.SystemSettings as List<SettingViewModel>;
+    var CmsPageForHome = CmsPageService.GetCmsPageForHome(ViewBag.LangId);
+
+    bool ShowProjects = false;
+    Boolean.TryParse(_SettingService.GetOrCreate(Constants.SystemSettings.ShowProjects, "true").Value, out ShowProjects);
+    List<CmsProject> projects = CmsProjectService.GetProjectForHome(ViewBag.LangId);
+
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    var vedio = _SettingService.GetOrCreate(Constants.SystemSettings.HomePage_YoutubeEmbed, "Empty").Value;
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+}
+@if (ViewBag.Slider != null)
+{
+    <section class="sliderhome" style="min-height:60vh">
+        <div class="swiper Swipersliderhome" style="min-height:60vh">
+            <div class="swiper-wrapper  h-100 w-100">
+
+                @foreach (var item in ViewBag.Slider)
+                {
+                    var slider = (CmsSlider)item;
+
+                    <div class="swiper-slide position-relative w-100 h-100" data-aos="zoom-in-down" style="min-height:60vh">
+                        <div class=" h-100 w-100">
+                            <img class="w-100 h-100" src="@slider.ImageUrl"
+                                 alt="">
+                        </div>
+                        <div class="bg-opacity position-absolute">
+                            <div class="container h-100">
+                                <div class="row h-100 align-items-center">
+                                    <div class="text-center texthaedar text-lg-start" data-aos="zoom-in-down">
+                                        <h1 class="text-white title">@slider.Name</h1>
+                                        <p class="sup-title text-white">
+                                            @Html.Raw(slider.Description)
+                                        </p>
+                                        @if (!string.IsNullOrEmpty(slider.ReadMoreLink))
+                                        {
+                                            <a class="btn brk-btn" href="@slider.ReadMoreLink">@Localizer["See More"]</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+}
+<section class="bg-stat mx-auto color-sec23">
+    <div class="swiper Students mx-auto">
+        <div class="swiper-wrapper mx-auto">
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-1s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students1.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Our Students"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_OurStudents").FirstOrDefault().Value, out int result) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_OurStudents").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-4s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students4.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Students Nationalities"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_StudentsNationalities").FirstOrDefault().Value, out int result1) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_StudentsNationalities").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-2s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students2.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Our Courses"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_OurCourses").FirstOrDefault().Value, out int result2) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_OurCourses").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-5s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students5.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Teachers Nationalities"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_TeachersNationalities").FirstOrDefault().Value, out int result3) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_TeachersNationalities").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-3s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students3.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Graduate Students"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_GraduateStudents").FirstOrDefault().Value, out int result4) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_GraduateStudents").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+            <div class="swiper-slide roundeddwhite bg-white">
+                <diV class="d-flex align-items-stretch">
+                    <div class="bg-students bg-6s rounded-4">
+                        <img src="~/theme/Public/assets/images/Students6.png" class="pan-stu">
+                    </div>
+                    <div class="fw-student">
+                        <p class="fw-light">@Localizer["Quranic Episodes"]</p>
+                        <p class="fw-bold m-0 num" data-val="@(Int32.TryParse(DataSystemSettings.Where(r => r.Name == "HomePage_QuranicEpisodes").FirstOrDefault().Value, out int result5) ?
+                            Int32.Parse(DataSystemSettings.Where(r => r.Name == "HomePage_QuranicEpisodes").FirstOrDefault().Value)
+                            : 0)">0</p>
+                    </div>
+                </diV>
+            </div>
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+</section>
+
+@if (ViewBag.Course != null)
+{
+    <hr class="container d-none d-lg-block m-0" style="color:#cfcfcf;">
+    <section class="container-fluid py-5 color-sec23">
+        <div class="p-0 container">
+            <div class="row" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+                <div class="text-center">
+                    <h2 class="fs-tit-Cources">
+                        @Localizer["Our"] <span class="text-primarycolor">@Localizer["Cources"]</span>
+                    </h2>
+                    <p class="fs-sup-Cources">@Localizer["Sample of our courses with prices"]</p>
+                </div>
+            </div>
+            <div class="swiper secCources " data-aos="fade-up" data-aos-duration="2000">
+                <div class="swiper-wrapper py-4 mb-5">
+                    @foreach (var item in ViewBag.Course)
+                    {
+                        var course = (CourseViewModel)item;
+                        <div class="swiper-slide bg-white shadow-sm p-3 rounded-4 flex-column">
+                            <img src="@(course.ImageUrl??"https://images.indianexpress.com/2020/04/online759.jpg")" class="img-fluid w-100 heightstat rounded-5">
+                            <p class="text-start Cource-fs-titel w-100">@course.CourseName</p>
+                            <div class="d-flex fw-bold w-100 align-items-center justify-content-between">
+                                <p class="text-primarycolor fs-cou-sup1 m-0">
+                                    @(
+                                        course.CoursePrice != null && course.CoursePrice > 0 ? course.CoursePrice : Localizer["Free"].Value
+                                        ) @Html.Raw(course.CoursePrice>0 ?currency.Icon:"")
+                                </p>
+                                <p class="font-smoll m-0 d-flex justify-content-center align-items-center rounded-pill color-category">
+                                    @course.CategoryName
+                                </p>
+                            </div>
+                            <a class="btn h-more pt-lg-3 colorbtn text-white rounded-pill w-100" href="@Url.Action("Details","Courses",new { id=course.Id})">@Localizer["Read More"]</a>
+                        </div>
+                    }
+
+                </div>
+                <div class="position-absolute top-100 start-50 translate-middle flip">
+                    <span class="swiper-button-next bg-white shadow-sm rounded-circle ">
+                        <i class="fa-solid fa-arrow-left fs-4"></i>
+                    </span>
+                    <span class="swiper-button-prev bg-white shadow-sm rounded-circle ">
+                        <i class="fa-solid fa-arrow-right fs-4 "></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<section class="container-fluid p-0  bgcolor-sectionblue">
+    <div class="container text-center pt-5 mx-auto row" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+        <div class="position-relative">
+            <div class="img-Saying">
+                <img src="~/theme/Public/assets/images/Saying1.png" class="rounded-circle">
+                <img src="~/theme/Public/assets/images/Saying2.png" class="rounded-circle">
+                <img src="~/theme/Public/assets/images/Saying3.png" class="rounded-circle">
+            </div>
+        </div>
+
+        <h3 class="text-center m-0 fw-Saying">
+            @Localizer["What People"] <span class="text-primarycolor">@Localizer["Saying"]</span><br /> @Localizer["About Us ..."]
+        </h3>
+    </div>
+    <div class="swiper position-relative mySwiperSaying pt-5" data-aos="fade-up" data-aos-duration="2000">
+        <div class="swiper-wrapper container-wrapper">
+
+            @foreach (var item in ViewBag.WhatPeopleSay)
+            {
+                var whatPeopleSay = (CmsWhatPeopleSay)item;
+
+                <div class="swiper-slide flex-column justify-content-between bg-white align-items-start roundeddwhite shadow-sm text-start">
+                    <div style="max-height:170px ;overflow:auto">
+                        <p class="m-0 fs-SayingH">
+                            @Html.Raw(whatPeopleSay.Description)
+                        </p>
+                    </div>
+                    <div class="d-flex w-100 align-items-center">
+                        <img src="@(whatPeopleSay.ImageUrl??"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")" class="rounded-circle">
+                        <div class="ps-3">
+                            <p class="m-0 fs-imgtext1">@whatPeopleSay.PersonName</p>
+                            <p class="fs-imgtext2">@whatPeopleSay.PersonDetails</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+        <div class="position-absolute top-100 start-50 translate-middle flip">
+            <span class="swiper-button-next bg-white shadow-sm rounded-circle ">
+                <i class="fa-solid fa-arrow-left fs-4"></i>
+            </span>
+            <span class="swiper-button-prev bg-white shadow-sm rounded-circle ">
+                <i class="fa-solid fa-arrow-right fs-4 "></i>
+            </span>
+        </div>
+    </div>
+    <br><br>
+</section>
+
+@if (ShowProjects && projects.Any())
+{
+    <section class="py-5">
+        <div class="container-fluid p-0 containerProjects">
+            <div class="mb-0 text-center " data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+                <h3 class="text-center m-0 fw-Saying">@Localizer["Active"] <span class="text-primarycolor">@Localizer["Projects"]</span></h3>
+            </div>
+            <div class="swiper ActiveProjects" data-aos="fade-up" data-aos-duration="2000">
+                <div class="swiper-wrapper pb-5 ">
+                    @foreach (var item in projects)
+                    {
+                        <div class="swiper-slide position-relative ">
+                            <div class="card border-0" onclick="ShowDetails(@item.Id ,true)">
+                                <img src="@(item.ImageUrl??"https://images.unsplash.com/photo-1572177812156-58036aae439c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80")" class="card-img" alt="...">
+                                <div class="card-img-overlay bg-imgProjects">
+                                    <p class="position-absolute bottom-0 start-0 fs-3 text-white text-fomat px-2">
+                                        @item.Name
+                                    </p>
+                                    <a href="@Url.Action("ProjectDetails", "Projects",new {id = item.Id ,Area = ""})"
+                                       class="position-absolute bottom-0 end-0 m-3 iconhove text-dark">
+                                        <i class="fa-solid fa-arrow-right rounded-circle bg-white p-3"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="position-absolute top-100 start-50 translate-middle flip">
+                    <span class="swiper-button-next bg-white shadow-sm rounded-circle ">
+                        <i class="fa-solid fa-arrow-left fs-4"></i>
+                    </span>
+                    <span class="swiper-button-prev bg-white shadow-sm rounded-circle ">
+                        <i class="fa-solid fa-arrow-right fs-4 "></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Modal --->
+        <div class="modal fade" id="ProjectDetails" tabindex="-1" aria-labelledby="ProjectDetails" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<section class="pb-3">
+    <div class="container-fluid px-0 bgcolor-sectionblue">
+        <div class="container py-5 ">
+            <h3 class="text-center fw-Saying" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+                @Localizer["Our"] <span class="text-primarycolor">@Localizer["Trainers"]</span>
+            </h3>
+            <div class="swiper pt-5 SwiperTrainers" data-aos="fade-up" data-aos-duration="2000">
+                <div class="swiper-wrapper justify-content-xl-center">
+                    @foreach (var item in ViewBag.Trainer)
+                    {
+                        var trainer = (Trainer)item;
+                        <a href="@Url.Action("Details","Trainers",new {Id=trainer.Id })" class="swiper-slide flex-column bg-white rounded-5 p-Cbgwhite"
+                           style="width: 356px;">
+                            <img src="@(trainer.ImageUrl??"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")" class=" rounded-5 " />
+                            <h5 class="text-center fs-tit-Trainers">
+                                @trainer.Contact.FirstName @trainer.Contact.LastName
+                            </h5>
+                            @if (item.GeneralSpecialtyId != null)
+                            {
+                                <p class="text-center fs-sup-Trainers">@(dicGeneralSpecialization.FirstOrDefault(r => r.Key == item.GeneralSpecialtyId).Value ?? "")</p>
+                            }
+                        </a>
+
+
+                    }
+
+                </div>
+            </div>
+
+
+            <div class="w-100 mx-auto text-center pt-5">
+                <a href="@Url.Action("Index","Trainers")" class="btn py-3 px-4 mx-auto colorbtn text-white roundeddwhite">
+                    @Localizer["Read More"]
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="my-5 pb-5">
+    <div class="container">
+        <div class="row">
+            <h4 class="fontsize-min-end text-center mb-4 d-block d-lg-none">
+                <span class="text-primarycolor">
+                    Fratello
+
+                </span> Traning Center
+            </h4>
+
+            <iframe class="col-12 col-lg-7 h-vedio mt-3 mt-lg-0" data-aos="fade-up" data-aos-easing="ease-in-sine" onmouseover="pauseSwiper()" onmouseout="resumeSwiper()"
+                    src="@vedio"></iframe>
+
+            <div class="col-12 col-lg-5" data-aos="fade-up" data-aos-easing="ease-in-sine">
+                <div class="swiper-container">
+                    <div class="swiper-wrapper">
+                        @foreach (var item in CmsPageForHome)
+                        {
+                            <div class="d-flex swiper-slide rounded" style="cursor:pointer" onclick="javascript:window.location.href ='@Url.Action("Details","Blog",new {Id=item.Id })'">
+                                <img src="@item.ImageUrl" alt="vertical-img" class="swiper-img">
+                                <div class="d-block">
+                                    <p class="video-title fw-bold">@item.Name</p>
+                                    <p class="video-text mt-3 fw-bold">@item.ShortDescription</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts{
+    <script>
+        function ShowDetails(id, active) {
+            $.ajax({
+                type: "GET",
+                url: "/Projects/ProjectModelDetails",
+                data: { id: id, active: active },
+                success: function (data) {
+                    $('#ProjectDetails .modal-content').html(data);
+                    $('#ProjectDetails').modal("show");
+                }
+            });
+        }
+
+        function pauseSwiper() {
+            swiper.autoplay.stop();
+        }
+
+        function resumeSwiper() {
+            swiper.autoplay.start();
+        }
+    </script>
+}

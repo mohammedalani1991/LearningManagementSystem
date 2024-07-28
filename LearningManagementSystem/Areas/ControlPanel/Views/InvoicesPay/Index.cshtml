@@ -1,0 +1,56 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.InvoicesPay>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='ShowInvoicesPay' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='ShowInvoicesPayDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='ShowChangeStatusInvoicePay' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='ShowChangeStatusInvoicePayDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="Pdf" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='PdfDiv' class="modal-content">
+            <embed id="PdfView" src="" frameborder="0" style="height:85vh; width:100% ;z-index:2450">
+        </div>
+    </div>
+</div>
+
+@section JavaScript
+    {
+    <script>
+        var addMassege = '@Localizer["Added successfully"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var FailContactNotRegisteredAsStudent = '@Localizer["This contact is not registered as a student in the system!"]';
+        var FailMaxEnrollStudent = '@Localizer["You have exceeded the maximum number of students on the course!"]';
+        var FailExistsStudent = '@Localizer["The student you want to add already exists!"]';
+        var FailAgeAllowedForRegistration = '@Localizer["The student to be added does not meet the requirements of the course in terms of age allowed for registration!"]';
+         var HasPreRequestsCourse = '@Localizer["You cannot enroll in this course, Please check the [Pre Requests] tab and finish the required courses!"]';
+        var FailAgeGroup = '@Localizer["The student to be added does not meet the requirements of the course in terms of age group (Male, Female)!"]';
+
+        var Token = '@tokenSet.RequestToken';
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-InvoicesPay').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+        function OpenPdf(file) {
+            $('#PdfView').attr("src", file)
+            $('#Pdf').modal("show")
+        }
+    </script>
+
+    <script src="~/js/InvoicesPays/InvoicesPay.js?ver=14.1"></script>
+}

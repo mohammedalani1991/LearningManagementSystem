@@ -1,0 +1,129 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.SystemGroup>
+@using Microsoft.AspNetCore.Http
+@inject IViewLocalizer Localizer
+@inject IHttpContextAccessor _httpContextAccessor
+@{
+    ViewData["Title"] = @Localizer["Users"];
+
+    var pageNo = _httpContextAccessor.HttpContext?.Request?.Query["page"].ToString() ?? "1";
+    pageNo = pageNo == string.Empty ? "1" : pageNo;
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel bg-transparent">
+        <div class="x_title">
+            <h1>@Localizer["Users Group"]</h1>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            @using (Html.BeginForm("Index", "SystemGroups", FormMethod.Get, new { id = "Form1" }))
+            {
+                <div class="d-flex justify-content-end">
+                    @Html.Hidden("resetTo", 1)
+                    @Html.Hidden("pagination")
+                    @Html.Hidden("page")
+                    s<div class="col-md-3 col-sm-3 col-xs-12">
+                        @Html.TextBox("searchText", null, new { @class = "form-control search-control", placeholder = Localizer["Search For ..."].Value })
+                    </div>
+
+                    <div>
+                        <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                    </div>
+                </div>
+            }
+            <div class="table-responsive">
+                <table class="table table-striped jambo_table bulk_action">
+                    <thead>
+                        <tr class="headings">
+                            <th>
+                                @Localizer["Name"]
+                            </th>
+                            <th>
+                                @Localizer["Description"]
+                            </th>
+                            <th>
+                                @Localizer["Created By"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+
+                            <th>
+                                @if (AuthenticationHelper.CheckAuthentication("SystemGroups", "Create", User.Identity.Name))
+                                {
+                                    <a class="table-add" disabled="@ViewBag.AddMore" title="@Localizer["Add New"]" href="@Url.Action("Create")">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Description)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("SystemGroups", "Edit", User.Identity.Name))
+                                    {
+                                        <a title="@Localizer["Edit"]" href="@Url.Action("Edit", new {id = item.Id,languageId = ViewBag.LangId})" class="btn btn-sm btn-success">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("SystemGroups", "View", User.Identity.Name))
+                                    {
+                                        <a title="@Localizer["Details"]" href="@Url.Action("Details", new {id = item.Id})" class="btn btn-sm btn-warning">
+                                            <i class="fa fa-info"></i>
+                                        </a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("SystemGroups", "Delete", User.Identity.Name) && item.Status != 2)
+                                    {
+                                        <a title="@Localizer["Delete"]" href="@Url.Action("Delete", new {id = item.Id})" class="btn btn-sm btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    }
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @*@Localizer["Page"] @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)@Localizer["from"]  @Model.PageCount ،@Localizer[" Item No:"] @Model.TotalItemCount*@
+
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchText = ViewBag.searchText }))
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["message"] != null)
+{
+    <script>alert('@TempData["message"]');</script>
+}

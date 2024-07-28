@@ -1,0 +1,230 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollSectionOfCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var MainUrl = Url.Action("GetData", new { page = ViewBag.page, CourseId = ViewBag.CourseId });
+}
+<div class="row">
+
+    <input type="hidden" id="EnrollCoursesContentCurrentUrl" value="@MainUrl" />
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+
+                <div class="col-12">
+                    <form data-ajax="true" method="get" action="/Trainer/EnrollCoursesContent/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+
+                        @Html.Hidden("table")
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        <div class="float-start">
+                            @*@Html.DropDownList("CourseId",new SelectList(ViewBag.TrainerCourses, "CourseId", "CourseName"),  Localizer["Search In Courses"].Value, new { @class = "form-select Filter custmSelect" })
+                            <input class="btn btn-outline-primary" onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />*@
+                        </div>
+                        @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "Create", User.Identity.Name))
+                        {
+                            <button class="btn btn-primary float-end mx-2" type="button" onclick="ShowAddCoursesContent(@ViewBag.CourseId,@ViewBag.LangId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Sections And Lectures"]</button>
+                        }
+                        @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "FetchCoursesContent", User.Identity.Name))
+                        {
+                            <button class="btn btn-primary float-end" type="button" onclick="FetchCoursesContent(@ViewBag.CourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Fetch Courses Content"]</button>
+                        }
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th class="Id ">
+                                @Localizer["Id"]
+                            </th>
+                            <th class="SectionName ">
+                                @Localizer["Section Name"]
+                            </th>
+                            <th class="Lectures ">
+                                @Localizer["Lectures"]
+                            </th>
+                            <th class="Status ">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy ">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn ">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Choose a process"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="Id ">
+                                    @Html.DisplayFor(modelItem => item.Id)
+                                </td>
+                                <td class="SectionName ">
+                                    @Html.DisplayFor(modelItem => item.SectionName)
+                                </td>
+                                <td class="Lectures ">
+                                    <ul class="list-group" style="max-height:120px;overflow:auto">
+                                        @foreach (var Lecture in item.EnrollLectures)
+                                        {
+                                            <li class="list-group-item list-group-item-action list-group-item-light">@Lecture.LectureName</li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td class="Status ">
+                                    @LookupHelper.GetStatusById(item.Status)?.Name
+                                </td>
+                                <td class="CreatedBy ">
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td class="CreatedOn ">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "Edit", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowEditCoursesContent(@item.Id, @ViewBag.LangId,@ViewBag.Page)"><i class="fa-solid fa-pen"></i> @Localizer["Edit"]</a> </li>
+
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowDetailsCoursesContent(@item.Id, @ViewBag.LangId)"><i class="fa-solid fa-eye"></i> @Localizer["Details"]</a></li>
+                                            }
+
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "Delete", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowDeleteCoursesContent(@item.Id, @ViewBag.LangId,@ViewBag.Page)"><i class="fa-solid fa-trash"></i> @Localizer["Delete"]</a> </li>
+
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "Edit", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowLecturesContent(@item.Id, @ViewBag.LangId,@ViewBag.Page)"><i class="fa-solid fa-pen"></i> @Localizer["Lectures Resources"]</a></li>
+                                            }
+                                        </ul>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, CourseId = ViewBag.CourseId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_CoursesContent" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="CreateCoursesContent" tabindex="-1" aria-labelledby="CreateCoursesContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="CreateCoursesContentDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="EditCoursesContent" tabindex="-1" aria-labelledby="EditCoursesContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="EditCoursesContentDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="DetailsCoursesContent" tabindex="-1" aria-labelledby="DetailsCoursesContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DetailsCoursesContentDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="DeleteCoursesContent" tabindex="-1" aria-labelledby="DeleteCoursesContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DeleteCoursesContentDiv">
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="EditLecturesContent" tabindex="-1" aria-labelledby="EditLecturesContentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="EditLecturesContentDiv">
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    var Token = '@tokenSet.RequestToken';
+    var table = '@ViewBag.Table'.split(',');
+    var s = ["Id", "SectionName", "CourseId", "Description", "Lectures", "Status", "CreatedOn", "CreatedBy"]
+
+    var editMassege = '@Localizer["Edited successfully"]';
+    var addMassege = '@Localizer["Added successfully"]';
+    var deleteMassege = '@Localizer["Deleted successfully"]';
+    var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+    var addMassegeError = '@Localizer["An error occurred while adding"]';
+    var editMassegeError = '@Localizer["An error occurred while editing"]';
+    var AddMassegeErrorInvalidSectionData = '@Localizer["An error occurred while adding, You must add a valid section name for the selected course!"]';
+    var AddMassegeErrorInvalidLectureData = '@Localizer["An error occurred while adding, You must add a valid lecture name for the selected section!"]';
+    var EditMassegeErrorInvalidSectionData = '@Localizer["An error occurred while editing, You must add a valid section name for the selected course!"]';
+    var EditMassegeErrorInvalidLectureData = '@Localizer["An error occurred while editing, You must add a valid lecture name for the selected section!"]';
+
+
+    function FetchCoursesContent(id) {
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/Trainer/EnrollCoursesContent/RegenerateCourseData/",
+            data: { id: id },
+            success: function (data) {
+                HideSpinner();
+                Get();
+                toastr.success(addMassege);
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(addMassegeError);
+            }
+        });
+    }
+</script>
+<script src="~/js/EnrollCoursesContent/TrainerEnrollCoursesContent.js?ver=11.1"></script>
+

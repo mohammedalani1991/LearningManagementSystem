@@ -1,0 +1,36 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Send Sms"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form method="post" id="Send_Sms" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label  col-xs-6" for="Description">
+                                @Localizer["Message"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                <textarea type="text" class="form-control" id="SmsMessage" name="SmsMessage"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" onclick="SendSms()" class="tms-save-btn"><i class="fa fa-save"></i> @Localizer["Send Message"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

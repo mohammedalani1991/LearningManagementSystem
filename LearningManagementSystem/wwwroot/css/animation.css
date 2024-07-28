@@ -1,0 +1,9 @@
+﻿.hover-to-show {
+    opacity:0;
+    transition: all .5s ease-out;
+}
+
+.hover-to-show-link:hover .hover-to-show {
+    opacity: 1;
+    transition: all .5s ease-in-out;
+}

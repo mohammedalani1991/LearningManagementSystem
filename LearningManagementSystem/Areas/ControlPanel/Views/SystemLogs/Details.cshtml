@@ -1,0 +1,57 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.SystemLog
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_title">
+            <div class="clearfix"></div>
+        </div>
+        <div class="d-flex tms-page-popup-title">
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["System log Details"]
+            </div>
+        </div>
+        <div class="x_content overflow-auto">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Component"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Component)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Stack Trace"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.StackTrace)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status)?.Name</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>
+@section JavaScript{
+    <script>
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-system-logs').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+
+    </script>
+}

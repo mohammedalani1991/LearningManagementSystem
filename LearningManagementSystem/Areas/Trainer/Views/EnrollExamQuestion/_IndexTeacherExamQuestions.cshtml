@@ -1,0 +1,177 @@
+﻿@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<QuestionViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    List<StatusViewModel> questionType = LookupHelper.GetQuestionsType(ViewBag.LangId);
+    var ListEnrollCourseExamQuestions = (List<EnrollCourseExamQuestion>)ViewBag.enrollCourseExamQuestions;
+}
+  <div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+
+<div class="row">
+
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                    <div class="float-left">
+                        <h4><small>@Localizer["Select Questions"] </small></h4>
+                    </div>
+                    <input id="ViewModleEnrollCourseExamId" value="@ViewBag.EnrollCourseExamId" type="hidden" />
+                    <input id="ViewModleLangId" value="@ViewBag.LangId" type="hidden" />
+                   <div class="float-right">
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollExamQuestion", "Create", User.Identity.Name))
+                    {
+                        <button class="btn btn-primary float-end" type="button" onclick="ShowAddQuestions(@ViewBag.LangId,@ViewBag.EnrollCourseExamId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Questions"]</button>
+                    }
+                    </div>
+                </div>
+            </div>
+               <div class="table-responsive table-bordered EnrollBankExamQuestions">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Choose ">
+                                @Localizer["Choose"]
+                            </th>
+                            <th class="Name ">
+                                @Localizer["Question Name"]
+                            </th>
+
+                            <th class="Type ">
+                                @Localizer["Type"]
+                            </th>
+           
+                            <th class="Mark">
+                                @Localizer["Mark"]
+                            </th>
+                            <th class="Status ">
+                                @Localizer["Status"]
+                            </th>
+                     
+                            <th class="CreatedOn ">
+                                @Localizer["Created On"]
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="8">@Localizer["No questions matching the filter !"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @if (ListEnrollCourseExamQuestions.Exists(e => e.Question.Question.Id == item.Id ))
+                                    {
+                                        <input attr-AddEdit-Question-id="@item.Id" type="checkbox" checked />
+                                    }
+                                    else
+                                    {
+                                      <input  attr-AddEdit-Question-id="@item.Id" type="checkbox" />
+                                    }
+
+                                   
+                                  
+                                </td>
+                                <td class="Name ">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td class="Type ">
+                                    @(questionType.FirstOrDefault(r=>r.Id==item.Type)?.Name??"")
+                                </td>
+                              
+                                <td class="Mark">
+                                    @Html.DisplayFor(modelItem => item.Mark)
+                                </td>
+                                <td class="Status ">
+                                    @LookupHelper.GetStatusById(item.Status)?.Name
+                                </td>
+                       
+                                <td class="CreatedOn ">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                               @if (item.TeacherId != null && item.TeacherId > 0)
+                                    {
+                                        <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                            <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollExamQuestion", "Create", User.Identity.Name))
+                                                {
+                                                    <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowEditQuestion(@item.Id, @ViewBag.LangId,@ViewBag.EnrollCourseExamId)"><i class="fa-solid fa-pen"></i> @Localizer["Edit"]</a> </li>
+
+                                                }
+
+                                            </ul>
+
+                                        </div>
+                                    }
+                                </td>
+       
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                 <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <div class="paging-div">
+                            @Html.PagedListPager(Model, page => Url.Action("BankExamQuestionsGetData", new { page,EnrollCourseExamId=ViewBag.EnrollCourseExamId, QuestionName = ViewBag.QuestionName,CourseCategoryId=ViewBag.CourseCategoryId ,CourseId=ViewBag.CourseId,id=ViewBag.id,TypeQuestion=ViewBag.TypeQuestion}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "BankExamQuestionsGetDataDiv" }))
+                            <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    
+
+
+$("[attr-AddEdit-Question-id]").click(function () {
+    ShowSpinner();
+    var Questionid = $(this).attr("attr-AddEdit-Question-id");
+    var ViewModleEnrollCourseExamId = $("#ViewModleEnrollCourseExamId").val();
+    var checkedRow = $(this).is(":checked");
+    $.ajax({
+        type: "Post",
+        url: "/Trainer/EnrollExamQuestion/AddRemoveBankExamQuestions/",
+        data: { EnrollCourseExamId: ViewModleEnrollCourseExamId,Questionid: Questionid, checkedRow: checkedRow },
+        success: function (data) {
+            if (data == "Ok") {
+                toastr.success(editMassege);
+                HideSpinner();
+
+            } else {
+                HideSpinner();
+                toastr.error(editMassegeErrorQuestions);
+            }
+        },
+        error: function (data) {
+            HideSpinner();
+            toastr.error(editMassegeError);
+        },
+    });
+
+});    
+</script>
+

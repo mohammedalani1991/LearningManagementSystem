@@ -1,0 +1,219 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollTeacherCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DataEntity.Models.EfModels;
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ISemesterService SemesterService
+@inject IEnrollTeacherCourseService CourseService
+@inject IEnrollStudentCourseService EnrollStudentCourseService
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString(), GeneralEnums.MasterLookupCodeEnums.CourseAgeGroup.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var LearningMethod = lookups[GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString()];
+    var paginationValue = ViewBag.PaginationValue;
+    var MainUrl = Url.Action("GetData", new { page = ViewBag.page, TeacherId = ViewBag.TeacherId, CourseId = ViewBag.CourseId, hdCourseName = ViewBag.hdCourseName, LearningMethodId = ViewBag.LearningMethodId, SemesterId = ViewBag.SemesterId });
+    var semesters = SemesterService.GetSemestersList(ViewBag.LangId);
+    var selectListItems = new List<SelectListItem>
+    {
+        new SelectListItem { Text = Localizer["Show All"].Value, Value = "0" }
+    };
+
+    var semestersList = new SelectList(semesters, "Id", "Name", ViewBag.Semester);
+    var combinedList = new SelectList(selectListItems.Concat(semestersList), "Value", "Text");
+    var courses = CourseService.GetCourseList(ViewBag.LangId);
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <input type="hidden" id="EnrollmentCourseCurrentUrl" value="@MainUrl" />
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title row">
+            <div class="tms-title col-12">
+                <h4><small>@Localizer["Enroll Trainer for Course"]</small></h4>
+            </div>
+            <div class="tms-action col-12 row px-0">
+                <form data-ajax="true" class="col-lg-9 col-12 row" method="get" action="EnrollmentCourse/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    @Html.Hidden("table")
+                    @Html.Hidden("pagination")
+                    @Html.Hidden("Page")
+                    <div class="col-md-3 col-sm-3 col-xs-12 px-0">
+                        @Html.DropDownList("SemesterId", combinedList, new { @class = "form-control chosen-select tms-ddl"})
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-12 px-1">
+                        @Html.DropDownList("CourseId" ,new SelectList(courses, "Id", "CourseName" ,ViewBag.CourseId),  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-12 px-1">
+                        @Html.DropDownList("TeacherId",new SelectList(ViewBag.ListTrainers, "Id", "Contact.FullName"), Localizer["Search In Trainers"].Value, new { @class = " form-control chosen-select tms-ddl"})
+                    </div>
+                    <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+                        @Html.DropDownList("LearningMethodId",new SelectList(LearningMethod, "Id", "Name"), Localizer["Search In Learning Methods"].Value, new { @class = " form-control chosen-select tms-ddl"})
+                    </div>
+                    <div class="col-1">
+                    <input class="btn btn-primary " onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />
+                    </div>
+                </form>
+                <div class="col-lg-3 col-12 row px-0">
+                    <div class="col-6 px-0">
+                        <button class="tms-btn px-1 px-lg-3" type="button" onclick="CreateExamsAndAssignments()"><img src="~/img/add-to-list.png" /> @Localizer["Create Exams And Assignments"]</button>
+                    </div>
+
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Create", User.Identity.Name))
+                    {
+                        <div class="col-6 px-0">
+                            <button class="tms-btn px-1 px-lg-3" type="button" onclick="ShowAddEnrollmentCourse()"><img src="~/img/add-to-list.png" /> @Localizer["Enroll New Trainer for the Course"]</button>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="TeacherId d-none">
+                                @Localizer["Trainer Name"]
+                            </th>
+                            <th class="CourseId d-none">
+                                @Localizer["Course Name"]
+                            </th>
+                            <th class="SemesterId d-none">
+                                @Localizer["Semester Name"]
+                            </th>
+                            <th class="SectionName d-none">
+                                @Localizer["Section Name"]
+                            </th>
+                            <th class="CountOfStudent d-none">
+                                @Localizer["Count Of Registered Student"]
+                            </th>  
+                            <th class="CountOfStudent d-none">
+                                @Localizer["Count Of Student"]
+                            </th>
+                            <th class="Status d-none">
+                                @Localizer["Status"]
+                            </th>
+
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Create", User.Identity.Name))
+                                {
+
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="TeacherId d-none">
+                                    <a href="@Url.Action("EditPage", "EnrollmentCourse", new {Area = "ControlPanel" , id = item.Id})">@item.Teacher.Contact.FullName</a>
+                                </td>
+                                <td class="CourseId d-none">
+                                    @Html.DisplayFor(modelItem => item.CourseName)
+                                </td>
+                                <td class="SemesterId d-none">
+                                    @Html.DisplayFor(modelItem => item.Semester.Name)
+                                </td>
+                                <td class="SectionName d-none">
+                                    @if (!string.IsNullOrEmpty(item.SectionName))
+                                    {
+                                        @Html.DisplayFor(modelItem => item.SectionName)
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayText("--")
+                                    }
+                                </td>
+                                <td class="CountOfStudent d-none">
+                                    @(EnrollStudentCourseService.GetCountEnrollStudentCourses(item.Id))
+                                </td> 
+                                <td class="CountOfStudent d-none">
+                                    @Html.DisplayFor(modelItem => item.CountOfStudent)
+                                </td>
+                                <td class="Status d-none">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+
+                                <td class="CreatedOn d-none">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td style="width: 25%;">
+
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Create", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowCopyEnrollmentCourse(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Copy"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Edit", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowEditEnrollmentCourse(@item.Id, @ViewBag.LangId,true)" type="button" class="tms-dropdown-menu-item">@Localizer["Edit"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "View", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowDetailsEnrollmentCourse(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item">@Localizer["Details"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "Delete", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowDeleteEnrollmentCourse(@item.Id, @ViewBag.LangId,@ViewBag.Page)" type="button" class="tms-dropdown-menu-item">@Localizer["Delete"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "CreateTeamMeeting", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowCreateTeamMeeting(@item.Id)" type="button" class="tms-dropdown-menu-item tms-last-drop-item mb-0">@Localizer["Create Meeting"]</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, TeacherId = ViewBag.TeacherId ,CourseId = ViewBag.CourseId,hdCourseName=ViewBag.hdCourseName,LearningMethodId=ViewBag.LearningMethodId ,SemesterId = ViewBag.SemesterId}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .table-responsive {
+        overflow-x: inherit !important;
+    }
+
+    .list-group-item {
+        padding: 0.40rem 1.25rem !important;
+    }
+</style>
+<script>
+    table = '@ViewBag.Table'.split(',');
+    GetTable(s);
+</script>

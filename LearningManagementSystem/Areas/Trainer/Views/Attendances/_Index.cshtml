@@ -1,0 +1,295 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var s = ViewBag.DateTime.ToString("yyyy-MM-dd");
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<style>
+    .prev1 {
+        border-radius: 0 7px 7px 0;
+    }
+
+    .next1 {
+        border-radius: 7px 0 0 7px;
+    }
+
+    .btn:hover {
+        color: #1088A2;
+    }
+</style>
+
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_content">
+            <div class="row mb-3 px-2">
+            </div>
+            <div class="row w-100">
+                <div class="col-md-6 col-sm-12 row mb-2 justify-content-center">
+                    <button id="today1" class="btn btn-primary col-2">@Localizer["Today"]</button>
+                    <div class="col-6">
+                        <input type="date" id="date1" class="form-control" onchange="GetAttendance('@ViewBag.CourseId',null,this)" value="@s" />
+                    </div>
+                    <button id="prev1" class="btn btn-primary col-2 prev1"><i class="fa fa-arrow-left"></i></button>
+                    <button id="next1" class="btn btn-primary col-2 next1"><i class="fa fa-arrow-right"></i></button>
+                </div>
+                <div class="col-md-6 col-sm-12 col-xs-12 ml-auto">
+                    <form data-ajax="true" method="get" action="/Trainer/Attendances/GetData" id="Form2" data-ajax-success="GetData">
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("CourseId")
+                            <div class="col-md-5 col-sm-3 col-xs-12 d-flex">
+                                @Html.TextBox("searchText", null, new { @class = "form-control tms-search-input prev1", placeholder = Localizer["Search For ..."].Value })
+                                <button class="btn btn-primary next1" type="submit">@Localizer["Search"]</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered mt-4">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            @if (AuthenticationHelper.CheckAuthentication("CourseAttendances", "Edit", User.Identity.Name))
+                            {
+                                <th>
+                                    <input type="checkbox" id="AttendanceSetAll" onclick="AttendanceSetAll(this)" />
+                                </th>
+                            }
+                            <th>
+                                @Localizer["Student Number"]
+                            </th>
+                            <th>
+                                @Localizer["Full Name"]
+                            </th>
+                            <th>
+                                @Localizer["Absence Note"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <input type="hidden" class="EnrollStudentCourseId" value="@item.Id" />
+                                @if (AuthenticationHelper.CheckAuthentication("CourseAttendances", "Edit", User.Identity.Name))
+                                {
+                                    <td>
+                                        <input type="checkbox" class="Attendance_Checkbox" onclick="AttendanceCheckboxClicked(this)" />
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <input type="checkbox" class="Attendance_Checkbox" disabled="disabled" onclick="AttendanceCheckboxClicked(this)" />
+                                    </td>
+                                }
+                                <td class="StudentId">@item.Student.Id</td>
+                                <td class="FullName">@item.Student.Contact.FullName.Trim()</td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("CourseAttendances", "Edit", User.Identity.Name))
+                                    {
+
+                                        <input type="text" class="form-control tms-input AbsenceNote" data-auth="true" />
+                                    }
+                                    else
+                                    {
+                                        <input type="text" class="form-control tms-input AbsenceNote" data-auth="false" disabled="disabled" />
+
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                @if (AuthenticationHelper.CheckAuthentication("CourseAttendances", "Edit", User.Identity.Name))
+                {
+                    <div class="d-flex justify-content-center">
+                        <div class="text-center mt-5 mx-3">
+                            <button class="btn btn-danger" type="button" onclick="DeleteAttendance()">@Localizer["Delete Attendance"]</button>
+                        </div>
+                        <div class="text-center mt-5">
+                            <button class="btn btn-primary" type="button" onclick="AddAttendance()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                        </div>
+                    </div>
+                    <br />
+                }
+                <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                @Html.PagedListPager(Model, page => Url.Action("GetData", new { CourseId = ViewBag.CourseId, page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_Attendances" }))
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var Token = '@tokenSet.RequestToken';
+    var today1 = new Date('@s');
+    var text = '@Localizer["There is no Class Today."]';
+
+    $(document).ready(function () {
+        GetAttendance('@ViewBag.CourseId', $('#date1').val());
+    });
+
+    function GetData(data) {
+        $('#MyCourses #UserProfile_Attendances').html(data);
+        GetAttendance('@ViewBag.CourseId', $('#date1').val());
+    }
+
+    $('#today1').click(function () {
+        today1 = new Date();
+        $('#date1').val(today1.toISOString().substring(0, 10));
+        GetAttendance('@ViewBag.CourseId', $('#date1').val());
+    })
+    $('#prev1').click(function () {
+        today1.setDate(today1.getDate() - 1);
+        $('#date1').val(today1.toISOString().substring(0, 10));
+        GetAttendance('@ViewBag.CourseId', $('#date1').val());
+    });
+    // Hook up next button event
+    $('#next1').click(function () {
+        today1.setDate(today1.getDate() + 1);
+        $('#date1').val(today1.toISOString().substring(0, 10))
+        GetAttendance('@ViewBag.CourseId', $('#date1').val());
+    });
+
+    function AttendanceCheckboxClicked(current) {
+        arr.map(function (x, y) {
+            if ($(current).parent().parent().find(".EnrollStudentCourseId").val() == x)
+                arr = arr.filter(e => e !== x)
+        })
+        if ($(current).is(':checked')) {
+            arr.push(parseInt($(current).parent().parent().find(".EnrollStudentCourseId").val()))
+            $(current).parent().parent().find("input[type='text']").val("")
+            $(current).parent().parent().find("input[type='text']").prop('disabled', "disabled")
+        }
+        else
+            $(current).parent().parent().find("input[type='text']").prop('disabled', "")
+    }
+
+    function AttendanceSetAll(item) {
+        if ($(item).is(':checked'))
+            $(".Attendance_Checkbox").map((i, x) => {
+                $(x).prop('checked', true);
+                AttendanceCheckboxClicked($(x), $(x).val())
+            })
+        else {
+            $("#AttendanceSetAll").prop('checked', false);
+            $(".Attendance_Checkbox").map((i, x) => {
+                $(x).prop('checked', false);
+                AttendanceCheckboxClicked($(x), $(x).val())
+            })
+        }
+    }
+
+    function GetAttendance(id, val, val1) {
+        $("#AttendanceSetAll").prop('checked', false);
+        arr = []
+        if (val == null)
+            val = val1.value
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/Trainer/Attendances/GetAttendances/",
+            data: { courseId: id, dateTime: val },
+            success: function (data) {
+                HideSpinner();
+                $(".EnrollStudentCourseId").map(function (y, x) {
+                    $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='checkbox']").prop('checked', false);
+                    $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").prop('disabled', "");
+                    $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").val("");
+                })
+                for (var i = 0; i < data.length; i++) {
+                    arr[i] = data[i].isPresent ? data[i].enrollStudentCourseId : 0;
+                    $(".EnrollStudentCourseId").map(function (y, x) {
+                        if ($(".EnrollStudentCourseId:eq(" + y + ")").val() == data[i].enrollStudentCourseId && data[i].isPresent) {
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='checkbox']").prop('checked', true);
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").prop('disabled', "disabled");
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").val("");
+                        }
+                        else if ($(".EnrollStudentCourseId:eq(" + y + ")").val() == data[i].enrollStudentCourseId && !data[i].isPresent) {
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='checkbox']").prop('checked', false);
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").prop('disabled', false);
+                            $(".EnrollStudentCourseId:eq(" + y + ")").parent().find("input[type='text']").val(data[i].absenceNote);
+                        }
+                    })
+                }
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+    function DeleteAttendance() {
+        $.ajax({
+            type: "POST",
+            url: "/Trainer/Attendances/DeleteStudentAttendance/",
+            data: { CourseId: '@ViewBag.CourseId', Date: $("#date1").val() },
+            headers: {
+                'RequestVerificationToken': Token
+            },
+            success: function (data) {
+                HideSpinner();
+                GetAttendance('@ViewBag.CourseId', $("#date1").val())
+            },
+            error: function (data) {
+                HideSpinner();
+            },
+        });
+    }
+
+    async function AddAttendance() {
+        arr = arr.filter(function (val) {
+            return val !== 0;
+        });
+        var obj = {};
+        obj.CourseId = '@ViewBag.CourseId';
+        obj.Date = $("#date1").val();
+        obj.EnrollStudentCourseIds = arr;
+        obj.EnrollStudentCourseIds1 = $.map($('.EnrollStudentCourseId'), function (el) { return el.value; });;
+        obj.AbsenceNotes = $.map($('.AbsenceNote'), function (el) { return el.value; });
+        ShowSpinner();
+        var call = await $.ajax({
+            type: "POST",
+            url: "/Trainer/Attendances/AddStudentAttendance/",
+            data: { studentAttendance: obj },
+            headers: {
+                'RequestVerificationToken': Token
+            },
+            success: function (data) {
+                HideSpinner();
+                if (data.success) {
+                    toastr.success(AddAttendanceSuccessMessage)
+                    GetAttendance('@ViewBag.CourseId', setDate)
+                } else
+                    toastr.warning(text)
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(AddAttendanceErrorMessage)
+            },
+        });
+
+        return call;
+    }
+</script>

@@ -1,0 +1,19 @@
+﻿@model DataEntity.Models.ViewModels.EnrollTeacherCourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = null;
+    bool enroll = ViewBag.Enroll;
+}
+
+
+@if (!string.IsNullOrEmpty(Model.NotesForEnrolled) && enroll)
+{
+    <div class="mb-5">
+        <h3>@Localizer["Notes for enrolled"]</h3>
+        @Html.Raw(Model.NotesForEnrolled)
+    </div>
+}
+
+

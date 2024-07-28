@@ -1,0 +1,890 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Services.ControlPanel
+@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@inject IUserProfileService UserProfileService
+@inject ICookieService Cookie
+@inject UserManager<IdentityUser> UserManager
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var languageId = CultureHelper.GetCurrentLanguageId(requestCulture);
+
+    var userProfile = !string.IsNullOrWhiteSpace(User.Identity?.Name)
+        ? UserProfileService.GetUserProfileByUsername(User.Identity?.Name) : new UserProfile();
+    var username = string.IsNullOrWhiteSpace(userProfile?.Contact?.FullName) ? User.Identity?.Name : userProfile.Contact.FullName;
+
+    var branches = LookupHelper.GetBranches(languageId);
+    var notifications = LookupHelper.GetNotifications(userProfile.ContactId.GetValueOrDefault(0), languageId);
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}{Context.Request.QueryString}";
+    var branchId = Cookie.GetCookie(Constants.CookieNames.SelectedBranchId);
+    var selectedBranch = "";
+    if (branchId == null || branchId == "0")
+    {
+        selectedBranch = Localizer["All Branches"].Value;
+        Cookie.CreateCookie(Constants.CookieNames.SelectedBranchId, "0", 7);
+    }
+    else
+    {
+        int id = Int32.Parse(branchId);
+        selectedBranch = branches.Where(a => a.Id.Equals(id))
+            .FirstOrDefault()
+            ?.Name;
+    }
+    var userBranch = "";
+    if (userProfile?.Contact?.BranchId > 0)
+    {
+        userBranch = branches.Where(a => a.Id.Equals(userProfile.Contact.BranchId))
+            .FirstOrDefault()
+            ?.Name;
+    }
+
+    var settings = LookupHelper.GetSettings();
+    var languageName = requestCulture.RequestCulture.UICulture.Name;
+
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@(languageName != Constants.LanguageCultures.Arabic ? settings.NameEnglish : settings.NameArabic)</title>
+    <!-- Bootstrap -->
+    <link href="@Url.Content("~/lib/bootstrap/dist/css/bootstrap.min.css")" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="@Url.Content("~/theme/ControlPanel/vendors/font-awesome/css/font-awesome.min.css")" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/theme/img/favicon.ico">
+    <!-- include summernote css/js -->
+    <link href="@Url.Content("~/theme/summernote/summernote.css")" rel="stylesheet">
+    <link href="@Url.Content("~/main/autocomplete/css/chosen.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/theme/summernote/summernote-lite.css")" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/bbbootstrap/libraries@main/choices.min.css?ver=1.1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css" rel="stylesheet" />
+    <link href="~/css/custom.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/custom-fonts.css" />
+    <link rel="stylesheet" href="~/css/new-site.css?ver=1.3" />
+    <link rel="stylesheet" href="~/datePicker/daterangepicker.css" />
+
+    @if (selectedLang == "عربي")
+    {
+        <link href="~/css/ar-site.css?ver=1.3" rel="stylesheet" />
+        <link rel="stylesheet" href="~/css/new-ar-site.css?ver=1.3" />
+        <link rel="stylesheet" href="~/datePicker/daterangepicker-ar.css" />
+    }
+    @RenderSection("Css", required: false)
+    <style>
+        .daterangepicker {
+            z-index: 99999 !important;
+        }
+    </style>
+
+    <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=c18af0f4"></script>
+
+</head>
+<body style="background-color: #F1F4FA !important; height: 100%;">
+    <div>
+        <div class="col-md-12 col-sm-12 col-xs-12 main_container" style="margin-bottom:80px">
+
+            <!-- top navigation -->
+
+            <div class="row tms-top-nav">
+                <div class="col-lg-2  col-sm-3 col-xs-12 tms_logo">
+                    <div>
+                        <a href="@Url.Action("Index", "Home", new {Area = ""})" class="site_title">
+                            <img id="icon" style="height: 50px;" src="@(languageName == Constants.LanguageCultures.Arabic ? settings.ImageUrlAr : settings.ImageUrl)" alt="" />
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-10  col-sm-9 col-xs-12 row" id="hide_print">
+                    <div class="d-lg-none d-sm-block nav toggle my-auto">
+                        <a id="sidenav_toggle">
+                            <i class="fa fa-bars"></i>
+                        </a>
+                    </div>
+                    <partial name="_NavHeader" />
+                    <div class="tms_setting">
+                        <div class="user_div">
+                            <partial name="_SelectLanguagePartial" />
+
+                            <div class="dropdown nav-item open tms-user-icon">
+                                <a href="javascript:;" class="dropdown-toggle tms-user-profile" aria-haspopup="true" id="branchNavbarDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    @if (string.IsNullOrWhiteSpace(userProfile?.ProfilePhoto))
+                                    {
+                                        <img src="~/theme/img/img.jpg">
+                                    }
+                                    else
+                                    {
+                                        <img src="@userProfile?.ProfilePhoto">
+                                    }
+                                </a>
+                                <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <form asp-area="Identity" asp-page="/Account/Manage/Index" method="get">
+                                        <button type="submit" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["My Profile"]</button>
+                                    </form>
+                                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new {area = ""})">
+                                        <button type="submit" class="tms-dropdown-menu-item">@Localizer["Logout"]</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-lg-flex d-none tms-sub-top-nav">
+                <div class="tms_sub_management tms_sub_modules">
+
+                    @if (AuthenticationHelper.CheckAuthentication("Countries", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-Country">
+                            <a href="@Url.Action("Index", "Country", new {Area = "ControlPanel"})"> @Localizer["Countries"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Modules", "View", User.Identity.Name))
+                    {
+                        @*<div class = "tms-sub-modules">
+                    <a href = "@Url.Action("Index", "Module", new {Area = "ControlPanel"})"> @Localizer["Modules"]</a>
+                    </div>*@
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-lookups">
+                            <a href="@Url.Action("Index", "MasterLookups", new {Area = "ControlPanel"})"> @Localizer["Lookups"]</a>
+                        </div>
+                    }
+                    @*@if (AuthenticationHelper.CheckAuthentication("Lookups", "View", User.Identity.Name))
+                    {
+                    <div class="tms-sub-communication-channels">
+                    <a href="@Url.Action("Index", "CommunicationChannels", new {Area = "ControlPanel"})"> @Localizer["Communication Channels"]</a>
+                    </div>
+                    }*@
+
+                    @if (AuthenticationHelper.CheckAuthentication("Settings", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-settings">
+                            <a href="@Url.Action("Index", "SystemSettings", new {Area = "ControlPanel"})"> @Localizer["Settings"]</a>
+                        </div>
+                    }
+
+                    @*@if (AuthenticationHelper.CheckAuthentication("Discounts", "View", User.Identity.Name))
+                    {
+                    <div class="tms-sub-discounts">
+                    <a href="@Url.Action("Index", "Discount", new {Area = "ControlPanel"})"> @Localizer["Discounts"]</a>
+                    </div>
+                    }*@
+                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-contacts">
+                            <a href="@Url.Action("Index", "UserProfiles", new {Area = "ControlPanel"})">
+                                @Localizer["Contacts"]
+                            </a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("SystemGroups", "View", User.Identity.Name))
+                    {
+                        @*<div>
+                    <a href="@Url.Action("Index", "SystemGroups", new { Area = "ControlPanel" })">
+                    @Localizer["Groups"]
+                    </a>
+                    </div>*@
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("Permissions", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-Permissions">
+                            <a href="@Url.Action("Index", "Permissions", new {Area = "ControlPanel"})">
+                                @Localizer["Permissions"]
+                            </a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Roles", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-roles">
+                            <a href="@Url.Action("Index", "AspNetRoles", new {Area = "ControlPanel"})">
+                                @Localizer["Roles"]
+                            </a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ContactUs", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-contact-us">
+                            <a href="@Url.Action("Index", "ContactUs", new {Area = "ControlPanel"})">@Localizer["ContactUs"]</a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("Subscribers", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-subscribers">
+                            <a href="@Url.Action("Index", "Subscribers", new {Area = "ControlPanel"})">@Localizer["Subscribers for Newsletter"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("SystemLogs", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-comm-logs">
+                            <a href="@Url.Action("Index", "SystemLogs", new {Area = "ControlPanel"})"> @Localizer["System Logs"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Templates", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-templates">
+                            <a href="@Url.Action("Index", "Templates", new {Area = "ControlPanel"})"> @Localizer["Templates"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Currency", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-currency">
+                            <a href="@Url.Action("Index", "Currency", new {Area = "ControlPanel"})"> @Localizer["Currencies"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("TrainerRateMeasures", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <div class="tms-sub-rate-measure">
+                            <a href="@Url.Action("Index", "TrainerRateMeasure", new {Area = "ControlPanel"})"> @Localizer["Trainer Rate Measures"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ManagementStandards", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <div class="tms-sub-management-standard">
+                            <a href="@Url.Action("Index", "ManagementStandard", new {Area = "ControlPanel"})"> @Localizer["Management Standards"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("AcademicSupervisionStandards", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <div class="tms-sub-academic-standard">
+                            <a href="@Url.Action("Index", "AcademicSupervisionStandard", new {Area = "ControlPanel"})"> @Localizer["Academic Supervision Standards"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Expulsion", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-expulsion">
+                            <a href="@Url.Action("Index", "Expulsion", new {Area = "ControlPanel"})"> @Localizer["Expulsion"]</a>
+                        </div>
+                    }
+                </div>
+
+
+                <div class="tms_sub_cms tms_sub_modules">
+                    @if (AuthenticationHelper.CheckAuthentication("CmsSliders", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-cmsSliders">
+                            <a href="@Url.Action("Index", "CmsSlider", new {Area = "ControlPanel"})"> @Localizer["Sliders"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Calendars", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-calendars">
+                            <a href="@Url.Action("Index", "Calendar", new {Area = "ControlPanel"})"> @Localizer["Calendars"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsCaterys", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-cmscaterys">
+                            <a href="@Url.Action("Index", "CmsCatery", new {Area = "ControlPanel"})"> @Localizer["Categories"]</a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("CmsPages", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-cmspages">
+                            <a href="@Url.Action("Index", "CmsPage", new {Area = "ControlPanel"})"> @Localizer["Pages"]</a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("CmsPages", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-cmsWhatPeopleSays">
+                            <a href="@Url.Action("Index", "CmsWhatPeopleSay", new {Area = "ControlPanel"})"> @Localizer["What People Say"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsCategoryProject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("ProjectCategory"))
+                    {
+                        <div class="tms-sub-cmsCategoryProjects">
+                            <a href="@Url.Action("Index", "CmsCategoryProject", new {Area = "ControlPanel"})"> @Localizer["Project categories"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsProject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                    {
+                        <div class="tms-sub-CmsProject">
+                            <a href="@Url.Action("Index", "CmsProject", new {Area = "ControlPanel"})"> @Localizer["Projects"]</a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("AboutDics", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-AboutDics">
+                            <a href="@Url.Action("Index", "AboutDics", new {Area = "ControlPanel"})"> @Localizer["About Dics"]</a>
+                        </div>
+                    }
+
+
+                </div>
+
+
+                <div class="tms_sub_courses  tms_sub_modules">
+                    @if (AuthenticationHelper.CheckAuthentication("semester", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-semesters">
+                            <a href="@Url.Action("Index", "semester", new {Area = "ControlPanel"})"> @Localizer["Semesters"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CourseCategorys", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-CourseCategorys">
+                            <a href="@Url.Action("Index", "CourseCategory", new {Area = "ControlPanel"})"> @Localizer["Course Categories"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Courses", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-Courses">
+                            <a href="@Url.Action("Index", "Course", new {Area = "ControlPanel"})"> @Localizer["Courses"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursePackages", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Packages"))
+                    {
+                        <div class="tms-sub-CoursePackages">
+                            <a href="@Url.Action("Index", "CoursePackages", new {Area = "ControlPanel"})"> @Localizer["Course Packages"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesContent", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-CoursesContent">
+                            <a href="@Url.Action("Index", "CoursesContent", new {Area = "ControlPanel"})"> @Localizer["Courses Content"]</a>
+                        </div>
+                    }
+                    @*  @if (AuthenticationHelper.CheckAuthentication("Assignments", "View", User.Identity.Name))
+                    {
+                    <div class="tms-sub-Assignments">
+                    <a href="@Url.Action("Index", "Assignment", new {Area = "ControlPanel"})"> @Localizer["Assignments"]</a>
+                    </div>
+                    }*@
+                    @if (AuthenticationHelper.CheckAuthentication("CoursePrerequisite", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-CoursePrerequisite">
+                            <a href="@Url.Action("Index", "CoursePrerequisite", new {Area = "ControlPanel"})"> @Localizer["Course Prerequisite"]</a>
+                        </div>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-EnrollmentCourse">
+                            <a href="@Url.Action("Index", "EnrollmentCourse", new {Area = "ControlPanel"})"> @Localizer["Enroll Trainer For Course"]</a>
+                        </div>
+                    }
+                </div>
+
+                <div class="tms_sub_questions  tms_sub_modules">
+                    @if (AuthenticationHelper.CheckAuthentication("Question", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-Questions">
+                            <a href="@Url.Action("Index", "Question", new {Area = "BankOfQuestion"})"> @Localizer["Bank Of Question"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ExamTemplates", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-ExamTemplates">
+                            <a href="@Url.Action("Index", "ExamTemplate", new {Area = "ControlPanel"})"> @Localizer["Exam Templates & Questions"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Subject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <div class="tms-sub-Subject">
+                            <a href="@Url.Action("Index", "Subject", new {Area = "ControlPanel"})"> @Localizer["Subjects"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("PracticalExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <div class="tms-sub-PracticalExams">
+                            <a href="@Url.Action("Index", "PracticalExams", new {Area = "ControlPanel"})"> @Localizer["Practical Exams"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("PracticalQuestion", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <div class="tms-sub-PracticalQuestions">
+                            <a href="@Url.Action("Index", "PracticalQuestions", new {Area = "ControlPanel"})"> @Localizer["Ratings"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("MarkAdoptionForExam", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-MarkAdoption">
+                            <a href="@Url.Action("Index", "MarkAdoption", new {Area = "ControlPanel"})"> @Localizer["Mark Adoption"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CertificateAdoption", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-CertificateAdoption">
+                            <a href="@Url.Action("Index", "CertificateAdoption", new {Area = "ControlPanel"})"> @Localizer["Certificate Adoption"]</a>
+                        </div>
+                    }
+                </div>
+                <div class="tms_sub_reports  tms_sub_modules">
+                    @if (AuthenticationHelper.CheckAuthentication("StudentsReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-StudentsReports">
+                            <a href="@Url.Action("Index", "StudentsReports", new {Area = "Reports"})"> @Localizer["Students Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-CoursesReports">
+                            <a href="@Url.Action("Index", "CoursesReports", new {Area = "Reports"})"> @Localizer["Courses Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("StudentsCourseReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-StudentsCourseReports">
+                            <a href="@Url.Action("Index", "StudentsCourseReports", new {Area = "Reports"})"> @Localizer["Students Course Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ExamsAndAssignmentsReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-ExamsAndAssignmentsReports">
+                            <a href="@Url.Action("Index", "ExamsAndAssignmentsReports", new {Area = "Reports"})"> @Localizer["Exams And Assignments Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesPaymentReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-PaymentReports">
+                            <a href="@Url.Action("Index", "PaymentReports", new {Area = "Reports"})"> @Localizer["Courses Payment Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ProjectsPaymentReports", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                    {
+                        <div class="tms-sub-ProjectPaymentReports">
+                            <a href="@Url.Action("Index", "ProjectsPaymentReports", new {Area = "Reports"})"> @Localizer["Projects Payment Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("TrainerRateReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-TrainerRateReports">
+                            <a href="@Url.Action("Index", "TrainerRateReports", new {Area = "Reports"})"> @Localizer["Management Rates Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("TrainerRateMeasureReports", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-TrainerRateMeasureReports">
+                            <a href="@Url.Action("Index", "TrainerRateMeasureReports", new {Area = "Reports"})"> @Localizer["Academic Supervision Rates Reports"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("InvoicesPay", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-InvoicesPay">
+                            <a href="@Url.Action("Index", "InvoicesPay", new {Area = "ControlPanel"})"> @Localizer["Invoices Pay"]</a>
+                        </div>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("AuditLogs", "View", User.Identity.Name))
+                    {
+                        <div class="tms-sub-AuditLogs">
+                            <a href="@Url.Action("Index", "AuditLogs", new {Area = "ControlPanel"})"> @Localizer["Audit Logs"]</a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+
+            <!-- /top navigation -->
+            <div id="sidebar-menu" class="hidden-print main_menu main_menu_side" style="display: none;position: absolute;background: white;z-index: 100;height: 100vh;">
+                <partial name="_SideNav" />
+            </div>
+            <!-- page content -->
+            <div class="tms-page" role="main" style="margin:15px 20px">
+                @RenderBody()
+            </div>
+
+            <!-- /footer content -->
+            <div id="notificationPopUp" role="dialog" class="fade modal" aria-modal="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div id="notificationPopUpDiv" class="modal-content px-3">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="d-flex tms-page-popup-title">
+                                <div class="tms-table-popup-title" style="width:97%;">
+                                    <span id="notificationUser"></span>:
+                                    <span id="notificationTitle"></span>
+                                </div>
+                            </div>
+                            <div class="x_content">
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-12 col-sm-12 col-xs-12 form-group">
+                                        <div class="col-lg-12">
+                                            <input type="hidden" id="notificationId" name="notificationId" value="" />
+                                            <p id="notificationBody" style="text-align:center;color:#5A738E;"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button type="button" onclick="ReadNotification()" class="tms-save-btn">
+                                        <i class="fa fa-check" aria-hidden="true"></i> @Localizer["Read done"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete -->
+    <div id="DeleteModal" class="modal fade">
+        <div class="modal-dialog modal-confirm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </div>
+                    <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["Do you really want to delete these records? This process cannot be undone."]</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <input type="hidden" id="DeleteId" />
+                    <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                    <button id="Delete_Modal" type="button" class="btn btn-danger shadow-lg" style="margin-top:6px" onclick="Delete()">@Localizer["Delete"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="pt-0" style="background-color:#F1F4FA;border:none;">
+        <div class="text-center">
+            @@@DateTime.Now.Year @(languageName != Constants.LanguageCultures.Arabic ? settings.NameEnglish : settings.NameArabic)
+        </div>
+        <div class="text-center">
+            @Localizer["Powered By -"] <a href="http://www.fratello-holding.com/" target="_blank">Fratello Software House</a>
+        </div>
+    </footer>
+
+    <div class="spanner" style="z-index:2000;">
+        <div class="loader"></div>
+    </div>
+
+    <script src="https://cdn.tiny.cloud/1/jm412ppdz5ixu5ccwxkc4k31kss0kndt623fwqaznixf7u8k/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js" integrity="sha512-37T7leoNS06R80c8Ulq7cdCDU5MNQBwlYoy1TX/WUsLFC2eYNqtKlV0QjH7r8JpG/S0GUMZwebnVFLPd6SU5yg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/bbbootstrap/libraries@main/choices.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+
+    @*toster*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+    <script src="@Url.Content("~/lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+    <script src="@Url.Content("~/theme/summernote/summernote.js")"></script>
+    <script src="~/main/autocomplete/js/chosen.jquery.js"></script>
+    <script src="~/main/autocomplete/docsupport/init.js"></script>
+    <script src="~/js/toast.min.js"></script>
+    <script src="~/js/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.repeater/1.2.1/jquery.repeater.min.js" integrity="sha512-foIijUdV0fR0Zew7vmw98E6mOWd9gkGWQBWaoA1EOFAx+pY+N8FmmtIYAVj64R98KeD2wzZh1aHK0JSpKmRH8w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/datePicker/daterangepicker.js"></script>
+
+    @if (selectedLang == "عربي")
+    {
+        <script src="@Url.Content("~/js/ar-custom.js")"></script>
+        <script asp-append-version="true" src="@Url.Content("~/js/ar-site.js")"></script>
+    }
+    else
+    {
+        <script src="@Url.Content("~/js/custom.js")"></script>
+        <script asp-append-version="true" src="@Url.Content("~/js/site.js")"></script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        function InitTinymce() {
+            tinymce.remove();
+            tinymce.init({
+                selector: 'textarea.tinyRichText',
+                browser_spellcheck: true,
+                plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak table directionality',
+                toolbar_mode: 'wrap',
+                toolbar: "undo redo | styleselect | fontselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent",
+                font_formats: " Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Symbol=symbol;Tahoma=tahoma,arial,helvetica,sans-serif;Terminal=terminal,monaco;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;Webdings=webdings;Wingdings=wingdings,zapf dingbats;"
+                    + "Al Jazeera Arabic Regular=Al-Jazeera-Arabic-Regular; Cairo=Cairo, sans-serif;Tajawal=Tajawal, sans-serif; TEWarshTharwatEmara=TEWarshTharwatEmara;" +
+                    "Al Jazeera Arabic Bold= Al-Jazeera-Arabic-Bold ;ae_AlMateen = ae_AlMateen; aga-islamic-phrases =aga-islamic-phrases; ARABSQ =ARABSQ ;ARBSQDTP=ARBSQDTP;",
+                toolbar2: 'alignleft aligncenter alignright | forecolor backcolor | bullist numlist | ltr rtl ',
+                directionality: "ltr",
+                height: "400",
+                fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 30pt',
+                content_css: '@Url.Content("~/css/custom-fonts.css")',
+                contextmenu: false,
+                content_style: "body { font-family: 'Al-Jazeera-Arabic-Regular'; }"
+            });
+        }
+
+        function OpenArea(id) {
+            $("div.tms_sub_modules").removeClass("active")
+            $("div.area").removeClass("active")
+            $('.tms-' + id).addClass("active");
+            $('.tms-sub-top-nav .tms_sub_' + id).addClass("active");
+        }
+
+        $("#sidenav_toggle").on("click", function () {
+            $("#sidebar-menu").toggle();
+        })
+        $('.summernote').summernote();
+
+        function ChangePagenation() {
+            $("#pagination").val($("#pagin").val());
+            $("#Form1").submit();
+        }
+
+        function GetTable(s) {
+            $(s).map(function (i, x) {
+                table.forEach(element => {
+                    if (x == element) {
+                        $("." + x + "").removeClass("d-none");
+                        $(this).parent().find("input[type='checkbox']").prop('checked', true)
+                    }
+                }
+                );
+            })
+        }
+
+        function ChangeTable() {
+            table = [];
+            $(".TableCheckBox").map(function () {
+                if ($(this).is(':checked'))
+                    table.push($(this).parent().parent().find(".td").html().trim())
+            })
+            $("#table").val(table);
+            $("#Form1").submit();
+            $("#EditTable").modal("hide");
+        }
+
+        function ShowSpinner() {
+            $(".spanner").addClass("show-spanner");
+            $("body").css("overflow-y", "hidden")
+        }
+
+        function HideSpinner() {
+            $(".spanner").removeClass("show-spanner");
+            $("body").css("overflow-y", "unset")
+        }
+
+        $(document).ajaxComplete(function () {
+            $(".chosen-select").chosen({
+                placeholder_text_multiple: '@Localizer["Select an option"]',
+                placeholder_text: '@Localizer["Select an option"]'
+            });
+            setTimeout(function () {
+                if (!$('body').hasClass('modal-open'))
+                    if ($(".modal-dialog").parent().hasClass("show"))
+                        $('body').addClass('modal-open');
+            }, 800)
+        });
+
+        jQuery.extend(jQuery.validator.messages, {
+            required: "@Localizer["required"]",
+            remote: "Please fix this field.",
+            email: "Please enter a valid email address.",
+            url: "Please enter a valid URL.",
+            date: "Please enter a valid date.",
+            step: jQuery.validator.format("@Localizer["Please enter a multiple of"]" + " " + "{0}."),
+            dateISO: "Please enter a valid date (ISO).",
+            number: "@Localizer["Please enter a valid number."]",
+            digits: "Please enter only digits.",
+            creditcard: "Please enter a valid credit card number.",
+            equalTo: "@Localizer["Please enter the same value again."]",
+            accept: "Please enter a value with a valid extension.",
+            maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+            minlength: jQuery.validator.format("Please enter at least {0} characters."),
+            rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+            range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+            max: jQuery.validator.format("@Localizer["Please enter a value less than or equal to"]" + " " + "{0}."),
+            min: jQuery.validator.format("@Localizer["Please enter a value greater than or equal to"]" + " " + "{0}.")
+        });
+        jQuery.fn.extend({
+            setDatePickRange: function (fromDate, toDate) {
+                var _this = this;
+                _this.daterangepicker({
+                    startDate: fromDate !== '1-01-01' ? new Date(fromDate.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")) : moment(),
+                    endDate: toDate !== '1-01-01' ? new Date(toDate.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")) : moment(),
+                    ranges: {
+                        '@Localizer["Clear"]': [moment(), null],
+                        '@Localizer["Today"]': [moment(), moment()],
+                        '@Localizer["Yesterday"]': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        '@Localizer["This Month"]': [moment().startOf('month'), moment().endOf('month')],
+                        '@Localizer["Last Month"]': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                        '@Localizer["This Year"]': [moment().startOf('year'), moment().endOf('year')],
+                        '@Localizer["Last Year"]': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+                        '@Localizer["This Quarter"]': [moment().startOf('quarter'), moment().endOf('quarter')],
+                        '@Localizer["Last Quarter"]': [moment().subtract(1, 'quarter').startOf('quarter'), moment().subtract(1, 'quarter').endOf('quarter')],
+                    },
+                    locale: {
+                        customRangeLabel: '@Localizer["Specific Date"]'
+                    },
+                    "showDropdowns": true,
+                    "linkedCalendars": false,
+                    "minYear": 2008,
+                    "maxYear": 2030,
+                });
+                if (fromDate === "1-01-01")
+                    _this.val('');
+                this.on('change', function (e) {
+                    var selectedDate = e.target.value;
+                    if (selectedDate.includes('Invalid date'))
+                        _this.val('');
+                    if (selectedDate === "01/01/2001 - 01/01/2001" && (fromDate === "1-01-01" || toDate === "1-01-01")) {
+                        _this.val('');
+                    }
+
+                });
+            },
+        });
+
+        $.validator.setDefaults({
+            errorPlacement: function (error, element) {
+                if (element[0].type === 'select-one') {
+                    error.insertAfter(element.next());
+                } else {
+                    error.insertAfter(element);
+                }
+            }
+        });
+
+        $('.modal .fade .show').modal({
+            backdrop: 'static'
+        });
+
+        function ViewNotification(id, user, title, body) {
+            $('#notificationPopUp').modal({
+                backdrop: 'static'
+            });
+            $('#notificationPopUp').modal("show");
+            $("#notificationTitle").text(title);
+            $("#notificationUser").text(user);
+            $("#notificationBody").html(body);
+            $("#notificationId").val(id);
+        }
+        function ReadNotification() {
+            var id = $("#notificationId").val();
+            if (id > 0) {
+                $.ajax({
+                    "url": "/ControlPanel/Generalization/ReadNotification?id=" + id,
+                    "processData": false,
+                    "contentType": false,
+                    "type": "POST"
+                }).done(function (result) {
+                    $('#notificationPopUp').modal("hide");
+                    $('#not-' + id).remove();
+                    var count = parseInt($('.not-count').text()) - parseInt(1);
+                    $('.not-count').text(count);
+                    toastr.success('@Localizer["Notification has been read"]');
+                }).fail(function (xhr, status) {
+                    toastr.error('@Localizer["Error while Read Notification"]');
+                });
+            }
+        }
+
+
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            var PutTextToSearchinCourses = '@Localizer["Search In Courses"]';
+            var Noresultsfor = '@Localizer["No results for"]';
+
+
+            $(document).on('change', '.SearchCourseNameDropDownList .chosen-select', function (evt, params) {
+                $(".SearchCourseNameDropDownList #hdCourseName").val($(this).find('option:selected').text());
+                $(".SearchCourseNameDropDownList #EnrollTeacherCourseViewModel_CourseName").val($(this).find('option:selected').text());
+            });
+            $(document).off('keyup').on('keyup', '.SearchCourseNameDropDownList .chosen-search input ', function (event) {
+                var keyCode = event.keyCode || event.which
+                if (keyCode == 8 || keyCode == 13 || (keyCode >= 35 && keyCode <= 40)) { // Left / Up / Right / Down Arrow, Backspace, Delete keys
+                    return;
+                }
+
+                var param = $(this).val();
+                var LanguageId = $("[id*=LanguageId]").first().val();
+                var _this = $(this).closest(".SearchCourseNameDropDownList");
+                var CourseSearchURL = _this.attr("CourseSearchURL");
+                _this.find(".chosen-select option").remove();
+                _this.find(".chosen-select").append("<option value=''>" + PutTextToSearchinCourses + "</option>");
+                if (param) {
+                    ShowSpinner();
+                    $.ajax({
+                        type: "GET",
+                        url: CourseSearchURL,
+                        data: { param: param, LanguageId: LanguageId },
+                        success: function (data) {
+                            if (data.length) {
+                                BindListInternal(data, _this, function (callback) {
+                                    _this.find(".chosen-select").trigger("chosen:updated");
+                                    _this.find(".chosen-search input").val(param);;
+                                    HideSpinner();
+                                });
+                            } else {
+                                HideSpinner();
+                                _this.find(".chosen-select option").remove();
+                                _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " " + param + "</option>");
+                                _this.find(".chosen-select").trigger("chosen:updated");
+                                _this.find(".chosen-search input").val(param);
+
+                            }
+                        },
+                        error: function (data) {
+                            HideSpinner();
+                            _this.find(".chosen-select option").remove();
+                            _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " " + param + "</option>");
+                            _this.find(".chosen-select").trigger("chosen:updated");
+                            _this.find(".chosen-search input").val(param);
+
+
+
+                        }
+                    }).fail(function (jqXHR, textStatus, error) {
+                        HideSpinner();
+                        _this.find(".chosen-select option").remove();
+                        _this.find(".chosen-select").append("<option value=''>" + Noresultsfor + " " + param + "</option>");
+                        _this.find(".chosen-select").trigger("chosen:updated");
+                        _this.find(".chosen-search input").val(param);
+                    });
+
+                } else {
+                    HideSpinner();
+                    _this.find(".chosen-select").trigger("chosen:updated");
+                    _this.find(".chosen-search input").val(param);
+                }
+            });
+            function BindListInternal(data, selector, callback) {
+                $.each(data, function (i, item) {
+                    if (selector.find(".chosen-select").find('option[value="' + item.id + '"]').length === 0) {
+                        selector.find(".chosen-select").append($('<option>', {
+                            value: item.id,
+                            text: item.courseName
+                        }));
+                    }
+                });
+                callback(true);
+            }
+
+        });
+
+        $(document).on('click', '.modal-backdrop', function () {
+            if ($('.modal-backdrop').css('opacity') == 0)
+                $(".modal-backdrop").remove();
+        });
+    </script>
+    @RenderSection("JavaScript", required: false)
+</body>
+</html>

@@ -1,0 +1,180 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CoursePrerequisiteGeneralViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Edit Course Prerequisite"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses(ViewBag.LangId);
+
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Edit Course Prerequisite"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/CoursePrerequisite/Edit" method="post" id="CoursePrerequisite-Edit" class="form-horizontal form-label-left">
+                    <div class="row">
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;">
+                                @Localizer["Course Prerequisite Data"]
+
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12" style="@((ViewBag.LangId == 7)? "padding-left: 0px;" : "padding-right: 0px;") ">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required" , onchange = "onDdlChanged(this)" })
+                                @Html.ValidationMessage("LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="CoursePrerequisiteEdit_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="CoursePrerequisiteViewModel">
+                                        <div data-repeater-item>
+                                            <div class="form-group">
+                                                <div class="col-md-5 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/CoursePrerequisite/CourseSearch/">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label px-0">@Localizer["Course Name"] <span class="required">*</span></label>
+
+                                                    <input type="hidden" value="@Model.CoursePrerequisiteViewModel[0].CourseId" name="CoursePrerequisiteCourseId" id="CoursePrerequisiteCourseId" />
+                                                    @if (Model.CoursePrerequisiteViewModel != null)
+                                                    {
+                                                        @Html.DropDownList("CourseId", new List<SelectListItem>{new SelectListItem{ Text = Model.CoursePrerequisiteViewModel[0].CourseName, Value = Model.CoursePrerequisiteViewModel[0].CourseId.ToString()}},  Localizer["Search In Courses"].Value, new { @class = "form-control  tms-ddl", @style="pointer-events: none !important;", required = "required" ,AddedValueChosenSelect=Model.CoursePrerequisiteViewModel[0].CourseId.ToString(),readOnly=true })
+                                                        @Html.ValidationMessage("CourseId", "", new { @class = "text-danger" })
+                                                    }
+                                                    else
+                                                    {
+                                                        @Html.DropDownList("CourseId", Enumerable.Empty<SelectListItem>(),  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required"  })
+                                                        @Html.ValidationMessage("CourseId", "", new { @class = "text-danger" })
+                                                    }
+                                                </div>
+                                                <div class="col-md-6 ">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="PrerequisiteCourses" class="mb-5">
+
+                                                            @foreach (var CoursePrerequisite in Model.CoursePrerequisiteViewModel)
+                                                            {
+                                                                <input type="hidden" value="@CoursePrerequisite.Id" name="PrerequisiteCourses_Id" id="PrerequisiteCourses_Id" />
+                                                                <div data-repeater-item>
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label px-0">@Localizer["Course Prerequisite Name"]<span class="required">*</span></label>
+                                                                    <div class="input-group pb-3 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/CoursePrerequisite/CourseSearch/">
+                                                                        @Html.DropDownList("PrerequisiteCourseId", new List<SelectListItem>{new SelectListItem{ Text = CoursePrerequisite.PrerequisiteCourseName, Value = CoursePrerequisite.PrerequisiteCourseId.ToString()}},  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required" ,AddedValueChosenSelect=CoursePrerequisite.PrerequisiteCourseId.ToString()  })
+                                                                        @Html.ValidationMessage("PrerequisiteCourseId", "", new { @class = "text-danger" })
+                                                                        <button class="border border-secondary btn btn-icon btn-light-danger border-secondary-cust" data-repeater-delete type="button">
+                                                                            <i class="fa fa-times "></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            @if (Model.CoursePrerequisiteViewModel.Count == 0)
+                                                            {
+                                                                <div data-repeater-item>
+                                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label px-0">@Localizer["Course Prerequisite Name"]<span class="required">*</span></label>
+                                                                    <div class="input-group pb-3 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/CoursePrerequisite/CourseSearch/">
+                                                                        @Html.DropDownList("PrerequisiteCourseId", Enumerable.Empty<SelectListItem>(),  Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" , required = "required" })
+                                                                        @Html.ValidationMessage("PrerequisiteCourseId", "", new { @class = "text-danger" })
+                                                                        <button class="border border-secondary btn btn-icon btn-light-danger border-secondary-cust" data-repeater-delete type="button">
+                                                                            <i class="fa fa-times "></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+
+                                                        <button class="tms-save-btn btn-light-primary tms-custom-btn" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Course Prerequisite"]
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $('#CoursePrerequisiteEdit_Repeater_Nested').repeater({
+        initEmpty: false,
+        repeaters: [{
+            selector: '.inner-repeater',
+            show: function () {
+                $(this).slideDown();
+                $(this).find(".chosen-select").chosen();
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        }],
+        show: function () {
+            $(this).slideDown();
+            $(this).find(".chosen-select").chosen();
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+
+
+    });
+
+    $("[AddedValueChosenSelect]").each(function () {
+        var val = $(this).attr("AddedValueChosenSelect");
+        var _this = $(this).closest(".SearchCourseNameDropDownList");
+        _this.find("option[value=" + val + "]").attr('selected', true);
+        _this.find(".chosen-select").trigger("chosen:updated");
+    });
+
+
+</script>
+<script src="~/js/CoursePrerequisite/CoursePrerequisite.js?ver=6.1"></script>

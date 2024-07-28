@@ -1,0 +1,18 @@
+﻿@model DataEntity.Models.ViewModels.TrainerViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = null;
+}
+<h3 class="my-2 text-lg-center"> @Localizer["Course Trainer"]</h3>
+<a href="@Url.Action("Details","Trainers",new {Id=Model.Id })">
+    <div class="bg-white shadow-sm rounded-5 p-Cbgwhite wh-divCourseTrainer mx-lg-auto">
+        <img src="@(Model.ImageUrl??"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")"
+             class="img-fluid w-100 heightstat rounded-5">
+        <h5 class="text-lg-center fs-tit-Trainers">
+            @Model.Contact.FullName
+        </h5>
+        <p class="text-lg-center fs-sup-Trainers">@Localizer["Trainer"]</p>
+    </div>
+</a>

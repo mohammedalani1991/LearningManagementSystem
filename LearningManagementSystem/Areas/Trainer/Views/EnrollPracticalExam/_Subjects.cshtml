@@ -1,0 +1,199 @@
+﻿@using DataEntity.Models.EfModels;
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Subject>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@inject IPracticalEnrollmentExamStudentService ExamStudentService
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.SubjectType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var types = lookups[GeneralEnums.MasterLookupCodeEnums.SubjectType.ToString()];
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue1;
+
+    var Subjects = (List<PracticalEnrollmentExamStudentSubject>)ViewBag.Subjects;
+}
+
+
+<div class="row" id="SubjectsData">
+    <div class="d-flex justify-content-between  courses-title">
+        <span class="My-Cources">@Localizer["Subjects"]</span>
+        <div class="d-flex justify-content-end align-items-center">
+            <i data-bs-dismiss="modal" class="fa fa-x"></i>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddPoints", User.Identity.Name))
+                {
+                    <div class="col-3 d-flex align-items-center">
+                        <button class="btn btn-primary m-0" onClick="ShowAddPoints(@ViewBag.EnrollStudentCourseId , @ViewBag.PracticalEnrollmentExamId ,0,true)">
+                            @Localizer["Go To Exam"]
+                        </button>
+                    </div>
+                }
+                <div class="col-9">
+                    <form data-ajax="true" method="get" action="/Trainer/EnrollPracticalExam/ShowSubjects" id="Form1" data-ajax-success="GetData1" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("pagination1")
+                            @Html.Hidden("page1")
+                            @Html.Hidden("TecherCourseId")
+                            @Html.Hidden("PracticalEnrollmentExamId")
+                            @Html.Hidden("EnrollStudentCourseId")
+
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+                                @Html.DropDownList("TypeId", new SelectList(types, "Id", "Name"), Localizer["Type"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                            <div class="col-md-3 col-sm-3 col-xs-12 mx-2">
+                                @Html.TextBox("searchText1", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                            </div>
+
+                            <div class="col-2 d-flex justify-content-center">
+                                <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th></th>
+                            <th>
+                                @Localizer["Title"]
+                            </th>
+                            <th>
+                                @Localizer["Type"]
+                            </th>
+                            <th>
+                                @Localizer["Subject Type"]
+                            </th>
+                            <th>
+                                @Localizer["Created By"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="10">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @if (Subjects.Select(s => s.SubjectId).Contains(item.Id))
+                                    {
+                                        <input attr-practicalEnrollmentExamStudent-id="@ViewBag.PracticalEnrollmentExamStudentId" attr-Subject-id="@item.Id" type="checkbox" checked />
+                                    }
+                                    else
+                                    {
+                                        <input attr-practicalEnrollmentExamStudent-id="@ViewBag.PracticalEnrollmentExamStudentId" attr-Subject-id="@item.Id" type="checkbox" />
+                                    }
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Title)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetLookupDetailsById(item.TypeId ?? 0, (int)ViewBag.LangId)?.Name
+                                </td>
+                                <td>
+                                    @LookupHelper.GetLookupDetailsById(item.ExamTypeId ?? 0, (int)ViewBag.LangId)?.Name
+                                </td>
+                                <td>
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy, (int)ViewBag.LangId)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <div class="paging-div">
+                            @Html.PagedListPager(Model, page1 => Url.Action("ShowSubjects", new { page1, EnrollStudentCourseId = ViewBag.EnrollStudentCourseId, searchText1 = ViewBag.searchText1, TecherCourseId = ViewBag.TecherCourseId, PracticalEnrollmentExamId = ViewBag.PracticalEnrollmentExamId, TypeId = ViewBag.TypeId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowAddSubjectsDiv" }))
+                            <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var message = '@Localizer["The Exam is Already Submitted"]'
+    function GetCount() {
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/PracticalEnrollmentExam/GetCount/",
+            data: { PracticalEnrollmentExamId: '@ViewBag.PracticalEnrollmentExamId', EnrollStudentCourseId: '@ViewBag.EnrollStudentCourseId' },
+            success: function (data) {
+                subjectCount = data;
+            }
+        })
+    }
+
+    GetCount();
+
+    $("#SubjectsData").off("click").on("click", "[attr-practicalEnrollmentExamStudent-id]", function () {
+        ShowSpinner();
+        var PracticalEnrollmentExamStudentId = $(this).attr("attr-practicalEnrollmentExamStudent-id");
+        var SubjectId = $(this).attr("attr-Subject-id");
+        var checkedRow = $(this).is(":checked");
+        var checkbox = $(this).find("[attr-practicalEnrollmentExamStudent-id='" + PracticalEnrollmentExamStudentId + "']").prevObject;
+        $.ajax({
+            type: "Post",
+            url: "/Trainer/EnrollPracticalExam/AddOrRemoveSubjects/",
+            data: { PracticalEnrollmentExamStudentId: PracticalEnrollmentExamStudentId, SubjectId: SubjectId, checkedRow: checkedRow },
+            success: function (data) {
+                if (data.success) {
+                    toastr.success(editMassege);
+                    HideSpinner();
+                    GetCount();
+                }
+                else if (!data.success && data.message) {
+                    HideSpinner();
+                    toastr.warning(data.message);
+                    if (checkbox[0].checked == true)
+                        checkbox.prop("checked", false);
+                    else
+                        checkbox.prop("checked", true);
+                }
+                else {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                    if (checkbox[0].checked == true)
+                        checkbox.prop('checked', false);
+                    else
+                        checkbox.prop('checked', true);
+                }
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+                if (checkbox[0].checked == true)
+                    checkbox.prop('checked', false);
+                else
+                    checkbox.prop('checked', true);
+            },
+        });
+
+    });
+</script>

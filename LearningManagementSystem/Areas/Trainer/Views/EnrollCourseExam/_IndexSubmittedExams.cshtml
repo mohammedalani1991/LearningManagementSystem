@@ -1,0 +1,128 @@
+﻿@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentExam>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+   
+}
+  <div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+<div class="row">
+
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                    <div class="tms-title" >
+              
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+
+                            <th>
+                                @Localizer["Student Name"]
+                            </th>
+                           <th>
+                                @Localizer["Final Mark"]
+                            </th>
+                            <th>
+                                @Localizer["Mark He Got"]
+                            </th>
+                            <th >
+                                @Localizer["Mark After Conversion"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                             <th>
+                               
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="5">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+
+                                @{
+                                    var FinalMark= ((item.FinalMark.HasValue)?item.FinalMark:0);
+                                    var MarkHeGot= ((item.MarkHeGot.HasValue)?item.MarkHeGot:0);
+                                    var MarkAfterConversion= ((item.MarkAfterConversion.HasValue)?item.MarkAfterConversion:0);
+                                    var LastExamIDForStudent = LookupHelper.GetEnrollStudentExamByEnrollStudentCourseId(item.EnrollStudentCourseId,item.EnrollCourseExamId);
+                                }
+                                <td>
+                                    
+                                    @Html.DisplayFor(modelItem => item.EnrollStudentCourse.Student.Contact.FullName)
+                                </td>
+                                <td>
+                                   
+                                       @Html.DisplayFor(modelItem => FinalMark)
+                                </td>
+                                <td>
+                                    
+                                    @Html.DisplayFor(modelItem => MarkHeGot)
+                                </td>
+                        
+                               <td>
+                                     
+                                    @Html.DisplayFor(modelItem => MarkAfterConversion)
+                                </td>
+                              <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    @if(LastExamIDForStudent.Id == item.Id)
+                                    {
+                                        <button class="btn btn-primary" onclick="ShowExamCorrection(@item.EnrollCourseExamId,@item.Id)" type="button"><i class="fa fa-save"></i> @Localizer["Exam Correction"]</button>
+                                    }
+                                    else
+                                    {
+                                    <button class="btn btn-primary" onclick="TrainerShowExamView(@item.EnrollCourseExamId,@item.Id)" type="button"><i class="fa fa-save"></i> @Localizer["View Exam"]</button>
+                                    }
+
+                                </td>
+                                
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                            @Html.PagedListPager(Model, page => Url.Action("ShowSubmittedExams", new { page, id = ViewBag.id }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowSubmittedExamsDiv" }))
+                        </ul>
+                    </nav>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

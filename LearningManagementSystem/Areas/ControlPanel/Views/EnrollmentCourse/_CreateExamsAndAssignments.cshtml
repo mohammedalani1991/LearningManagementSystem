@@ -1,0 +1,289 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollTeacherCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DataEntity.Models.EfModels;
+
+@using LearningManagementSystem.Services.ControlPanel
+@inject ISemesterService SemesterService
+@inject IEnrollTeacherCourseService CourseService
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString(), GeneralEnums.MasterLookupCodeEnums.CourseAgeGroup.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var LearningMethod = lookups[GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString()];
+    var semesters = SemesterService.GetSemestersList(ViewBag.LangId);
+    var selectListItems = new List<SelectListItem>
+    {
+        new SelectListItem { Text = Localizer["Show All"].Value, Value = "0" }
+    };
+
+    var semestersList = new SelectList(semesters, "Id", "Name", ViewBag.SemesterId1);
+    var combinedList = new SelectList(selectListItems.Concat(semestersList), "Value", "Text");
+    var courses = CourseService.GetCourseList(ViewBag.LangId);
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title row">
+            <div class="tms-title col-12">
+                <h4><small>@Localizer["Enroll Trainer for Course"]</small></h4>
+            </div>
+            <div class="tms-action col-12 row">
+                <form data-ajax="true" class="col-lg-12 col-12 row" method="get" action="EnrollmentCourse/GetExamsAndAssignmentsData" id="Form2" data-ajax-success="CreateExamsAndAssignmentsData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner() , SubmitCopmplete()">
+                    @Html.Hidden("Page")
+
+                    <div class="col-md-4 col-sm-3 col-xs-12">
+                        @Html.DropDownList("SemesterId1", combinedList,  Localizer["Search In Semesters"].Value, new { @class = "form-control chosen-select tms-ddl" , onchange="SubmitForm2()"})
+                    </div>
+                    <div class="col-md-4 col-sm-3 col-xs-12">
+                        @Html.DropDownList("CourseId1", new SelectList(courses, "Id", "CourseName" ,ViewBag.CourseId1),  Localizer["Search In Courses"].Value + " *", new { @class = "form-control chosen-select tms-ddl" , onchange="SubmitForm2()"})
+                    </div>
+                    <div class="col-md-4 col-sm-3 col-xs-12">
+                        @Html.DropDownList("TeacherId1",new SelectList(ViewBag.ListTrainers, "Id", "Contact.FullName"), Localizer["Search In Trainers"].Value, new { @class = " form-control chosen-select tms-ddl", onchange="SubmitForm2()"})
+                    </div>
+                </form>
+            </div>
+            <div class="col-12 row">
+                @if (ViewBag.CourseId1 != null)
+                {
+                    if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "Create", User.Identity.Name))
+                    {
+                        <div class="col-4 px-0 d-flex justify-content-center">
+                            <button class="tms-save-btn" type="button" onclick="ShowAddEnrollCourseExam('@ViewBag.SemesterId1' ,'@ViewBag.CourseId1' ,'@ViewBag.TeacherId1')"><img src="~/img/add-to-list.png" /> @Localizer["Add New Course Exam or Quiz"]</button>
+                        </div>
+                    }
+                    if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddExam", User.Identity.Name))
+                    {
+                        <div class="col-4 px-0 d-flex justify-content-center">
+                            <button class="tms-save-btn" type="button" onclick="ShowCreatePracticalEnrollmentExam('@ViewBag.SemesterId1' ,'@ViewBag.CourseId1' ,'@ViewBag.TeacherId1')"><img src="~/img/add-to-list.png" /> @Localizer["Add New Memorization Exam"]</button>
+                        </div>
+                    }
+                    if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Create", User.Identity.Name))
+                    {
+                        <div class="col-4 px-0 d-flex justify-content-center">
+                            <button class="tms-save-btn" type="button" onclick="ShowAddEnrollCourseAssignment('@ViewBag.SemesterId1' ,'@ViewBag.CourseId1' ,'@ViewBag.TeacherId1')"><img src="~/img/add-to-list.png" /> @Localizer["Add New Course Assignment"]</button>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="TeacherId">
+                                @Localizer["Trainer Name"]
+                            </th>
+                            <th class="CourseId">
+                                @Localizer["Course Name"]
+                            </th>
+                            <th class="SemesterId">
+                                @Localizer["Semester Name"]
+                            </th>
+                            <th class="SectionName">
+                                @Localizer["Section Name"]
+                            </th>
+                            <th class="CountOfStudent">
+                                @Localizer["Count Of Student"]
+                            </th>
+                            <th class="Status">
+                                @Localizer["Status"]
+                            </th>
+
+                            <th class="CreatedOn">
+                                @Localizer["Created On"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="TeacherId">
+                                    @item.Teacher.Contact.FullName
+                                </td>
+                                <td class="CourseId">
+                                    @Html.DisplayFor(modelItem => item.CourseName)
+                                </td>
+                                <td class="SemesterId">
+                                    @Html.DisplayFor(modelItem => item.Semester.Name)
+                                </td>
+                                <td class="SectionName">
+                                    @if (!string.IsNullOrEmpty(item.SectionName))
+                                    {
+                                        @Html.DisplayFor(modelItem => item.SectionName)
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayText("--")
+                                    }
+                                </td>
+                                <td class="CountOfStudent">
+                                    @Html.DisplayFor(modelItem => item.CountOfStudent)
+                                </td>
+                                <td class="Status">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+
+                                <td class="CreatedOn">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetExamsAndAssignmentsData", new { page, TeacherId1 = ViewBag.TeacherId1 ,CourseId1 = ViewBag.CourseId1 ,SemesterId1 = ViewBag.SemesterId1}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "CreateExamsAndAssignmentsDiv" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function SubmitCopmplete() {
+        ShowSpinner();
+        var selectedSemester = $("#SemesterId1").val();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentCourse/GetCoursesList/",
+            data: { semester: selectedSemester },
+            success: function (data) {
+                var coursesDropdown = $('#CourseId1');
+                coursesDropdown.empty();
+                coursesDropdown.append($('<option>', {
+                    value: "",
+                    text: "@Localizer["Search In Courses"]" + " *"
+                }));
+                $.each(data, function (index, course) {
+                    coursesDropdown.append($('<option>', {
+                        value: course.id,
+                        text: course.courseName
+                    }));
+                });
+                coursesDropdown.trigger('chosen:updated');
+                var defaultValue = "@ViewBag.CourseId1";
+                coursesDropdown.val(defaultValue).trigger('chosen:updated');
+                HideSpinner();
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+
+    if ('@(ViewBag.CourseId1 != null)' == "True") {
+        ShowSpinner();
+        var courseId = $("#CourseId1").val();
+        var selectedSemester = $("#SemesterId1").val();
+
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentCourse/GetTeacherList/",
+            data: { semester: selectedSemester, courseId },
+            success: function (data) {
+                var teacherDropdown = $('#TeacherId1');
+                teacherDropdown.empty();
+                teacherDropdown.append($('<option>', {
+                    value: "",
+                    text: "@Localizer["Search In Trainers"]"
+                }));
+                $.each(data, function (index, teacher) {
+                    teacherDropdown.append($('<option>', {
+                        value: teacher.id,
+                        text: teacher.name
+                    }));
+                });
+                teacherDropdown.trigger('chosen:updated');
+                var defaultValue = "@ViewBag.TeacherId1";
+                teacherDropdown.val(defaultValue).trigger('chosen:updated');
+                HideSpinner();
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+    function ShowAddEnrollCourseExam(semester, courseId, teacherId) {
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentExams/ShowCreateGroup/",
+            data: { semester, courseId, teacherId },
+            success: function (data) {
+                $('#CreateExamsAndAssignments').modal("hide");
+                HideSpinner();
+                $('#AddExamsAndAssignments .modal-content').html(data);
+                $('#AddExamsAndAssignments').modal("show");
+                setTimeout(function () {
+                    $("body").addClass("modal-open");
+                }, 1000)
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+    function ShowCreatePracticalEnrollmentExam(semester, courseId, teacherId) {
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/PracticalEnrollmentExam/CreateGroup/",
+            data: { semester, courseId, teacherId },
+            success: function (data) {
+                $('#CreateExamsAndAssignments').modal("hide");
+                HideSpinner();
+                $('#AddExamsAndAssignments .modal-content').html(data);
+                $('#AddExamsAndAssignments').modal("show");
+                setTimeout(function () {
+                    $("body").addClass("modal-open");
+                }, 1000)
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+    function ShowAddEnrollCourseAssignment(semester, courseId, teacherId) {
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentAssignments/ShowCreateGroup/",
+            data: { semester, courseId, teacherId },
+            success: function (data) {
+                $('#CreateExamsAndAssignments').modal("hide");
+                HideSpinner();
+                $('#AddExamsAndAssignments .modal-content').html(data);
+                $('#AddExamsAndAssignments').modal("show");
+                setTimeout(function () {
+                    $("body").addClass("modal-open");
+                }, 1000)
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    }
+
+    $('#AddExamsAndAssignments').on('hidden.bs.modal', function () {
+        $('#AddExamsAndAssignmentsDiv').empty();
+        $('#CreateExamsAndAssignments').modal("show");
+    })
+</script>

@@ -1,0 +1,126 @@
+﻿
+@font-face {
+    font-family: 'Al-Jazeera-Arabic-Regular';
+    src: url('font/Al-Jazeera-Arabic-Regular.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TEWarshTharwatEmara';
+    src: url('font/TEWarshTharwatEmara.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'ae_AlMateen';
+    src: url('font/ae_AlMateen.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'aga-islamic-phrases';
+    src: url('font/aga-islamic-phrases.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Al-Jazeera-Arabic-Bold';
+    src: url('font/Al-Jazeera-Arabic-Bold.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'ARABSQ';
+    src: url('font/ARABSQ.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'ARBSQDTP';
+    src: url('font/ARBSQDTP.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'DTHULUTH';
+    src: url('font/DTHULUTH.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'DTNASKH0';
+    src: url('font/DTNASKH0.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'DTNASKH1';
+    src: url('font/DTNASKH1.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'DTNASKH2';
+    src: url('font/DTNASKH2.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'DTNASKH3';
+    src: url('font/DTNASKH3.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'DTNASKH4';
+    src: url('font/DTNASKH4.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'thuluth-decorated';
+    src: url('font/thuluth-decorated.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'tradbdo';
+    src: url('font/tradbdo.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'trado';
+    src: url('font/trado.ttf?nbjydj') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}

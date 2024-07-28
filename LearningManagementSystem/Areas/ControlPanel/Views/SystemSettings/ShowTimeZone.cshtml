@@ -1,0 +1,61 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+@{
+
+    var TimeZoneId = ViewBag.TimeZoneId;
+
+ 
+        List<SelectListItem> timezoneList = new List<SelectListItem>();
+        var timezoneInfo = TimeZoneInfo.GetSystemTimeZones();
+        foreach (var item in timezoneInfo)
+        {
+            timezoneList.Add(new SelectListItem()  {Value = item.Id, Text = item.DisplayName, Selected = false });
+
+        }
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Select Time Zone"]
+            </div>
+        </div>
+          <div class="x_content">
+                <br />
+              
+                    <div class="row">
+                        
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="ValueTimeZone">
+                                @Localizer["Time Zone"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                              @Html.DropDownList("ValueTimeZone",timezoneList , Localizer["Select Time Zone"].Value, new { @class = " form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessage("ValueTimeZone", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn " type="button" onclick="SelectValueTimeZone()"><i class="fa fa-save"></i> @Localizer["Select"]</button>
+                    </div>
+                
+            </div>
+
+    </div>
+</div>
+<script type="text/javascript">
+function SelectValueTimeZone(){
+    if ($("#ValueTimeZone").val()) {
+        window.parent.setSelectValueTimeZone(@TimeZoneId, $("#ValueTimeZone").val())
+    }
+}
+</script>
+
+ 

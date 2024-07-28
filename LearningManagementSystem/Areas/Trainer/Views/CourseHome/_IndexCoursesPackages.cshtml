@@ -1,0 +1,169 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core;
+
+@using LearningManagementSystem.Services.General
+@inject ISettingService SettingService
+@{
+    var checkIfClassOnline = LookupHelper.CheckIfClassOnline(ViewBag.EnrollTeacherCourseId);
+    var PackagesID = ViewBag.PackagesID;
+    var closeCourse = Boolean.Parse(SettingService.GetOrCreate(Constants.SystemSettings.Close_Course_After_Calculation, "false")?.Value);
+}
+
+<style>
+    .courses-tab {
+        white-space: nowrap;
+        display: flex;
+        overflow: auto;
+    }
+
+        .courses-tab::-webkit-scrollbar {
+            height: 0;
+        }
+</style>
+
+
+<div class="row courses-title align-items-center">
+    <div class="col-md-8 col-12 d-flex justify-content-start ">
+        <span class="My-Cources">@Localizer["Packages"]</span>
+        <span class="quran-Basic">/ @ViewBag.PackageName</span>
+    </div>
+    <div class="col-md 4 col-12 d-flex justify-content-end">
+
+    </div>
+</div>
+<div class="Course-Contant">
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        @Localizer["The Courses in Package :"]
+    </div>
+    <div class="mt-4 col-md-4 col-sm-6 col-xs-12">
+
+        @Html.DropDownList("CoursesPackageId", new SelectList(ViewBag.CoursesPackagesList, "Id", "CourseName",ViewBag.EnrollTeacherCourseId), new { @class = "form-select form-control chosen-select tms-ddl" })
+    </div>
+</div>
+<div class="col-12 dropdown d-block d-lg-none mb-3">
+    <button class="btn w-100 form-select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span id="nameprofile">
+            <i class="fa-solid fa-bars"></i> @Localizer["Menu"]
+        </span>
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" id="defaultTrainerEnrollCoursesContent" onclick="openCourse(event, 'UserProfile_CoursesContent'); GetTrainerEnrollCoursesContent(@ViewBag.EnrollTeacherCourseId);">@Localizer["Course Content <small>(Sections, Lectures, Resources)</small>"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" id="GetTrainerEnrollCourseExam" onclick="openCourse(event, 'UserProfile_Exams'); GetTrainerEnrollCourseExam(@ViewBag.EnrollTeacherCourseId);">@Localizer["Exams & Quizzes"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+            {
+                <button class="tablinks dropdown-item" id="GetPracticalExams" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetPracticalExams(@ViewBag.EnrollTeacherCourseId);">@Localizer["Practical Exams"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollStudents", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" id="GetTrainerEnrollStudents" onclick="openCourse(event, 'UserProfile_Students'); GetTrainerEnrollStudents(@ViewBag.EnrollTeacherCourseId);">@Localizer["Students"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" id="GetTrainerEnrollAssignments" onclick="openCourse(event, 'UserProfile_Assignments'); GetTrainerEnrollAssignments(@ViewBag.EnrollTeacherCourseId);">@Localizer["Assignments"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuiz", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+            {
+                <button class="tablinks dropdown-item" id="GetTrainerEnrollQuizzes" onclick="openCourse(event, 'UserProfile_Quizzes'); GetTrainerEnrollQuizzes(@ViewBag.EnrollTeacherCourseId);">@Localizer["Daily recitation"]</button>
+            }
+        </li>
+        <li>
+            @if (!checkIfClassOnline)
+            {
+                <button class="tablinks dropdown-item" id="GetAttendances" onclick="openCourse(event, 'UserProfile_Attendances'); GetAttendances(@ViewBag.EnrollTeacherCourseId);">@Localizer["Student Attendance"]</button>
+
+                <button class="tablinks dropdown-item" id="GetTeacherAttendances" onclick="openCourse(event, 'UserProfile_TeacherAttendances'); GetTeacherAttendances(@ViewBag.EnrollTeacherCourseId);">@Localizer["Teacher Attendance"]</button>
+            }
+        </li>
+    </ul>
+</div>
+
+<div class="courses-tab menu-sliders">
+    <button class="tablinkss menu-slide TrainerEnrollCoursesContent" id="GetDetails" onclick="openCourse(event, 'Details'); GetDetails(@ViewBag.EnrollTeacherCourseId);">@Localizer["Details"]</button>
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" id="defaultTrainerEnrollCoursesContent" onclick="openCourse(event, 'UserProfile_CoursesContent'); GetTrainerEnrollCoursesContent(@ViewBag.EnrollTeacherCourseId);">@Localizer["Course Content <small>(Sections, Lectures, Resources)</small>"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" id="GetTrainerEnrollCourseExam" onclick="openCourse(event, 'UserProfile_Exams'); GetTrainerEnrollCourseExam(@ViewBag.EnrollTeacherCourseId);">@Localizer["Exams & Quizzes"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+    {
+        <button class="tablinkss menu-slide" id="GetPracticalExams" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetPracticalExams(@ViewBag.EnrollTeacherCourseId);">@Localizer["Practical Exams"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollStudents", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" id="GetTrainerEnrollStudents" onclick="openCourse(event, 'UserProfile_Students'); GetTrainerEnrollStudents(@ViewBag.EnrollTeacherCourseId);">@Localizer["Students"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" id="GetTrainerEnrollAssignments" onclick="openCourse(event, 'UserProfile_Assignments'); GetTrainerEnrollAssignments(@ViewBag.EnrollTeacherCourseId);">@Localizer["Assignments"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuiz", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+    {
+        <button class="tablinkss menu-slide" id="GetTrainerEnrollQuizzes" onclick="openCourse(event, 'UserProfile_Quizzes'); GetTrainerEnrollQuizzes(@ViewBag.EnrollTeacherCourseId);">@Localizer["Daily recitation"]</button>
+    }
+    @if (!checkIfClassOnline)
+    {
+        <button class="tablinkss menu-slide" id="GetAttendances" onclick="openCourse(event, 'UserProfile_Attendances'); GetAttendances(@ViewBag.EnrollTeacherCourseId);">@Localizer["Student Attendance"]</button>
+        <button class="tablinkss menu-slide" id="GetTeacherAttendances" onclick="openCourse(event, 'UserProfile_TeacherAttendances'); GetTeacherAttendances(@ViewBag.EnrollTeacherCourseId);">@Localizer["Teacher Attendance"]</button>
+    }
+</div>
+
+<div id="Details" class="tabcontentt"></div>
+<div id="UserProfile_CoursesContent" class="tabcontentt"></div>
+<div id="UserProfile_Exams" class="tabcontentt"></div>
+<div id="UserProfile_PracticalExams" class="tabcontentt"></div>
+<div id="UserProfile_Students" class="tabcontentt"></div>
+<div id="UserProfile_Assignments" class="tabcontentt"></div>
+<div id="UserProfile_Attendances" class="tabcontentt"></div>
+<div id="UserProfile_Quizzes" class="tabcontentt"></div>
+<div id="UserProfile_TeacherAttendances" class="tabcontentt"></div>
+
+<style>
+    .TrainerEnrollCoursesContent small {
+        font-size: 0.775em !important;
+    }
+
+    .Course-Contant {
+        font-size: 28px;
+    }
+</style>
+<script type="text/javascript">
+    var PackagesID = '@PackagesID';
+
+    $("#CoursesPackageId").change(function () {
+        GetTrainerHomePageCoursesPackages(PackagesID, $(this).val());
+    });
+    $(".tablinkss").click(function () {
+        localStorage.setItem("menu-slide", $(this).attr("id"));
+    });
+
+    var MenuSlideID = localStorage.getItem('menu-slide');
+    if (MenuSlideID) {
+        $("#" + MenuSlideID).click();
+
+    } else {
+        document.getElementById("GetDetails").click();
+    }
+</script>

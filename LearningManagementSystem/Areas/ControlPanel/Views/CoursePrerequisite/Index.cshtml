@@ -1,0 +1,76 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='CreateCoursePrerequisite' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='CreateCoursePrerequisiteDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCoursePrerequisite' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='EditCoursePrerequisiteDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsCoursePrerequisite' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DetailsCompanyDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteCoursePrerequisite' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DeleteRegimentDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditLecturesContent' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='EditLecturesContentDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Id", "CourseId", "PrerequisiteCourseId", "Status", "CreatedOn", "CreatedBy"]
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var AddMassegeErrorInvalidData = '@Localizer["An error occurred while adding, You must add valid course data!"]';
+        
+        $('.tms-courses').addClass("active");
+        $('.tms-sub-CoursePrerequisite').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_courses').addClass("active");
+    </script>
+
+    <script src="~/js/CoursePrerequisite/CoursePrerequisite.js?ver=6.1"></script>
+}

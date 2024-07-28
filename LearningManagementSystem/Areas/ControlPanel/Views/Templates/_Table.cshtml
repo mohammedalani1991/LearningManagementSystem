@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div>
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Column Management"]
+                </div>
+            </div>
+            <div class="x_content">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Id"]
+                            </td>
+                            <td class="td d-none">
+                                Id
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Name"]
+                            </td>
+                            <td class="td d-none">
+                                Name
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Code"]
+                            </td>
+                            <td class="td d-none">
+                                Code
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-2">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Type"]
+                            </td>
+                            <td class="td d-none">
+                                Type
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Status"]
+                            </td>
+                            <td class="td d-none">
+                                Status
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Created By"]
+                            </td>
+                            <td class="td d-none">
+                                CreatedBy
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-8">
+                                <input type="checkbox" class="TableCheckBox" />
+                                @Localizer["Created On"]
+                            </td>
+                            <td class="td d-none">
+                                CreatedOn
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="text-center">
+                    <button class="tms-save-btn" type="button" onclick="ChangeTable()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                </div>
+                <br />
+            </div>
+        </div>
+    </div>
+</div>
+

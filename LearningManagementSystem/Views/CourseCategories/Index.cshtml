@@ -1,0 +1,42 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.CourseCategory>
+
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Categories"];
+
+
+
+}
+
+
+<div id="Categories">
+    <div class="container-fluid container-lg">
+        <div class="row px-3 pt-3">
+            <p class="fs-title40 m-0">@Localizer["Categories"]</p>
+            <span class="botm-title40"></span>
+        </div>
+        <hr class="d-none d-lg-block m-0" style="color:#cfcfcf;">
+    </div>
+    <div class="container-fluid container-lg pdiv-categor">
+        <div class="row g-3 gutter-Cat ">
+            @foreach (var item in Model)
+            {
+                <div class="col-12 col-md-5 col-lg-2 roundeddiv-cat bg-white padding-cat11 p-Cbgwhite" data-aos="fade-up" data-aos-duration="3000">
+                    <img src="@item.ImageUrl" class="img-fluid size-img">
+                    <div class="d-flex justify-content-between align-items-center py-Cattitle">
+                        <a href="@Url.Action("Index","CourseCategories",new {id=item.Id })" class="text-dark m-0 fsC-name">@item.Name</a>
+                        <a href="@Url.Action("Index","CourseCategories",new {id=item.Id })" class="pe-16 text-dark">
+                            <i class="fa-solid fa-arrow-right pc-icon"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+            }
+
+
+        </div>
+    </div>
+</div>

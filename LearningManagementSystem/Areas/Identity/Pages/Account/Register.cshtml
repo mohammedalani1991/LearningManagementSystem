@@ -1,0 +1,258 @@
+﻿@page
+@model RegisterModel
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization;
+@inject IViewLocalizer Localizer
+@{
+    Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+    ViewData["Title"] = "Register";
+
+    var requestCulture = HttpContext.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var languageId = CultureHelper.GetCurrentLanguageId(requestCulture);
+    ViewBag.LangId = languageId;
+
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.Gender.ToString(), GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var gender = lookups[GeneralEnums.MasterLookupCodeEnums.Gender.ToString()];
+    var EducationalLevel = lookups[GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString()];
+    var countries = LookupHelper.GetCountries(languageId);
+    var cities = LookupHelper.GetCities(languageId, countries.FirstOrDefault()?.Id ?? 0);
+
+
+}
+
+<style>
+    .translate-middle-y-ar {
+        transform: translateY(-50%) !important;
+    }
+
+    .chosen-select {
+        width: 0% !important;
+    }
+
+    .chosen-single, .chosen-select {
+        width: 100%;
+        height: 51.84px !important;
+        border: 1px solid #BBCAFF !important;
+        border-radius: 5px !important;
+        background-color: #F4F7FE !important;
+        display: block !important;
+        padding: .375rem .75rem .375rem 2.25rem;
+    }
+
+        .chosen-single > span {
+            margin-top: 7px;
+        }
+
+        .chosen-single div b {
+            margin-top: 12px !important;
+        }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+@*<h1>@ViewData["Title"]</h1>
+
+    <div class="row">
+        <div class="col-md-4">
+            <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <h4>Create a new account.</h4>
+                <hr />
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="Input.Email"></label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.Password"></label>
+                    <input asp-for="Input.Password" class="form-control" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.ConfirmPassword"></label>
+                    <input asp-for="Input.ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+        </div>
+
+    </div>*@
+
+
+
+
+<div class="container-fluid mtb-center">
+    <div class="row justify-content-center align-items-center ">
+        <div class="px-75 w-Signup bg-white">
+
+            <h2 class="text-center">@Localizer["Sign Up"]</h2>
+            <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.FirstName" class="form-label">@Localizer["First Name"]</label><span class="required">*</span>
+                        <input asp-for="Input.ContactViewModel.FirstName" type="text" required class="form-control shadow-none" placeholder="@Localizer["First Name"]">
+                        <span asp-validation-for="Input.ContactViewModel.FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.SecondName" class="form-label">@Localizer["Second Name"]</label><span class="required">*</span>
+                        <input asp-for="Input.ContactViewModel.SecondName" type="text" required class="form-control shadow-none" placeholder="@Localizer["Second Name"]">
+                        <span asp-validation-for="Input.ContactViewModel.SecondName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.ThirdName" class="form-label">@Localizer["Third Name"]</label><span class="required">*</span>
+                        <input asp-for="Input.ContactViewModel.ThirdName" type="text" required class="form-control shadow-none" placeholder="@Localizer["Third Name"]">
+                        <span asp-validation-for="Input.ContactViewModel.ThirdName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.LastName" class="form-label">@Localizer["Last Name"]</label><span class="required">*</span>
+                        <input asp-for="Input.ContactViewModel.LastName" type="text" required class="form-control shadow-none" placeholder="@Localizer["Last Name"]">
+                        <span asp-validation-for="Input.ContactViewModel.LastName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 col-12 mb-3 d-flex">
+                        <div class="col-5 pe-3">
+                            <label asp-for="Input.UserProfileViewModel.PhoneNumberCode" class="form-label">@Localizer["Country Code"]</label><span class="required">*</span>
+                            <select asp-for="Input.UserProfileViewModel.PhoneNumberCode" required class="chosen-select" aria-label="Default select example" id="countryDropdown">
+                                <option value="" selected="selected">@Localizer["Choose Country"]</option>
+                            </select>
+                        </div>
+                        <div class="col-7">
+                            <label asp-for="Input.UserProfileViewModel.PhoneNumber" class="form-label">@Localizer["Phone Number"]</label><span class="required">*</span>
+                            <input asp-for="Input.UserProfileViewModel.PhoneNumber" required type="number" class="form-control shadow-none" placeholder="000000000">
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.GenderId" class="form-label">@Localizer["Gender"]</label><span class="required">*</span>
+                        <select asp-for="Input.ContactViewModel.GenderId" required class="form-select" aria-label="Default select example" asp-items="@(new SelectList(gender, "Id", "Name"))">
+                            <option value="" selected="selected">@Localizer["Choose Gender"]</option>
+                        </select>
+
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.Email" class="form-label">@Localizer["Email Address"]</label><span class="required">*</span>
+                        <input asp-for="Input.ContactViewModel.Email" required type="email" class="form-control shadow-none" placeholder="email@email.com">
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.StudentViewModel.EducationalLevelId" class="form-label">@Localizer["Education"]</label><span class="required">*</span>
+                        <select asp-for="Input.StudentViewModel.EducationalLevelId" required class="form-select" aria-label="Default select example" asp-items="@(new SelectList(EducationalLevel,"Id","Name"))">
+                            <option value="" selected="selected">@Localizer["Choose Educational"]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Country"]</label><span class="required">*</span>
+                        <select asp-for="Input.ContactViewModel.CountryId" required onchange="GetCountryCities2()" class="chosen-select" asp-items="@(new SelectList(countries,"Id","Name"))" aria-label="Default select example" required>
+                            <option value="" selected="selected">@Localizer["Choose Country"]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.CityId" class="form-label">@Localizer["City"]</label><span class="required">*</span>
+                        <select asp-for="Input.ContactViewModel.CityId" required class="chosen-select" asp-items="@(new SelectList(cities,"Id","Name"))" aria-label="Default select example" required>
+                            <option value="" selected="selected">@Localizer["Choose City"]</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.ContactViewModel.LanguageId" class="form-label">@Localizer["Language"]</label><span class="required">*</span>
+                        <select asp-for="Input.ContactViewModel.LanguageId" required class="form-select" aria-label="Language" asp-items="@(new SelectList(languages,"Id","Name"))">
+                            <option value="" selected="selected">@Localizer["Choose Language"]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.StudentViewModel.BirthDate" class="form-label">@Localizer["Date of Birth"]</label><span class="required">*</span>
+                        <input asp-for="Input.StudentViewModel.BirthDate" required type="date" class="form-control shadow-none">
+
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.UserProfileViewModel.Password" class="form-label">@Localizer["Password"] </label><span class="required">*</span>
+                        <div class="position-relative">
+                            <input asp-for="Input.UserProfileViewModel.Password" required type="password" class="form-control shadow-none password" style="font-family: auto"
+                                   placeholder="****************">
+                            <div class="position-absolute top-50 end-0 translate-middle-y-ar mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label asp-for="Input.UserProfileViewModel.ConfirmPassword" class="form-label">@Localizer["Confirm Password"]</label><span class="required">*</span>
+                        <div class="position-relative">
+                            <input asp-for="Input.UserProfileViewModel.ConfirmPassword" required type="password" class="form-control shadow-none password" style="font-family: auto"
+                                   placeholder="****************">
+                            <div class="position-absolute top-50 end-0 translate-middle-y-ar mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <button class="btn w-50 py-3 btn-primary">@Localizer["Sign Up"]</button>
+                    </div>
+                    <div class="text-center mt-3 form-label">
+                        <p>@Localizer["Already Have An Account?"] <a class="text-primarycolor" asp-area="Identity" asp-action="Login" asp-controller="Account">@Localizer["Login"]</a></p>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/js/Country/City.js"></script>
+    <script>
+        (function () {
+            if ($("#Input_ContactViewModel_CountryId").val() > 0)
+                GetCountryCities2()
+            $.ajax({
+                url: 'https://restcountries.com/v3.1/all',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    var dropdown = document.getElementById('countryDropdown');
+                    data.sort(function (a, b) {
+                        var nameA = a.name.common.toUpperCase();
+                        var nameB = b.name.common.toUpperCase();
+                        if (nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    $.each(data, function (index, country) {
+                        if (Object.keys(country?.idd).length != 0) {
+                            var option = document.createElement('option');
+                            if ("@(selectedLang == "عربي")" == "True")
+                                option.text = "(" + country?.idd?.root + country?.idd?.suffixes[0] + ") " + country?.translations?.ara?.common;
+                            else
+                                option.text = "(" + country?.idd?.root + country?.idd?.suffixes[0] + ") " + country?.name?.common;
+
+                            option.value = country?.idd?.root + country?.idd?.suffixes[0];
+                            dropdown.appendChild(option);
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error: ' + error);
+                }
+            });
+        })()
+    </script>
+}

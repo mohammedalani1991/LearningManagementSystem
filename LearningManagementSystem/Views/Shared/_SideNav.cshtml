@@ -1,0 +1,342 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+<div class="menu_section nav-sm">
+    <ul class="nav tms-side-menu">
+        @if (AuthenticationHelper.CheckAuthentication("Area", "Management", User.Identity.Name))
+        {
+            <li class="tms-management">
+                <a>
+                    <i class="fa fa-gear"></i>@Localizer["Management"]<span class="fa fa-chevron-down"></span>
+                </a>
+                <ul class="child_menu nav" id="main-nav">
+
+                    @if (AuthenticationHelper.CheckAuthentication("Countries", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-Country">
+                            <a href="@Url.Action("Index", "Country", new {Area = "ControlPanel"})"> @Localizer["Countries"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Lookups", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-lookups">
+                            <a href="@Url.Action("Index", "MasterLookups", new {Area = "ControlPanel"})"> @Localizer["Lookups"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Settings", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-settings">
+                            <a href="@Url.Action("Index", "SystemSettings", new {Area = "ControlPanel"})"> @Localizer["Settings"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-contacts">
+                            <a href="@Url.Action("Index", "UserProfiles", new {Area = "ControlPanel"})">
+                                @Localizer["Contacts"]
+                            </a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("Permissions", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-Permissions">
+                            <a href="@Url.Action("Index", "Permissions", new {Area = "ControlPanel"})">
+                                @Localizer["Permissions"]
+                            </a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Roles", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-roles">
+                            <a href="@Url.Action("Index", "AspNetRoles", new {Area = "ControlPanel"})">
+                                @Localizer["Roles"]
+                            </a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ContactUs", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-contact-us">
+                            <a href="@Url.Action("Index", "ContactUs", new {Area = "ControlPanel"})">@Localizer["ContactUs"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("Subscribers", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-subscribers">
+                            <a href="@Url.Action("Index", "Subscribers", new {Area = "ControlPanel"})">@Localizer["Subscribers for Newsletter"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("SystemLogs", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-comm-logs">
+                            <a href="@Url.Action("Index", "SystemLogs", new {Area = "ControlPanel"})"> @Localizer["System Logs"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Templates", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-templates">
+                            <a href="@Url.Action("Index", "Templates", new {Area = "ControlPanel"})"> @Localizer["Templates"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Currency", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-currency">
+                            <a href="@Url.Action("Index", "Currency", new {Area = "ControlPanel"})"> @Localizer["Currencies"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("TrainerRateMeasures", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <li class="tms-sub-rate-measure">
+                            <a href="@Url.Action("Index", "TrainerRateMeasure", new {Area = "ControlPanel"})"> @Localizer["Trainer Rate Measures"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ManagementStandards", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <li class="tms-sub-management-standard">
+                            <a href="@Url.Action("Index", "ManagementStandard", new {Area = "ControlPanel"})"> @Localizer["Management Standards"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("AcademicSupervisionStandards", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Ratings"))
+                    {
+                        <li class="tms-sub-academic-standard">
+                            <a href="@Url.Action("Index", "AcademicSupervisionStandard", new {Area = "ControlPanel"})"> @Localizer["Academic Supervision Standards"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Expulsion", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-expulsion">
+                            <a href="@Url.Action("Index", "Expulsion", new {Area = "ControlPanel"})"> @Localizer["Expulsion"]</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        @if (AuthenticationHelper.CheckAuthentication("Area", "ManageCMS", User.Identity.Name))
+        {
+            <li class="tms-cms">
+                <a>
+                    <i class="fa fa-gear"></i>@Localizer["Manage CMS"]<span class="fa fa-chevron-down"></span>
+                </a>
+                <ul class="child_menu nav" id="main-nav">
+                    @if (AuthenticationHelper.CheckAuthentication("CmsSliders", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-cmsSliders">
+                            <a href="@Url.Action("Index", "CmsSlider", new {Area = "ControlPanel"})"> @Localizer["Sliders"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Calendars", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-calendars">
+                            <a href="@Url.Action("Index", "Calendar", new {Area = "ControlPanel"})"> @Localizer["Calendars"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsCaterys", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-cmscaterys">
+                            <a href="@Url.Action("Index", "CmsCatery", new {Area = "ControlPanel"})"> @Localizer["Categories"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("CmsPages", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-cmspages">
+                            <a href="@Url.Action("Index", "CmsPage", new {Area = "ControlPanel"})"> @Localizer["Pages"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("CmsPages", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-cmsWhatPeopleSays">
+                            <a href="@Url.Action("Index", "CmsWhatPeopleSay", new {Area = "ControlPanel"})"> @Localizer["What People Say"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsCategoryProject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("ProjectCategory"))
+                    {
+                        <li class="tms-sub-cmsCategoryProjects">
+                            <a href="@Url.Action("Index", "CmsCategoryProject", new {Area = "ControlPanel"})"> @Localizer["Project categories"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CmsProject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                    {
+                        <li class="tms-sub-CmsProject">
+                            <a href="@Url.Action("Index", "CmsProject", new {Area = "ControlPanel"})"> @Localizer["Projects"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("AboutDics", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-AboutDics">
+                            <a href="@Url.Action("Index", "AboutDics", new {Area = "ControlPanel"})"> @Localizer["About Dics"]</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        @if (AuthenticationHelper.CheckAuthentication("Area", "ManageCourses", User.Identity.Name))
+        {
+            <li class="tms-cms">
+                <a>
+                    <i class="fa fa-gear"></i>@Localizer["Manage Courses"]<span class="fa fa-chevron-down"></span>
+                </a>
+                <ul class="child_menu nav" id="main-nav">
+                    @if (AuthenticationHelper.CheckAuthentication("semester", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-semesters">
+                            <a href="@Url.Action("Index", "semester", new {Area = "ControlPanel"})"> @Localizer["Semesters"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CourseCategorys", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-CourseCategorys">
+                            <a href="@Url.Action("Index", "CourseCategory", new {Area = "ControlPanel"})"> @Localizer["Course Categories"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Courses", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-Courses">
+                            <a href="@Url.Action("Index", "Course", new {Area = "ControlPanel"})"> @Localizer["Courses"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursePackages", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Packages"))
+                    {
+                        <li class="tms-sub-CoursePackages">
+                            <a href="@Url.Action("Index", "CoursePackages", new {Area = "ControlPanel"})"> @Localizer["Course Packages"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesContent", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-CoursesContent">
+                            <a href="@Url.Action("Index", "CoursesContent", new {Area = "ControlPanel"})"> @Localizer["Courses Content"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursePrerequisite", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-CoursePrerequisite">
+                            <a href="@Url.Action("Index", "CoursePrerequisite", new {Area = "ControlPanel"})"> @Localizer["Course Prerequisite"]</a>
+                        </li>
+                    }
+
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-EnrollmentCourse">
+                            <a href="@Url.Action("Index", "EnrollmentCourse", new {Area = "ControlPanel"})"> @Localizer["Enroll Trainer For Course"]</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+
+        @if (AuthenticationHelper.CheckAuthentication("Area", "ManageQuestions", User.Identity.Name))
+        {
+            <li class="tms-cms">
+                <a>
+                    <i class="fa fa-gear"></i>@Localizer["Manage Questions"]<span class="fa fa-chevron-down"></span>
+                </a>
+                <ul class="child_menu nav" id="main-nav">
+                    @if (AuthenticationHelper.CheckAuthentication("Question", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-Questions">
+                            <a href="@Url.Action("Index", "Question", new {Area = "BankOfQuestion"})"> @Localizer["Bank Of Question"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ExamTemplates", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-ExamTemplates">
+                            <a href="@Url.Action("Index", "ExamTemplate", new {Area = "ControlPanel"})"> @Localizer["Exam Templates & Questions"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("Subject", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <li class="tms-sub-Subject">
+                            <a href="@Url.Action("Index", "Subject", new {Area = "ControlPanel"})"> @Localizer["Subjects"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("PracticalExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <li class="tms-sub-PracticalExams">
+                            <a href="@Url.Action("Index", "PracticalExams", new {Area = "ControlPanel"})"> @Localizer["Practical Exams"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("PracticalQuestion", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+                    {
+                        <li class="tms-sub-PracticalQuestions">
+                            <a href="@Url.Action("Index", "PracticalQuestions", new {Area = "ControlPanel"})"> @Localizer["Ratings"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("MarkAdoptionForExam", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-PracticalQuestions">
+                            <a href="@Url.Action("Index", "MarkAdoption", new {Area = "ControlPanel"})"> @Localizer["Mark Adoption"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CertificateAdoption", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-PracticalQuestions">
+                            <a href="@Url.Action("Index", "CertificateAdoption", new {Area = "ControlPanel"})"> @Localizer["Certificate Adoption"]</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+
+        @if (AuthenticationHelper.CheckAuthentication("Area", "ManageReports", User.Identity.Name))
+        {
+            <li class="tms-cms">
+                <a>
+                    <i class="fa fa-gear"></i>@Localizer["Reports"]<span class="fa fa-chevron-down"></span>
+                </a>
+                <ul class="child_menu nav" id="main-nav">
+                    @if (AuthenticationHelper.CheckAuthentication("StudentsReports", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-StudentsReports">
+                            <a href="@Url.Action("Index", "StudentsReports", new {Area = "Reports"})"> @Localizer["Students Reports"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesReports", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-CoursesReports">
+                            <a href="@Url.Action("Index", "CoursesReports", new {Area = "Reports"})"> @Localizer["Courses Reports"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("StudentsCourseReports", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-StudentsCourseReports">
+                            <a href="@Url.Action("Index", "StudentsCourseReports", new {Area = "Reports"})"> @Localizer["Students Course Reports"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("CoursesPaymentReports", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-PaymentReports">
+                            <a href="@Url.Action("Index", "PaymentReports", new {Area = "Reports"})"> @Localizer["Courses Payment Reports"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("ProjectsPaymentReports", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Projects"))
+                    {
+                        <li class="tms-sub-ProjectPaymentReports">
+                            <a href="@Url.Action("Index", "ProjectsPaymentReports", new {Area = "Reports"})"> @Localizer["Projects Payment Reports"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("InvoicesPay", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-InvoicesPay">
+                            <a href="@Url.Action("Index", "InvoicesPay", new {Area = "ControlPanel"})"> @Localizer["Invoices Pay"]</a>
+                        </li>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("AuditLogs", "View", User.Identity.Name))
+                    {
+                        <li class="tms-sub-AuditLogs">
+                            <a href="@Url.Action("Index", "AuditLogs", new {Area = "ControlPanel"})"> @Localizer["Audit Logs"]</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        <li>
+            <a id="show-seacond-nav" class="d-none">Show seacond bar</a>
+        </li>
+    </ul>
+</div>

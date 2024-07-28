@@ -1,0 +1,261 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.EnrollCourseAssigmentQuestion
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.ViewModels
+@using DataEntity.Models.EfModels
+@inject IViewLocalizer Localizer
+
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+    var questionTypes = LookupHelper.GetQuestionsType((int)ViewBag.LangId);
+}
+
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div class="tms-close-div">
+                    <i class="fa fa-close modal-Close" onclick="CleanQuestion();"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @if (ViewBag.Edit)
+                    {
+                        @Localizer["Edit Question"]
+                    }
+                    else
+                    {
+                        @Localizer["Add Question"]
+                    }
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form id="Question-Create" class="form-horizontal form-label-left">
+                    <div class="row px-4 py-3">
+                        @Html.HiddenFor(model => model.Id , new {id ="QuestionId"})
+                        @Html.HiddenFor(model => model.EnrollCourseAssigmentId)
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control chosen-select tms-ddl", required = "required", onchange="onDdlChanged(this)" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Status">
+                                @Localizer["Question Type"]  <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("QuestionType", new SelectList(questionTypes, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required", @onchange = "ChangeQuestionTypefunc(this.value)" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Status">
+                                @Localizer["Status"]  <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.Status, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-12">
+                            <label class="control-label col-xs-6 tms-label" for="Name">
+                                @Localizer["Question"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.TextAreaFor(model => model.QuestionName, new { required = "required", @class = "tinyRichText" })
+                            </div>
+                        </div>
+                        @if (ViewBag.Edit && (Model.QuestionType == (int)GeneralEnums.QuestionEnum.CheckBox || Model.QuestionType == (int)GeneralEnums.QuestionEnum.RadioButton))
+                        {
+                            <div class=" col-lg-12 col-sm-12 col-xs-12 mt-4" id="QuestionOptionsDiv">
+                                <button class="tms-save-btn mb-3" type="button" onclick="AddOption()"><i class="fa fa-plus" aria-hidden="true"></i> @Localizer["Add new option"]</button>
+                                <div id="QuestionOptions">
+                                    @foreach (var item in Model.EnrollCourseAssigmentQuestionOptions)
+                                    {
+                                        var c = item.IsCorrect ? "checked" : "";
+                                        <div class='row mb-3 optionOfQuestion'>
+                                            <div class='col-7'>
+                                                <input type='hidden' name='id' class='id' value="@item.Id">
+                                                <input type='text' name='option' class='form-control option' required='true' aria-invalid='false' value="@item.Name">
+                                            </div>
+                                            <div class='col-3 d-flex align-items-center'>
+                                                <span class='px-3'>@Localizer["Correct Answer"]</span>
+                                                <input type='checkbox' class="checkbox" name='isCorrect' aria-invalid='false' @c />
+                                            </div>
+                                            <div class='col-2 d-flex align-items-center'>
+                                                <button type='button' onclick='DeleteOption(this)' title='@Localizer["Delete option"]' class='btn btn-sm btn-danger'>
+                                                    <i class='fa fa-trash' aria-hidden='true'></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class=" col-lg-12 col-sm-12 col-xs-12 mt-4" id="QuestionOptionsDiv" style="display:none">
+                                <button class="tms-save-btn mb-3" type="button" onclick="AddOption()"><i class="fa fa-plus" aria-hidden="true"></i> @Localizer["Add new option"]</button>
+                                <div id="QuestionOptions">
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="form-group text-center mt-2">
+                        @if (ViewBag.Edit)
+                        {
+                            <button class="tms-save-btn" type="button" onclick="EditQuestion(@Model.EnrollCourseAssigmentId)"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                        }
+                        else
+                        {
+                            <button class="tms-save-btn" type="button" onclick="AddQuestion(@Model.EnrollCourseAssigmentId)"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var deleteOptionTrans = '@Localizer["Delete option"]';
+    var correctAnswer = '@Localizer["Correct Answer"]';
+    var option = "<div class='row mb-3 optionOfQuestion'> <div class='col-7'><input type='hidden' name='id' class='id'value='0'> <input type='text' name='option' class='form-control option' required='true' aria-invalid='false'> </div> <div class='col-3 d-flex align-items-center' > <span class='px-3'>" + correctAnswer + "</span> <input type='checkbox' class='checkbox' name='isCorrect'  aria-invalid='false'> </div> <div class='col-2 d-flex align-items-center'> <button type='button' onclick='DeleteOption(this)' title='" + deleteOptionTrans + "' class='btn btn-sm btn-danger'>  <i class='fa fa-trash' aria-hidden='true'></i>   </button> </div> </div>";
+</script>
+
+
+<script>
+    InitTinymce();
+
+    $(document).on('change', '.checkbox', function () {
+        if (this.checked)
+            if ($("#QuestionType").val() == 3)
+                $('input:checkbox').not(this).prop('checked', "");
+    });
+
+    function AddQuestion(enrollCourseAssigmentId) {
+        ShowSpinner();
+        var obj = {
+            LanguageId: $("#LanguageId").val(),
+            QuestionType: $("#QuestionType").val(),
+            Status: $("#Status").val(),
+            QuestionName: tinymce.get('QuestionName').getContent(),
+            EnrollCourseAssigmentId: $("#EnrollCourseAssigmentId").val(),
+            OptionList: [],
+        };
+
+        for (var i = 0; i < $("#QuestionOptions").find(".optionOfQuestion").length; i++) {
+            var name = $("#QuestionOptions").find(".optionOfQuestion .option")[i].value;
+            var isChecked = $("#QuestionOptions").find(".optionOfQuestion :checkbox")[i].checked;
+            obj.OptionList.push({ Name: name, IsCorrect: isChecked });
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/ControlPanel/EnrollmentAssignments/CreateAssignmentQuestion",
+            data: { questionViewModel: obj },
+            headers: {
+                'RequestVerificationToken': Token
+            },
+            success: function (data) {
+                toastr.success(addMassege);
+                HideSpinner();
+                ShowQuestions(enrollCourseAssigmentId);
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(addMassegeError);
+            },
+        });
+    }
+
+    function onDdlChanged(langId) {
+        if ('@ViewBag.Edit' == "True")
+            ShowEditAssignmentQuestions($('#QuestionId').val(), langId.value);
+    }
+
+    function EditQuestion(enrollCourseAssigmentId) {
+        ShowSpinner();
+        var obj = {
+            Id: $("#QuestionId").val(),
+            LanguageId: $("#LanguageId").val(),
+            QuestionType: $("#QuestionType").val(),
+            Status: $("#Status").val(),
+            QuestionName: tinymce.get('QuestionName').getContent(),
+            EnrollCourseAssigmentId: $("#EnrollCourseAssigmentId").val(),
+            OptionList: [],
+        };
+
+        for (var i = 0; i < $("#QuestionOptions").find(".optionOfQuestion").length; i++) {
+            var id = $("#QuestionOptions").find(".optionOfQuestion .id")[i].value;
+            var name = $("#QuestionOptions").find(".optionOfQuestion .option")[i].value;
+            var isChecked = $("#QuestionOptions").find(".optionOfQuestion :checkbox")[i].checked;
+            obj.OptionList.push({ Id: id, Name: name, IsCorrect: isChecked });
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/ControlPanel/EnrollmentAssignments/EditAssignmentQuestion",
+            data: { questionViewModel: obj },
+            headers: {
+                'RequestVerificationToken': Token
+            },
+            success: function (data) {
+                toastr.success(editMassege);
+                HideSpinner();
+                ShowQuestions(enrollCourseAssigmentId);
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+            },
+        });
+    }
+
+    function AddOption() {
+        $("#QuestionOptions").prepend(option);
+    }
+
+    function DeleteOption(current) {
+        var n = $(current).parent().parent().parent().find(".row").length - 2;
+        if (n > 0) {
+            $(current).parent().parent().remove();
+        }
+    }
+
+    function ChangeQuestionTypefunc(item) {
+        if (item == 2 || item == 3) {
+            $("#QuestionOptionsDiv").show();
+            $(".optionOfQuestion").remove();
+            $("#QuestionOptions").prepend(option);
+            $("#QuestionOptions").prepend(option);
+        }
+        else {
+            $("#QuestionOptionsDiv").hide();
+            $(".optionOfQuestion").remove();
+        }
+    }
+
+    function ShowQuestionTypefunc(item) {
+        if (item != 1) {
+            $("#QuestionOptionsDiv").show();
+
+        }
+        else {
+            $("#QuestionOptionsDiv").hide();
+        }
+    }
+
+</script>

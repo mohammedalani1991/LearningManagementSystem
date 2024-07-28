@@ -1,0 +1,150 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.DashboardViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Index";
+}
+
+@*<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title bg-transparent">
+                <h2>@Localizer["Dashboard"] <small>@ViewData["Title"]</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <!-- top tiles -->
+                <div class="row">
+                    <div class="tile_count">
+                        <div class="col-md-3 col-sm-4  tile_stats_count">
+                            <span class="count_top"><i class="fa fa-user"></i> @Localizer["Total Users"]</span>
+                            <div class="count">@Model.UsersCount</div>
+                        </div>
+                        <div class="col-md-3 col-sm-4  tile_stats_count">
+                            <span class="count_top"><i class="fa fa-clock-o"></i>@Localizer["Total Projects"]</span>
+                            <div class="count">@Model.ProjectsCount</div>
+                        </div>
+                        <div class="col-md-3 col-sm-4  tile_stats_count">
+                            <span class="count_top"><i class="fa fa-user"></i>@Localizer["Total Contact"] </span>
+                            <div class="count green">@Model.ContactCount</div>
+                        </div>
+                        <div class="col-md-3 col-sm-4  tile_stats_count">
+                            <span class="count_top"><i class="fa fa-user"></i>@Localizer["Total Experiences"]</span>
+                            <div class="count">@Model.ExperiencesCount</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /top tiles -->
+                <hr />
+                <h1>@Localizer["Contact"]</h1>
+                <table class="table table-striped jambo_table bulk_action">
+                    <thead>
+                        <tr class="headings">
+                            <th>
+                                @Localizer["Name"]
+                            </th>
+                            <th>
+                                @Localizer["Subject"]
+                            </th>
+                            <th>
+                                @Localizer["Email"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in EntityHelper.GetContacts())
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Subject)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Email)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+              @*                  <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("ContactUs", "Edit", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Edit", "ContactUs", new {id = item.Id})" class="btn btn-sm btn-success"> @Localizer["Edit"]</a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("ContactUs", "View", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Details", "ContactUs", new {id = item.Id})" class="btn btn-sm btn-primary"> @Localizer["Details"]</a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("ContactUs", "Delete", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Delete", "ContactUs", new {id = item.Id})" class="btn btn-sm btn-danger"> @Localizer["Delete"]</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <hr />
+                <h1>@Localizer["Users"]</h1>
+                <table class="table table-striped jambo_table bulk_action">
+                    <thead>
+                        <tr class="headings">
+                            <th>
+                                @Localizer["FullName"]
+                            </th>
+                            <th>
+                                @Localizer["Email"]
+                            </th>
+                            <th>
+                                @Localizer["Mobile"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in EntityHelper.GetUsers())
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.FullName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Email)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Mobile)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Edit", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Edit", "UserProfiles", new {id = item.Id})" class="btn btn-sm btn-success">@Localizer["Edit"]</a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "View", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Details", "UserProfiles", new {id = item.Id})" class="btn btn-sm btn-primary">@Localizer["Details"]</a>
+                                    }
+                                    @if (AuthenticationHelper.CheckAuthentication("UserProfiles", "Delete", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Delete", "UserProfiles", new {id = item.Id})" class="btn btn-sm btn-danger">@Localizer["Delete"]</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>*@

@@ -1,0 +1,139 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@inject IPracticalEnrollmentExamStudentService ExamStudentService
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+<style>
+    .list-group-item {
+        padding: 0.40rem 1.25rem !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12 courses-title row pb-2">
+        <div class="col-6 d-flex justify-content-start align-items-center">
+            <span class="My-Cources mb-0">@Localizer["Enrolled Students"]</span>
+        </div>
+        <form class="col-6 d-flex align-items-center justify-content-between" data-ajax="true" method="get" action="/Trainer/EnrollPracticalExam/ShowEnrolledStudents/" id="Form1" data-ajax-success="GetEnrolledStudentsDataForExam" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+            @Html.Hidden("Page")
+            @Html.Hidden("PracticalEnrollmentExamId")
+            @Html.Hidden("EnrollTeacherCourseId")
+            <div class="col-md-8 col-sm-3 col-xs-12">
+                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+            </div>
+            <div>
+                <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+            </div>
+        </form>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Id"]
+                            </th>
+                            <th>
+                                @Localizer["Student Name"]
+                            </th>
+                            <th>
+                                @Localizer["Number Of Subjects"]
+                            </th>
+                            <th>
+                                @Localizer["Mark"]
+                            </th>
+                            <th>
+                                @Localizer["Mark After Conversion"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="3">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            var count = @ExamStudentService.GetSubjectCoumtForStudent(ViewBag.PracticalEnrollmentExamId, item.Id, ViewBag.User);
+
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Student.Id)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Student.Contact.FullName)
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddStudent", User.Identity.Name))
+                                    {
+                                        <button class="btn btn-primary pointer" onClick="ShowAddSubjects(@item.Id , @ViewBag.EnrollTeacherCourseId , @ViewBag.PracticalEnrollmentExamId)">@ExamStudentService.GetSubjectCoumtForStudent(ViewBag.PracticalEnrollmentExamId ,item.Id  ,ViewBag.User)/@ViewBag.SubjectsCount</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-primary pointer">@count/@ViewBag.SubjectsCount</button>
+                                    }
+                                </td>
+                                <td>
+                                    @item.PracticalEnrollmentExamStudents.FirstOrDefault(r=>r.PracticalEnrollmentExamId == ViewBag.PracticalEnrollmentExamId)?.Mark
+                                </td>
+                                <td>
+                                    @item.PracticalEnrollmentExamStudents.FirstOrDefault(r=>r.PracticalEnrollmentExamId == ViewBag.PracticalEnrollmentExamId)?.MarkAfterConversion
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+
+                                </td>
+                                <td style="width: 25%;">
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddStudent", User.Identity.Name))
+                                            {
+                                                <li><a onclick="ShowAddSubjects(@item.Id , @ViewBag.EnrollTeacherCourseId , @ViewBag.PracticalEnrollmentExamId)" class="dropdown-item pointer">@Localizer["Add Subjects"]</a> </li>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddPoints", User.Identity.Name))
+                                            {
+                                                <li><a onclick="ShowAddPoints(@item.Id , @ViewBag.PracticalEnrollmentExamId ,@count,false)" class="dropdown-item pointer">@(ExamStudentService.IsExamSubmited(ViewBag.PracticalEnrollmentExamId, item.Id) ? Localizer["Edit Exam"] : Localizer["Start Exam"])</a> </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <div class="paging-div">
+                            @Html.PagedListPager(Model, page => Url.Action("ShowEnrolledStudents", new { page, EnrollTeacherCourseId = ViewBag.EnrollTeacherCourseId, PracticalEnrollmentExamId = ViewBag.PracticalEnrollmentExamId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowEnrolledStudentsDiv" }))
+                            <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

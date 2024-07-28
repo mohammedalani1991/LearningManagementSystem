@@ -1,0 +1,404 @@
+﻿@using X.PagedList.Web.Common
+@using LearningManagementSystem.Core
+@model List<EnrollCourseExamQuestion>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@inject ISettingService _SettingService
+@using LearningManagementSystem.Services.Helpers
+@using System.Web
+@{
+       Layout = null;
+    var i = 1;
+    int examCount = int.Parse(_SettingService.GetOrCreate(Constants.SystemSettings.CountOfExamAtPage, "10").Value);
+    string Cssclass = "div";
+    var jLoop = ((Model.Count) / examCount) + (((Model.Count) % examCount) >= 1 ? 1 : 0);
+  
+  }
+  <div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+<div class="QusIndexExamView">
+
+    <div class="divs">
+        <div  id="CreateFrm" >
+            <input type="hidden" id="EnrollCourseExamId" name="EnrollCourseExamId" value="@ViewBag.EnrollCourseExamId" />
+            <input type="hidden" id="EnrollStudentExamID" name="EnrollStudentExamID" value="@ViewBag.EnrollStudentExamID" />
+            @for (int j = 0; j < jLoop; j++)
+            {
+                <div  class="@Cssclass">
+
+                    @foreach (var exam in Model.Skip(j * examCount).Take(examCount))
+                    {
+                            var EnrollStudentExamAnswersId = exam.EnrollStudentExamAnswers.FirstOrDefault(e => e.EnrollCourseExamQuestionId == exam.Id && e.EnrollStudentExamId == ViewBag.EnrollStudentExamID).Id;
+                            var IsCorrect = exam.EnrollStudentExamAnswers.FirstOrDefault(e => e.Id == EnrollStudentExamAnswersId).IsCorrect;
+
+                        if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.Text)
+                        {
+                            
+
+                            <div class="pt-3">
+                                 <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    
+                                    <p>@i- @exam.Question.Question.Name</p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                 @if (!IsCorrect.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between flex-column-reverse flex-lg-row NewStyle">
+                                        <p>@Localizer["Waiting for correction by the trainer"]  </p> 
+                                    </div>
+                                }
+                                <div class="mtb-30 SolvedExam">
+                                <div class="form-check mb-2 text-success">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioCorrectAnswer1_@exam.Question.Question.Id" @((IsCorrect.HasValue)?((IsCorrect.Value)?"checked":""):"")
+                                        value="1">
+                                    <label class="form-check-label" for="RadioCorrectAnswer1_@exam.Question.Question.Id">
+                                       @Localizer["Correct Answer"] 
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2 text-danger ">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioWrongAnswer2_@exam.Question.Question.Id" @((IsCorrect.HasValue )?((IsCorrect.Value)?"":"checked"):"")
+                                        value="0" >
+                                    <label class="form-check-label" for="RadioWrongAnswer2_@exam.Question.Question.Id">
+                                        @Localizer["Wrong Answer"]
+                                    </label>
+                                </div>
+
+                         
+                            </div>
+                                <div class="mtb-30 SolvedExam" >
+                                      <textarea name="textarea_@exam.Question.Question.Id" class="form-control" placeholder="@Localizer["Add the answer here"]" rows="3"> @exam.EnrollStudentExamAnswers.FirstOrDefault(e=> e.Id==EnrollStudentExamAnswersId && e.EnrollCourseExamQuestionId == exam.Id).Answer</textarea>  
+                                </div>
+                                <hr class="colorhr">
+                               
+
+                            </div>
+
+                        }
+                        else if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.CheckBox)
+                        {
+                    
+                             
+                            <div class="pt-3">
+                                <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    <p>@i- @exam.Question.Question.Name </p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                @if (!IsCorrect.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between flex-column-reverse flex-lg-row NewStyle">
+                                        <p>@Localizer["Waiting for correction by the trainer"]  </p> 
+                                    </div>
+                                }
+                                <div class="mtb-30 SolvedExam">
+                                <div class="form-check mb-2 text-success">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioCorrectAnswer1_@exam.Question.Question.Id"  @((IsCorrect.Value)?"checked":"")
+                                        value="1">
+                                    <label class="form-check-label " for="RadioCorrectAnswer1_@exam.Question.Question.Id">
+                                       @Localizer["Correct Answer"] 
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2 text-danger ">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioWrongAnswer2_@exam.Question.Question.Id" @((IsCorrect.Value)?"":"checked")
+                                        value="0" >
+                                    <label class="form-check-label " for="RadioWrongAnswer2_@exam.Question.Question.Id">
+                                        @Localizer["Wrong Answer"]
+                                    </label>
+                                </div>
+
+                         
+                            </div>
+                                <div class="mtb-30 SolvedExam">
+                                    @foreach (var op in exam.Question.Question.QuestionOptions)
+                                    {
+                                        <div class="form-check mb-2">
+                                        
+                                            @if (@exam.EnrollStudentExamAnswers.FirstOrDefault(e => e.Id == EnrollStudentExamAnswersId).EnrollStudentExamAnswerOptions.FirstOrDefault(e => e.EnrollStudentExamAnswerId==EnrollStudentExamAnswersId && e.QusetionOptionId == op.Id) != null)
+                                            {
+                                                <input class="form-check-input" type="checkbox" name="Checkbox_@exam.Question.Question.Id" id="@op.Id" checked
+                                                   value="@op.Id">
+                                                <label class="form-check-label" for="@op.Id">
+                                                    @op.Name
+                                                </label>
+                                            }
+                                            else
+                                            {
+                                                 <input class="form-check-input" type="checkbox" name="Checkbox_@exam.Question.Question.Id" id="@op.Id" 
+                                                   value="@op.Id">
+                                                <label class="form-check-label" for="@op.Id">
+                                                    @op.Name
+                                                </label>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                
+
+                            </div>
+                             <hr class="colorhr">
+                        }
+                        else if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.RadioButton)
+                        {
+
+
+                            <div class="pt-3">
+                                 <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    <p>@i- @exam.Question.Question.Name </p> 
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                              @if (!IsCorrect.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between flex-column-reverse flex-lg-row NewStyle">
+                                        <p>@Localizer["Waiting for correction by the trainer"]  </p> 
+                                    </div>
+                                }
+                                <div class="mtb-30 SolvedExam">
+                                <div class="form-check mb-2 text-success">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioCorrectAnswer1_@exam.Question.Question.Id" @((IsCorrect.Value)?"checked":"")
+                                        value="1">
+                                    <label class="form-check-label" for="RadioCorrectAnswer1_@exam.Question.Question.Id">
+                                       @Localizer["Correct Answer"] 
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2 text-danger ">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioWrongAnswer2_@exam.Question.Question.Id" @((IsCorrect.Value)?"":"checked")
+                                        value="0" >
+                                    <label class="form-check-label" for="RadioWrongAnswer2_@exam.Question.Question.Id">
+                                        @Localizer["Wrong Answer"]
+                                    </label>
+                                </div>
+
+                         
+                            </div>
+                        
+                                 <div class="mtb-30 SolvedExam">
+                                @foreach (var op in exam.Question.Question.QuestionOptions)
+                                {
+                                      
+                                       
+                                        <div class="form-check mb-2">
+                                        @if (@exam.EnrollStudentExamAnswers.FirstOrDefault(e => e.Id == EnrollStudentExamAnswersId).EnrollStudentExamAnswerOptions.FirstOrDefault(e => e.EnrollStudentExamAnswerId == EnrollStudentExamAnswersId && e.QusetionOptionId == op.Id) != null)
+                                        {
+                                                <input class="form-check-input" type="radio" name="Radios_@exam.Question.Question.Id" id="@op.Id" checked
+                                                   value="@op.Id">
+                                                <label class="form-check-label" for="@op.Id">
+                                                    @op.Name
+                                                </label>
+                                        }
+                                           else
+                                        {     
+                                           
+                                                <input class="form-check-input" type="radio" name="Radios_@exam.Question.Question.Id" id="@op.Id"
+                                                   value="@op.Id">
+                                                <label class="form-check-label" for="@op.Id">
+                                                    @op.Name
+                                                </label>
+                                           
+                                            
+                                        }
+                                            </div>
+                                    
+                                     }
+                                    </div>
+                               
+                            </div>
+                             <hr class="colorhr">
+
+                        } else    if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.UploadAttachment)
+                        {
+                            
+
+                            <div class="pt-3">
+                                 <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    
+                                    <p>@i- @exam.Question.Question.Name</p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                 @if (!IsCorrect.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between flex-column-reverse flex-lg-row NewStyle">
+                                        <p>@Localizer["Waiting for correction by the trainer"]  </p> 
+                                    </div>
+                                }
+                                <div class="mtb-30 SolvedExam">
+                                <div class="form-check mb-2 text-success">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioCorrectAnswer1_@exam.Question.Question.Id" @((IsCorrect.HasValue)?((IsCorrect.Value)?"checked":""):"")
+                                        value="1">
+                                    <label class="form-check-label" for="RadioCorrectAnswer1_@exam.Question.Question.Id">
+                                       @Localizer["Correct Answer"] 
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2 text-danger ">
+                                    <input class="form-check-input RadioCorrectAnswer" type="radio" name="RadioAnswer_@exam.Question.Question.Id" id="RadioWrongAnswer2_@exam.Question.Question.Id" @((IsCorrect.HasValue )?((IsCorrect.Value)?"":"checked"):"")
+                                        value="0" >
+                                    <label class="form-check-label" for="RadioWrongAnswer2_@exam.Question.Question.Id">
+                                        @Localizer["Wrong Answer"]
+                                    </label>
+                                </div>
+
+                         
+                            </div>
+                                <div class="mtb-30" >
+                                    @{
+                                        var UploadAttachmentName = exam.EnrollStudentExamAnswers.FirstOrDefault(e => e.Id == EnrollStudentExamAnswersId && e.EnrollCourseExamQuestionId == exam.Id).Answer;
+                                    }
+                                
+
+                                 @if (!string.IsNullOrEmpty(UploadAttachmentName) && UploadAttachmentName != "--" )
+                                 {
+                                        if(LookupHelper.GetFileType(System.IO.Path.GetExtension(UploadAttachmentName)) == (int)GeneralEnums.ResourceTypeEnum.Image)
+                                        {
+                                            <a href="javascript:;" class="tms-imageview-btn" onclick="ImageM('@UploadAttachmentName')" aria-haspopup="true" id="ImageViewer" data-toggle="dropdown" aria-expanded="false">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                        else if (LookupHelper.GetFileType(System.IO.Path.GetExtension(UploadAttachmentName)) == (int)GeneralEnums.ResourceTypeEnum.Pdf)
+                                        {
+                                            <a onclick="OpenPdf('@UploadAttachmentName')" class="btn btn-sm btn-primary text-white mb-0" style="border-radius:10px">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/CourseExam/DownloadDocument?filePath=@HttpUtility.UrlEncode(UploadAttachmentName)">
+                                                <img src="/img/download.png" class="IconStyle">
+                                            </a>
+                                        }
+                                    }
+                                     
+                                </div>
+                                <hr class="colorhr">
+                               
+
+                            </div>
+
+                        }
+
+                        i++;
+                    }
+                </div>
+            }
+        
+        </div>
+
+    </div>
+    <div class="d-flex justify-content-between mt-4" id="chevronExamsPage">
+        <div id="PaginButtonsprev">
+            <button id="prev" class="btn btn-primary rounded-pill py-3 px-3">
+                <i class="fa-solid fa-chevron-right  large"></i>
+                <span class="d-none d-lg-inline px-2">@Localizer["Previous"]</span>
+            </button>
+        </div>
+         <p class="m-0">@Localizer["Page"] <span class="QCurrentPage"></span> @Localizer["of"] <span class="QTotalCount"></span></p>
+        <div id="PaginButtonsNext">
+            <button id="next" class="btn btn-primary rounded-pill py-3 px-3">
+                <span class="d-none d-lg-inline px-2">
+                    @Localizer["Next"]
+                </span> <i class="fa-solid fa-chevron-left large"></i>
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+    .SolvedExam{
+    pointer-events:none !important;
+    }
+    .NewStyle{
+    padding: 0.5rem 0.5rem;
+    background-color: #1088A2;
+    border-bottom-width: 1px;
+    color: #fff;
+    }
+    .IconStyle{
+            background-color: #c1c1c1;
+    display: inline;
+    padding: 6px;
+    border-radius: 7px;
+    }
+</style>
+<script>
+var QTotalCount = @jLoop;
+var QFirstPage = "1";
+
+    $(document).ready(function () {
+    
+
+
+        if (QTotalCount == 1) {
+            $(".QusIndexExamView #chevronExamsPage").remove();
+            $(".QusIndexExamView #BtnConfirmSubmitExam").removeClass("d-none");
+        } 
+        if (QFirstPage == 1) {
+            $(".QusIndexExamView #PaginButtonsprev").addClass("invisible");
+        } 
+
+        $(".QusIndexExamView .QTotalCount").html(QTotalCount);
+        $(".QusIndexExamView .QCurrentPage").html(QFirstPage);
+
+
+
+        $(".QusIndexExamView .divs .div").each(function (e) {
+            if (e != 0)
+                $(this).hide();
+        });
+
+        $(".QusIndexExamView #next").click(function () {
+            var QCurrentPage = (parseInt($(".QCurrentPage").html()) + 1);
+          
+            if (QCurrentPage == QTotalCount) {
+                $(".QusIndexExamView #BtnConfirmSubmitExam").removeClass("d-none");
+                $(".QusIndexExamView #PaginButtonsNext").addClass("invisible");
+                $(".QusIndexExamView #PaginButtonsprev").removeClass("invisible");
+            }
+
+            if(QCurrentPage > QTotalCount)
+                return false;
+
+            $(".QusIndexExamView .QCurrentPage").html(QCurrentPage);
+             window.scrollTo(0, 0);
+            if ($(".QusIndexExamView .divs .div:visible").next().length != 0)
+                $(".QusIndexExamView .divs .div:visible").next().show().prev().hide();
+            else {
+              
+                $(".QusIndexExamView .divs .div:visible").hide();
+                $(".QusIndexExamView .divs .div:first").show();
+
+            }
+            return false;
+        });
+
+        $(".QusIndexExamView #prev").click(function () {
+            $(".QusIndexExamView #BtnConfirmSubmitExam").addClass("d-none");
+            var QCurrentPage = (parseInt($(".QCurrentPage").html()) - 1);
+
+            if (QCurrentPage == 1) {
+                $(".QusIndexExamView #PaginButtonsNext").removeClass("invisible");
+                $(".QusIndexExamView #PaginButtonsprev").addClass("invisible");
+            }
+
+            if(QCurrentPage <= 0)
+            return false;
+
+            $(".QusIndexExamView .QCurrentPage").html(QCurrentPage);
+            window.scrollTo(0, 0);
+
+            if ($(".QusIndexExamView .divs .div:visible").prev().length != 0)
+                $(".QusIndexExamView .divs .div:visible").prev().show().next().hide();
+            else {
+                $(".QusIndexExamView .divs .div:visible").hide();
+                $(".QusIndexExamView .divs .div:last").show();
+               
+            }
+            return false;
+        });
+    });
+
+</script>

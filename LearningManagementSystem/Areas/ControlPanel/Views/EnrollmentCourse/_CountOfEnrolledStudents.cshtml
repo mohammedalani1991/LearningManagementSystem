@@ -1,0 +1,174 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var checkIfClassOnline = LookupHelper.CheckIfClassOnline(ViewBag.enrollTeacherCourseId);
+}
+
+<style>
+    .list-group-item {
+        padding: 0.40rem 1.25rem !important;
+    }
+</style>
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <h4><small>@Localizer["Count of Enrolled Students :"] @ViewBag.CountEnrollStudent</small></h4>
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 d-flex justify-content-end">
+                <form data-ajax="true" class="d-flex" method="get" action="/ControlPanel/EnrollmentCourse/ShowCountOfEnrolledStudents" id="Form1" data-ajax-success="GetCountOfEnrolledStudentsData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    <input type="hidden" id="id" name="id" value="@ViewBag.enrollTeacherCourseId" />
+                    @Html.Hidden("Page")
+                    @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                    <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                </form>
+                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "ShowAddNewStudent", User.Identity.Name))
+                {
+                    <button class="tms-btn float-right" type="button" onclick="ShowAddNewStudent(@ViewBag.enrollTeacherCourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Students"]</button>
+                }
+            </div>
+
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Id"]
+                            </th>
+                            <th>
+                                @Localizer["Student Name"]
+                            </th>
+                            @if (!checkIfClassOnline)
+                            {
+                                <th class="Attendances">
+                                    @Localizer["Attendances"]
+                                </th>
+                            }
+                            <th>
+                                @Localizer["Is Pass"]
+                            </th>
+                            <th>
+                                @Localizer["Mark"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Status"]
+                            </th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="3">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Student.Id)
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Index", "Student", new {Area = "Reports" , id =  item.Student.Id})"> @item.Student.Contact.FullName</a>
+                                </td>
+                                @if (!checkIfClassOnline)
+                                {
+                                    <td>
+                                        @if (item.Status != (int)GeneralEnums.StatusEnum.Expelled)
+                                        {
+                                            <button onclick="GetStudentAttendances('@ViewBag.enrollTeacherCourseId','@item.Id')" class="btn btn-primary pointer">@item.CourseAttendances.Where(r => r.IsPresent == true).Count()/@ViewBag.CountAttendance</button>
+                                        }
+                                    </td>
+                                }
+                                <td>
+                                    @if (item.IsPass == true)
+                                    {
+                                        <span class="fa fa-check"></span>
+                                    }
+                                    else if (item.IsPass == false)
+                                    {
+                                        <span class="fa fa-times"></span>
+                                    }
+                                </td>
+                                <td>
+                                    @item.Mark
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetStatusById(item.Status, (int)ViewBag.LangId)?.Name
+                                </td>
+                                <td style="width: 25%;">
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @if (item.Status != (int)GeneralEnums.StatusEnum.Expelled)
+                                            {
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "TransferStudent", User.Identity.Name))
+                                                {
+                                                    <button onClick="ShowTransferStudent(@item.Student.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Transfer"]</button>
+                                                }
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "RemoveStudent", User.Identity.Name))
+                                                {
+                                                    <button onclick="OpenDeleteStudent(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Remove"]</button>
+                                                }
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "ExpelStudent", User.Identity.Name))
+                                                {
+                                                    <button onclick="ShowExpelStudent(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Expel"]</button>
+                                                }
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "DelayStudent", User.Identity.Name))
+                                                {
+                                                    <button onclick="ShowDelayStudent(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Delay"]</button>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "ExpelStudent", User.Identity.Name))
+                                                {
+                                                    <button onclick="ShowCancelExpulsion(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Cancel Expulsion"]</button>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("ShowCountOfEnrolledStudents", new { page, id = ViewBag.enrollTeacherCourseId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "GetData" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function GetCountOfEnrolledStudentsData(data) {
+        $("#GetData").html(data);
+    }
+</script>

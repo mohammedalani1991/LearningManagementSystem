@@ -1,0 +1,137 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.QuestionViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.ViewModels
+@using DataEntity.Models.EfModels 
+@inject IViewLocalizer Localizer
+
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+    var ViewBagCategoryId = ViewBag.ListCategoryId;
+    ViewBagCategoryId.Add(new CourseCategory { Name  = Localizer["Select"].Value, Id = 0 });
+    var ListCategoryId = (List<CourseCategory>)ViewBagCategoryId;
+
+
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+    var questionTypes = LookupHelper.GetQuestionsType((int)ViewBag.LangId);
+
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add Question"]
+                </div>
+            </div>
+
+            <div class="x_content">
+                <form action="/BankOfQuestion/Question/Create" method="post" id="Question-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Name">
+                                @Localizer["Question"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12 tms-input" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CategoryId">
+                                @Localizer["Category"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownListFor(model => model.CategoryId, new SelectList(ListCategoryId.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-control chosen-select tms-ddl" ,onchange= "GetCourses(this)", required = "required"})
+                                @Html.ValidationMessageFor(model => model.CategoryId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                                @Localizer["Course"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownListFor(model => model.CourseId , new SelectList(Enumerable.Empty<SelectListItem>()) ,Localizer["Select"].Value , new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.CourseId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Status">
+                                @Localizer["Question Types"]  <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Type", new SelectList(questionTypes, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required", @onchange = "ChangeQuestionTypefunc(this.value)" })
+                                @Html.ValidationMessageFor(model => model.Type, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Status">
+                                @Localizer["Status"]  <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.Status, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                         <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Mark">
+                                @Localizer["Mark"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.Mark, new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12",required = "required", @type = "number", @min = 1 } })
+                                @Html.ValidationMessageFor(model => model.Mark, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class=" col-lg-12 col-sm-12 col-xs-12" id="QuestionOptionsDiv" style="display:none">
+
+                            <button class="tms-btn" type="button" onclick="AddOption()"><i class="fa fa-plus" aria-hidden="true"></i> @Localizer["Add new option"]</button>
+                            <div id="QuestionOptions">
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var deleteOptionTrans = '@Localizer["Delete option"]';
+     var correctAnswer = '@Localizer["Correct Answer"]';
+    var option = "<div class='row mb-3 optionOfQuestion'> <div class='col-7'> <input type='text' name='option' class='option form__field valid' required='true' aria-invalid='false'> </div> <div class='col-3'> <span>" + correctAnswer + "</span> <input type='checkbox' class='checkbox' name='isCorrect'  aria-invalid='false'> </div> <div class='col-2'> <button type='button' onclick='DeleteOption(this)' title='" + deleteOptionTrans + "' class='btn btn-sm btn-danger'>  <i class='fa fa-trash' aria-hidden='true'></i>   </button> </div> </div>";
+
+
+</script>
+<script src="~/js/Question/Questions.js?ver=1.1" async></script>

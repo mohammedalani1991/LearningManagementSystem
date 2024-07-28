@@ -1,0 +1,119 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core;
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Student>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.General;
+
+@inject ISettingService SettingService
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var enrollTeacherCourseId = ViewBag.enrollTeacherCourseId;
+    var MainUrl = Url.Action("ShowAddNewStudent", new { page = ViewBag.page, id = ViewBag.enrollTeacherCourseId, searchText = ViewBag.searchText });
+    var forceAddNewStudent = Boolean.Parse(SettingService.GetOrCreate(Constants.SystemSettings.Allow_Force_Add_New_Student, "true")?.Value);
+
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <input type="hidden" id="ShowAddNewStudentCurrentUrl" value="@MainUrl" />
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+
+
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <h4><small>@Localizer["Add New Students:"] </small></h4>
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <form data-ajax="true" method="get" action="/ControlPanel/EnrollmentCourse/ShowAddNewStudent" id="ShowAddNewStudentForm" data-ajax-success="GetDataShowAddNewStudent" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    <div class="d-flex justify-content-end">
+                        @Html.Hidden("id", new { @Value = enrollTeacherCourseId })
+                        @Html.Hidden("page")
+                        <div class="col-md-12 col-sm-3 col-xs-12">
+                            @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                        </div>
+                        <div>
+                            <input class="btn btn-primary" onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Id"]
+                            </th>
+                            <th>
+                                @Localizer["Student Name"]
+                            </th>
+
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th></th>
+                            @if (forceAddNewStudent)
+                            {
+                                <th></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="3">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Id)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Contact.FullName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td> <button class="tms-btn" type="button" onclick="AddNewStudent(this ,@item.Id,@enrollTeacherCourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Add Student"]</button></td>
+                                @if (forceAddNewStudent){
+                                    <td class="ForceAdd" style="display:none"> <button class="tms-btn" type="button" onclick="ForceAddNewStudent(@item.Id,@enrollTeacherCourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Force Add Student"]</button></td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("ShowAddNewStudent", new { page, id = ViewBag.enrollTeacherCourseId , searchText = ViewBag.searchText}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowAddNewStudentDiv" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+<style>
+    .list-group-item {
+        padding: 0.40rem 1.25rem !important;
+    }
+</style>
+<script>
+
+</script>

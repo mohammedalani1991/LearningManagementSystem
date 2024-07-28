@@ -1,0 +1,272 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@model List<DataEntity.Models.EfModels.CourseMark>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DataEntity.Models.EfModels
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4>@Localizer["Course Marks"]</h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    <button class="btn btn-primary" onclick="ShowCreate()">@Localizer["Create"]</button>
+                </div>
+            </div>
+        </div>
+        <div id="MarkForm" class="p-3 my-2 rounded" style="border:1px solid #3336; display:none">
+            <form method="post" id="CourseMarkForm" class="form-horizontal form-label-left">
+                <input id="MarkId" value="" type="hidden" />
+                <div class="row">
+                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                            @Localizer["Language"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                            @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required", onchange = "onDdlChangedLangForMark(this)" })
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Title">
+                            @Localizer["Name"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                            @Html.Editor("Title", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Mark">
+                            @Localizer["Mark From"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12 d-flex">
+                            @Html.Editor("Value" , new { htmlAttributes = new { @class = "form-control tms-input", @type = "number", @step=".01",@min = 0, @required = "required" } })
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Mark">
+                            @Localizer["Mark To"]<span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12 d-flex">
+                            @Html.Editor("ValueTo" , new { htmlAttributes = new { @class = "form-control tms-input", @type = "number", @step=".01",@min = 0, @required = "required" } })
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                        <label class="col-xs-6 control-label tms-label" for="Status">
+                            @Localizer["Status"] <span class="required">*</span>
+                        </label>
+                        <div class="col-lg-12">
+                            @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="tms-save-btn" style="background-color:#eee ; color:black !important" type="button" onclick="CloseCreate()">@Localizer["Close"]</button>
+                    <button class="tms-save-btn" type="button" id="FormBtn" onclick="CreateCourseMark()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                </div>
+            </form>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Name"]
+                            </th>
+                            <th>
+                                @Localizer["Mark From"]
+                            </th>
+                            <th>
+                                @Localizer["Mark To"]
+                            </th>
+                            <th>
+                                @Localizer["Created By"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Status"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="10">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Title)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Value)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ValueTo)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetStatusById(item.Status , (int)ViewBag.LangId)?.Name
+                                </td>
+                                <td style="width: 25%;">
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @if (AuthenticationHelper.CheckAuthentication("CourseMarks", "Edit", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowEditCourseMark(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit Mark"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("CourseMarks", "Delete", User.Identity.Name))
+                                            {
+                                                <button onClick="DeleteCourseMark(@item.Id)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Delete Mark"]</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    function CloseCreate() {
+        $("#MarkForm").hide();
+    }
+
+    function ShowCreate() {
+        $("#MarkId").val("");
+        $("#Title").val("");
+        $("#Value").val("");
+        $("#ValueTo").val("");
+        $("#Status").val("@((int)GeneralEnums.StatusEnum.Active)").trigger("chosen:updated");;
+        $("#FormBtn").attr("onclick", "CreateCourseMark()")
+        $("#MarkForm").show();
+    }
+
+    function CreateCourseMark() {
+        let obj = {
+            Title: $("#Title").val(),
+            Value: $("#Value").val(),
+            ValueTo: $("#ValueTo").val(),
+            LanguageId: $("#LanguageId").val(),
+            Status: $("#Status").val(),
+            CourseId: "@ViewBag.Id",
+        };
+        if ($("#CourseMarkForm").valid()) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/Course/CreateMark/",
+                data: { courseMark: obj },
+                success: function (data) {
+                    toastr.success(addMassege);
+                    ShowMarks("@ViewBag.Id")
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(addMassegeError);
+            });
+        }
+    }
+
+    function onDdlChangedLangForMark(current) {
+        ShowEditCourseMark($("#MarkId").val(), current.value);
+    }
+
+    function ShowEditCourseMark(id, langId) {
+        ShowSpinner();
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/Course/ShowEditCourseMark/",
+            data: { id, langId },
+            success: function (data) {
+                $("#MarkId").val(data.id);
+                $("#Title").val(data.title);
+                $("#Value").val(data.value);
+                $("#ValueTo").val(data.valueTo);
+                $("#Status").val(data.status).trigger("chosen:updated");
+                $("#FormBtn").attr("onclick", "EditCourseMark()")
+                $("#MarkForm").show();
+                HideSpinner();
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            $("#MarkForm").hide();
+            HideSpinner();
+        });
+    }
+
+    function EditCourseMark() {
+        let obj = {
+            Id: $("#MarkId").val(),
+            Title: $("#Title").val(),
+            Value: $("#Value").val(),
+            ValueTo: $("#ValueTo").val(),
+            LanguageId: $("#LanguageId").val(),
+            Status: $("#Status").val(),
+        };
+        if ($("#CourseMarkForm").valid()) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/Course/EditCourseMark/",
+                data: { courseMark: obj },
+                success: function (data) {
+                    toastr.success(editMassege);
+                    ShowMarks("@ViewBag.Id")
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+            });
+        }
+    }
+
+    function DeleteCourseMark(id) {
+        if (confirm("@Localizer["Are You Sure You Want to Delete This?"]")) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/Course/DeleteCourseMark/",
+                data: { id },
+                success: function (data) {
+                    toastr.success(deleteMassege);
+                    ShowMarks("@ViewBag.Id")
+                    HideSpinner();
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+                toastr.error(deleteMassegeError);
+            });
+        }
+    }
+</script>

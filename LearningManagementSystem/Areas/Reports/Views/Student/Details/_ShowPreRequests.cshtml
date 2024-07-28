@@ -1,0 +1,134 @@
+﻿@model List<DataEntity.Models.ViewModels.CoursePrerequisiteViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using DataEntity.Models.EfModels;
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = null;
+    bool enroll = ViewBag.Enroll;
+    var list = (List<EnrollCourseExam>)ViewBag.PrerequisiteExam;
+    var ValuesEnrollStudentCourse = (EnrollStudentCourse)ViewBag.EnrollStudentCourse;
+}
+
+<div class="p-3">
+    @if (!Model.Any() && !list.Any())
+    {
+        <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+    }
+    @if (Model.Count > 0)
+    {
+        @foreach (var item in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row justify-content-between">
+                        <div class="col-12 col-lg">
+                            <h5 class="card-title">
+                                @item.PrerequisiteCourseName
+                                <span class="text-primarycolor px-4 py-1 bg-Required">@Localizer["Required"]</span>
+                            </h5>
+                            <p class="card-text">@Html.Raw(item.PrerequisiteNotes)</p>
+                        </div>
+                        @if (ValuesEnrollStudentCourse != null && ValuesEnrollStudentCourse.IsPass != null)
+                        {
+                            if (ValuesEnrollStudentCourse.IsPass.Value)
+                            {
+                                <div class="col-12 col-lg-3 text-end">
+                                    <button class="btn btn-success shadow-none btn-card-Exam">@Localizer["Succeeded"] </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    }
+    @if (enroll)
+    {
+        @foreach (var exam in list)
+        {
+            if (exam.IsPrerequisite.HasValue && exam.IsPrerequisite.Value)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row justify-content-between">
+                            <div class="col-12 col-lg">
+                                <h5 class="card-title">
+                                    @exam.Name
+                                    <span class="text-primarycolor px-4 py-1 bg-Required">@Localizer["Required"]</span>
+                                </h5>
+
+                                @{
+                                    var VDuration = ((exam.Duration.HasValue) ? exam.Duration.ToString() : "--");
+                                }
+                                <p class="card-text text-primarycolor">@Localizer["Duration:"] @VDuration @Localizer["min"]</p>
+                                <p class="card-text">@Html.Raw(exam.Description)</p>
+                            </div>
+                            <div class="col-12 col-lg d-flex flex-lg-column justify-content-between align-items-end text-end">
+
+                                @if (ViewBag.studentId != null)
+                                {
+
+                                    var MarkAfterConversion = 0.0;
+                                    var Cal_FinalMark = 0.0;
+                                    var FinalMark = 0.0;
+                                    var MarkHeGot = 0.0;
+                                    var NeedCorectionFromTrainer = 0;
+                                    var EnrollStudentExamID = 0;
+                                    if (exam.EnrollStudentExams.Count() > 0)
+                                    {
+                                        Cal_FinalMark = exam.EnrollStudentExams.FirstOrDefault().FinalMark.Value;
+                                        FinalMark = exam.EnrollStudentExams.FirstOrDefault().FinalMark.Value;
+                                        MarkHeGot = exam.EnrollStudentExams.FirstOrDefault().MarkHeGot.Value;
+                                        MarkAfterConversion = exam.EnrollStudentExams.FirstOrDefault().MarkAfterConversion.Value;
+                                        NeedCorectionFromTrainer = exam.EnrollStudentExams.Where(e => e.EnrollStudentExamAnswers.Any(x => x.IsCorrect == null)).Count();
+                                        EnrollStudentExamID = exam.EnrollStudentExams.FirstOrDefault().Id;
+                                    }
+                                    if (exam.ExamFinalMark.HasValue)
+                                    {
+                                        FinalMark = exam.ExamFinalMark.Value;
+                                    }
+
+                                    <p class="card-text text-primarycolor">@MarkAfterConversion /@FinalMark</p>
+                                    @if (exam.EnrollCourseExamQuestions.Count() > 0)
+                                    {
+                                        @if (exam.EnrollStudentExams.Count() == 0)
+                                        {
+                                            <a href="#" onclick="ShowExamPrerequisite(@exam.Id)"
+                                               class="btn btn-primary  shadow-none btn-card-Exam">
+                                                @Localizer["Take Exam"]
+                                            </a>
+                                        }
+
+                                        else if (!(MarkHeGot >= (Cal_FinalMark / 2)) && NeedCorectionFromTrainer == 0)
+                                        {
+
+                                            <a href="#" onclick="ShowExamPrerequisiteAgain(@exam.Id)" class="btn btn-outline-danger shadow-none btn-card-Exam"> @Localizer["Take Again"]</a>
+
+                                        }
+                                        else if ((MarkHeGot >= (Cal_FinalMark / 2)) && NeedCorectionFromTrainer == 0)
+                                        {
+
+                                            <a href="#" onclick="ShowExamView(@exam.Id,@EnrollStudentExamID)" class="btn btn-success shadow-none btn-card-Exam">@Localizer["Succeeded"] </a>
+
+                                        }
+                                        else if (exam.EnrollCourseExamQuestions.Count() != 0)
+                                        {
+                                            <a href="#" onclick="ShowExamView(@exam.Id,@EnrollStudentExamID)"
+                                               class="btn btn-outline-primary  shadow-none btn-card-Exam">
+                                                @Localizer["Solved"]
+                                            </a>
+                                        }
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>

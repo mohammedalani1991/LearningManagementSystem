@@ -1,0 +1,93 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollStudentAssigment>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Students Assignments"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    <form data-ajax="true" method="get" action="/ControlPanel/EnrollmentAssignments/GetStudentAssigments" id="Form2" data-ajax-success="GetData1" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner" class="row justify-content-between">
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        @Html.Hidden("assigmentId")
+                        <div class="col-md-6 col-sm-3 col-xs-12">
+                            @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-xs-12 d-flex justify-content-end px-0">
+                            <input class="btn btn-primary" onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="w-50">
+                                @Localizer["Student Name"]
+                            </th>
+                            <th>
+                                @Localizer["Submitted On"]
+                            </th>
+                            <th>
+                                @*@Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })*@
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @item.EnrollStudentCourse?.Student?.Contact?.FullName
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td class="d-flex">
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            <button onclick="ShowAssignmentQuestionsDeitelts(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Details"]</button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.PageCount > 0)
+            {
+                <div class="paging-div">
+                    @Html.PagedListPager(Model, page => Url.Action("GetStudentAssigments", new { page ,assigmentId = ViewBag.AssigmentId}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowStudentsAssignmentDiv" }))
+                </div>
+            }
+        </div>
+    </div>
+</div>

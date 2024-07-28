@@ -1,0 +1,235 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.PracticalQuestion>
+@using LearningManagementSystem.Services.General
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core;
+@inject ISettingService SettingService
+
+@{
+    var Subjects = (List<PracticalEnrollmentExamStudentSubject>)ViewBag.Subjects;
+    int SubjectMark = (int)ViewBag.SubjectMark;
+    var limit = int.Parse(SettingService.GetOrCreate(Constants.SystemSettings.Max_Limit_For_Practical_Exam, "3").Value);
+    var width = (Subjects.Count() * 130) + "px";
+}
+
+<style>
+    @@media only screen and (max-width: 720px) {
+        h5 {
+            font-size: 14px;
+        }
+
+        #PracticalEnrollmentExamForm {
+            width: @width;
+        }
+    }
+</style>
+
+<div class="row">
+    <div class="d-flex justify-content-center  courses-title">
+        <h2>@Localizer["Practical Exam"]</h2>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            @Html.Hidden("PracticalEnrollmentExamId")
+            <form id="PracticalEnrollmentExamForm">
+                <div class="row mb-2">
+                    <div class="col-md-4 col-12">
+                        <h3 class="text-center">@Localizer["Ratings"]</h3>
+                    </div>
+                    <div class="col-md-8 col-12">
+                        <h3 class="text-center mb-4">@Localizer["Subjects"]</h3>
+                        <div class="col-12 p-0 m-0 row">
+                            @foreach (var item1 in Subjects)
+                            {
+                                <div class="col-@(12/Subjects.Count())">
+                                    <div class="col-12">
+                                        @*<h5 class="text-center">@item1.Subject.Title</h5>*@
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @foreach (var item in Model.OrderByDescending(r => r.Main == true).OrderByDescending(r => r.IsDiscountFromTotal != true))
+                {
+                    <div class="row">
+                        <div class="col-md-4 col-12 d-flex flex-column mb-3 ">
+                            <h3 class="mb-1 text-center">@item.Name</h3>
+                            @if (item.IsDiscountFromTotal.Value)
+                            {
+                                <div class="d-flex justify-content-center"><small class="text-danger">@item.Mark</small> <small class="px-1"> @Localizer["From"]</small>  <small class="text-primary">@ViewBag.Mark</small> <small class="px-1">(@Localizer["From Final Score"])</small></div>
+                            }
+                            else
+                            {
+                                <div class="d-flex justify-content-center"><small class="text-danger">@item.Mark</small> <small class="px-1"> @Localizer["From"]</small>  <small class="text-primary">@SubjectMark</small></div>
+                            }
+                        </div>
+                        <div class="col-md-8 col-12 row align-content-center">
+                            @foreach (var item1 in Subjects)
+                            {
+                                <div style="width:@(100/Subjects.Count())%">
+                                    <div class="col-12">
+                                        <input type="hidden" class="QuastionId" value="@item.Id" />
+                                        <input type="hidden" class="SubjectId" value="@item1.Id" />
+                                        <input type="hidden" class="Mark" value="@item.Mark" />
+                                        <input type="hidden" class="Main" value="@(item.Main == true ? "true" : "false")" />
+                                        <input type="hidden" class="Finial" value="@(item.IsDiscountFromTotal == true ? "true" : "false")" />
+                                        <input disabled type="number" class="points form-control Mistakes" placeholder="@Localizer["Number Of Mistakes"]" onchange="SetMistakes()" value="@item1.PracticalEnrollmentExamStudentSubjectRatings.FirstOrDefault(r=>r.PracticalQuestionId == item.Id)?.NoOfErrors" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                <div class="row my-2">
+                    <div class="col-md-4 col-12">
+                    </div>
+                    <div class="col-md-8 col-12 row">
+                        @foreach (var item1 in Subjects)
+                        {
+                            <div style="width:@(100/Subjects.Count())%">
+                                <div class="col-12">
+                                    <input class="points form-control subject-mark" id="Subject_@item1.Id" disabled value="@SubjectMark" />
+                                    <input class="points form-control mt-2 hidden-mark" id="Hidden_@item1.Id" disabled value="0" />
+                                </div>
+                            </div>
+                        }
+                        <div class="col-12 p-0 m-0">
+                            <div class="row justify-content-end mt-5 mb-2">
+                                <label class="my-auto col-3">@Localizer["Mark"]</label>
+                                <div class="col-@(12/Subjects.Count() <= 6 ? (12/Subjects.Count() >= 4 ? 12/Subjects.Count() : 4) : 6)">
+                                    <div class="col-12">
+                                        <input class="points form-control" id="Mark" disabled value="@ViewBag.Mark" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-end">
+                                <label class="my-auto col-3">@Localizer["Mark After Conversion"]</label>
+                                <div class="col-@(12/Subjects.Count() <= 6 ? (12/Subjects.Count() >= 4 ? 12/Subjects.Count() : 4) : 6)">
+                                    <div class="col-12">
+                                        <input class="points form-control" id="MarkAfterConversion" disabled value="@ViewBag.MarkAfterConversion" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            SetMistakes();
+        }, 500)
+        limit = '@limit';
+
+        let subjectIds = $(".SubjectId").map(function () {
+            return $(this).val();
+        }).get();
+
+        subjectIds.forEach(function (id) {
+            let variableName = 'subject_' + id;
+            subjectValues[variableName] = 0;
+        });
+    });
+
+    SubjectMark = '@SubjectMark';
+    Mark = '@ViewBag.Mark';
+    MarkAfterConversion = '@ViewBag.MarkAfterConversion';
+
+    function SetMistakes() {
+        $(".subject-mark").map(function () { $(this).val(SubjectMark) });
+        obj = [];
+
+        for (let key in subjectValues)
+            if (subjectValues.hasOwnProperty(key))
+                subjectValues[key] = 0;
+
+        $(".Mistakes").map((i, x) => {
+            let mistakesInputs = document.querySelectorAll('.Mistakes');
+            let values = [];
+
+            mistakesInputs.forEach(input => {
+                if ($(input).parent().find(".Main").val() == "true") {
+                    let parentDiv = input.closest('.col-12');
+                    let subjectIdInput = parentDiv.querySelector('.SubjectId');
+
+                    if (subjectIdInput && subjectIdInput.value === $(x).parent().find(".SubjectId").val())
+                        values.push(parseInt(input.value));
+                }
+            });
+
+            let total = values.reduce((acc, val) => acc + (val || 0), 0);
+
+            if ($(x).parent().find(".Finial").val() == "true") {
+                let subjectId = $(x).parent().find(".SubjectId").val();
+                let markValue = $(x).parent().find(".Mark").val();
+                let newValue = markValue * x.value;
+
+                let key = "subject_" + subjectId;
+                subjectValues[key] = subjectValues[key] + newValue;
+                $("#Hidden_" + $(x).parent().find(".SubjectId").val()).val(subjectValues[key]);
+                let hidden = $("#Hidden_" + $(x).parent().find(".SubjectId").val()).val();
+                let subjectMark = $("#Subject_" + $(x).parent().find(".SubjectId").val()).val();
+
+                if (subjectMark - hidden < (SubjectMark / 2) && "@ViewBag.Type" == "True") {
+                    subjectValues[key] = subjectMark - (SubjectMark / 2);
+                    $("#Hidden_" + $(x).parent().find(".SubjectId").val()).val(subjectMark - (SubjectMark / 2));
+                }
+            } else {
+                let val = $("#Subject_" + $(x).parent().find(".SubjectId").val()).val();
+                var subjectMark = val - ($(x).parent().find(".Mark").val() * x.value);
+
+                if ($(x).parent().find(".Main").val() == "true" && x.value >= limit && "@ViewBag.Type" == "True") {
+                    $(x).val(limit);
+                    x.value = limit;
+                }
+
+                if (total >= limit && "@ViewBag.Type" == "True") {
+                    subjectMark = (SubjectMark / 2);
+                    $("#Subject_" + $(x).parent().find(".SubjectId").val()).val(subjectMark)
+                } else {
+                    if (subjectMark < (SubjectMark / 2) && "@ViewBag.Type" == "True")
+                        subjectMark = (SubjectMark / 2);
+                    if (subjectMark > 0)
+                        $("#Subject_" + $(x).parent().find(".SubjectId").val()).val(subjectMark)
+                    else
+                        $("#Subject_" + $(x).parent().find(".SubjectId").val()).val(0)
+                }
+            }
+        })
+
+        let sum1 = 0;
+        let sum2 = 0;
+        let count = 0;
+        $(".hidden-mark").map((i, r) => { sum1 += parseFloat(r.value); })
+        $(".subject-mark").map((i, r) => { sum2 += parseFloat(r.value); count++ })
+
+        var mark = ((sum2 / (SubjectMark * count)) * Mark) - sum1;
+        if (mark > 0)
+            $("#Mark").val(mark.toFixed(2))
+        else
+            $("#Mark").val(0)
+
+        ChangeMarkAfterConversion()
+
+        $(".Mistakes").map((i, x) => {
+            obj.push({
+                QuastionId: $(x).parent().find(".QuastionId").val(),
+                PracticalSubjectId: $(x).parent().find(".SubjectId").val(),
+                NoOfErrors: ($(x).val() > 0 ? parseInt($(x).val()) : 0),
+                Mark: $("#Subject_" + $(x).parent().find(".SubjectId").val()).val()
+            })
+        })
+    }
+
+    function ChangeMarkAfterConversion() {
+        $("#MarkAfterConversion").val((($("#Mark").val() / Mark) * MarkAfterConversion).toFixed(2))
+    }
+
+</script>

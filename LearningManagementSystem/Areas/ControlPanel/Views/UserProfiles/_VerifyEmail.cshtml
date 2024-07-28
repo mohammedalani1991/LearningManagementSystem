@@ -1,0 +1,29 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+
+    ViewData["Title"] = @Localizer["Verify Email"];
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Are you sure from change the email verification to (verified)?"]
+            </div>
+        </div>
+        
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <div class="text-center">
+                <button class="tms-delete-btn" type="button" onclick="ConfirmVerifyEmail(@ViewBag.ID)"><i class="fa fa-trash"></i> @Localizer["Yes"]</button>
+            </div>
+     
+        }
+    </div>
+</div>

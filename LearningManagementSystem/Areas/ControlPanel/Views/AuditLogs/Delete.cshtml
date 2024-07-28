@@ -1,0 +1,89 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.AuditLog
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Audit log"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Controller"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Controller)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Action"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Action)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Description)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["IP Address"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.IpAddress)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Request Details"]</td>
+                    <td class="tms-details-data">
+                        @{
+                            var detailes = Model.RequestDetails;
+                            if (!string.IsNullOrWhiteSpace(detailes))
+                            {
+                                detailes = detailes.Substring(1, detailes.Length - 2);
+                                var detaile = detailes.Split(',');
+                                <div>{</div>
+                                for (int i = 0; i < detaile.Length; i++)
+                                {
+
+                                    <div>@detaile[i]</div>
+                                }
+                                <div>}</div>
+                            }
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@(LookupHelper.GetStatusById(Model.Status)?.Name ?? Model.Status.ToString())</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center">
+                    <button class="tms-delete-btn" type="submit">
+                        <i class="fa fa-trash"></i> @Localizer["Delete Audit log"]
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@section JavaScript
+{
+    <script>
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-audit-logs').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+    </script>
+}

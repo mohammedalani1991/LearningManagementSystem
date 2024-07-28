@@ -1,0 +1,57 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CoursePackagesGeneralViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+@{
+    ViewData["Title"] = @Localizer["Course Packages Deatils"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div>
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Course Packages Deatils"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Package Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePackageViewModel[0].PackageName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Courses List"]</td>
+                    <td class="tms-details-data">
+                        <ul class="list-group">
+                            @foreach (var CoursePackagesRelations in Model.CoursePackageViewModel[0].CoursePackagesRelations)
+                            {
+                                <li class="list-group-item list-group-item-action list-group-item-light">@CoursePackagesRelations.Course.CourseName</li>
+                            }
+                            @if (Model.CoursePackageViewModel[0].CoursePackagesRelations == null || Model.CoursePackageViewModel[0].CoursePackagesRelations.Count == 0)
+                            {
+                                <li class="list-group-item list-group-item-action list-group-item-light">--</li>
+                            }
+
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.CoursePackageViewModel[0].Status).Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePackageViewModel[0].CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CoursePackageViewModel[0].CreatedBy)</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>

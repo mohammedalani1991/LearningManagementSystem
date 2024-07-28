@@ -1,0 +1,143 @@
+﻿@using LearningManagementSystem.Core
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.CommunicationLog>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString());
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Communication Log"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    @using (Html.BeginForm("Index", "CommunicationLog", FormMethod.Get, new { id = "Form1" }))
+                    {
+                    <div class="d-flex justify-content-end">
+                        @Html.Hidden("resetTo", 1)
+                        <div class="col-md-6 col-sm-3 col-xs-12">
+                            @Html.TextBox("searchText", null, new { @class = "form-control tms-search-input", placeholder = @Localizer["Search For ..."].Value })
+                        </div>
+                        <div>
+                            <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["User Name"]
+                            </th>
+                            <th>
+                                @Localizer["Message"]
+                            </th>
+                            <th>
+                                @Localizer["Type"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Created By"]
+                            </th>
+                            <th>
+                                @Html.DropDownList("pagination", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Contact.FullName)
+                                </td>
+                                <td class="d-flex justify-content-center">
+                                    <p style="width:40vh;overflow:hidden">@item.LogText</p>
+                                </td>
+                                <td>
+                                    @if (item.TypeId == (int)GeneralEnums.CommunicationTypes.Email)
+                                    {
+                                        <span>@Localizer["Email"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@Localizer["SMS"]</span>
+                                    }
+                                </td>
+                                <td>
+                                    @item.CreatedOn.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>
+                                </td>
+                            <td style="width: 25%;">
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+
+                                            @if (AuthenticationHelper.CheckAuthentication("CommunicationLogs", "View", User.Identity.Name))
+                                            {
+                                                <button onClick="location.href = '@Url.Action("Details", new {id = item.Id})'" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Details"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("CommunicationLogs", "Delete", User.Identity.Name))
+                                            {
+                                                <button onClick="location.href = '@Url.Action("Delete", new {id = item.Id})'" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Delete"]</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchText = ViewBag.searchText }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@section JavaScript{
+
+
+<script>
+    function ChangePagenation() {
+        var page = $("#pagination").val();
+        setCookie('@Constants.Pagenation.CommunicationLogPagination', page, 1);
+        $("#Form1").submit();
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+    $('.tms-management').addClass("active");
+    $('.tms-sub-comm-logs').addClass("active");
+    $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+
+</script>
+}

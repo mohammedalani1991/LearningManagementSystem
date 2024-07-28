@@ -1,0 +1,77 @@
+﻿@page
+@model LoginModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+    ViewData["Title"] = Localizer["Log in"];
+}
+
+
+
+<div class="container-fluid mtb-center">
+    <div class="row justify-content-center align-items-center ">
+        <div class="px-139 w-login bg-white">
+            <h2 class="text-center">@Localizer["Log in"]</h2>
+            <form id="account" class="tms-login-frm" method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                <div class="row p-0">
+
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3 p-0">
+                        <label class="form-label" asp-for="Input.Email">@Localizer["Email"]</label>
+                        <input type="email" asp-for="Input.Email" class="form-control shadow-none" placeholder="@Localizer["Email"]" required>
+
+                        <div>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                    </div>
+                    <div class="mb-3 p-0">
+                        <label class="form-label" asp-for="Input.Password"> @Localizer["Password"] </label>
+                        <div class="position-relative">
+
+                            <input type="password" asp-for="Input.Password" class="form-control shadow-none password" placeholder=" @Localizer["Password"]" required>
+
+                            <div class="position-absolute top-50 end-0 translate-middle-y mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+
+                            <div>
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between font-colorlog">
+                        <div class="">
+                            <div class="form-check">
+
+                                <input class="form-check-input shadow-none" type="checkbox" asp-for="Input.RememberMe">
+                                <label asp-for="Input.RememberMe" class="form-check-label">
+
+                                    @Localizer["Remember Me"]
+                                </label>
+
+                            </div>
+                        </div>
+                        <div>
+                            <a class="font-colorlog" asp-area="Identity" asp-controller="Account" asp-action="ForgotPassword">@Localizer["Forgot Password ?"]</a>
+                        </div>
+                    </div>
+                    <button class="btn mb-3 btn-primary  mx-auto h-loginbtn">@Localizer["Log in"]</button>
+                    <div class="text-center form-label">
+                        <p>@Localizer["Don't have account Register"] <a class="text-primarycolor" asp-area="Identity" asp-controller="Account" asp-action="Register">@Localizer["Sign Up"]</a></p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

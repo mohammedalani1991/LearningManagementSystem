@@ -1,0 +1,319 @@
+﻿@model DataEntity.Models.ViewModels.RegisterViewModel
+@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization;
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var languageId = CultureHelper.GetCurrentLanguageId(requestCulture);
+
+    Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+    ViewData["Title"] = "Register";
+
+
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.Gender.ToString(), GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var gender = lookups[GeneralEnums.MasterLookupCodeEnums.Gender.ToString()];
+    var EducationalLevel = lookups[GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString()];
+    var countries = LookupHelper.GetCountries(languageId);
+    var cities = LookupHelper.GetCities(languageId, countries.FirstOrDefault()?.Id ?? 0);
+}
+
+@section Css {
+    <style>
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
+
+        .error {
+            color: red;
+            display: block;
+        }
+
+        .translate-middle-y-ar {
+            transform: translateY(-50%) !important;
+        }
+
+        .chosen-select {
+            width: 0% !important;
+        }
+
+        .chosen-single, .chosen-select {
+            width: 100%;
+            height: 51.84px !important;
+            border: 1px solid #BBCAFF !important;
+            border-radius: 5px !important;
+            background-color: #F4F7FE !important;
+            display: block !important;
+            padding: .375rem .75rem .375rem 2.25rem;
+        }
+
+            .chosen-single > span {
+                margin-top: 7px;
+            }
+
+            .chosen-single div b {
+                margin-top: 12px !important;
+            }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        @@media only screen and (max-width: 720px) {
+            .chosen-select {
+                width: 100% !important;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid mtb-center">
+    <div class="row justify-content-center align-items-center ">
+        <div class="px-75 w-Signup bg-white">
+            <h2 class="text-center mb-5">@Localizer["Sign Up"]</h2>
+            <form method="post" id="SignUpForm">
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["First Name"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Second Name"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.SecondName, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Third Name"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.ThirdName, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Last Name"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3 d-flex">
+                        <div class="col-5 pe-3">
+                            <label class="form-label">@Localizer["Country Code"]</label><span class="required">*</span>
+                            @Html.DropDownList("PhoneNumberCode", new SelectList(Enumerable.Empty<SelectListItem>()),Localizer["Choose Country"].Value, new { @class = "form-control chosen-select", required = "required" })
+                        </div>
+                        <div class="col-7">
+                            <label class="form-label">@Localizer["Phone Number"]</label><span class="required">*</span>
+                            @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none",placeholder="000000000" } })
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Gender"]</label><span class="required">*</span>
+                        @Html.DropDownList("GenderId", new SelectList(gender, "Id", "Name"),Localizer["Choose Gender"].Value, new { @class = "form-control chosen-select", required = "required" })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Email Address"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none",placeholder="email@email.com" ,type="email" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Education"]</label><span class="required">*</span>
+                        @Html.DropDownList("EducationalLevelId", new SelectList(EducationalLevel, "Id", "Name"),Localizer["Choose Educational"].Value, new { @class = "form-control chosen-select", required = "required" })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Country"]</label><span class="required">*</span>
+                        @Html.DropDownList("CountryId", new SelectList(countries, "Id", "Name"),Localizer["Choose Country"].Value, new { @class = "form-control chosen-select", required = "required" ,onchange="GetCountryCities2()" })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label CityId" class="form-label">@Localizer["City"]</label><span class="required">*</span>
+                        @Html.DropDownList("CityId", new SelectList(cities, "Id", "Name"),Localizer["Choose City"].Value, new { @class = "form-control chosen-select", required = "required" })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label LanguageId" class="form-label">@Localizer["Language"]</label><span class="required">*</span>
+                        @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name"),Localizer["Choose Language"].Value, new { @class = "form-control chosen-select", required = "required" })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Date of Birth"]</label><span class="required">*</span>
+                        @Html.EditorFor(model => model.BirthDate, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none" ,type="date" } })
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Password"] </label><span class="required">*</span>
+                        <div class="position-relative" id="PasswordDiv">
+                            @Html.EditorFor(model => model.Password, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none password" ,type="password" ,style="font-family: auto" ,placeholder="****************" } })
+                            <div class="position-absolute top-50 end-0 translate-middle-y-ar mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">@Localizer["Confirm Password"]</label><span class="required">*</span>
+                        <div class="position-relative" id="ConfirmPasswordDiv">
+                            @Html.EditorFor(model => model.ConfirmPassword, new { htmlAttributes = new { required = "required", @class = "form-control shadow-none password" ,type="password" ,style="font-family: auto" ,placeholder="****************" } })
+                            <div class="position-absolute top-50 end-0 translate-middle-y-ar mx-3">
+                                <i class="fa-solid fa-eye togglePassword"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <button type="button" onclick="SignUp()" class="btn w-50 py-3 btn-primary">@Localizer["Sign Up"]</button>
+                    </div>
+                    <div class="text-center mt-3 form-label">
+                        <p>@Localizer["Already Have An Account?"] <a class="text-primarycolor" asp-area="Identity" asp-action="Login" asp-controller="Account">@Localizer["Login"]</a></p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.9.34/libphonenumber-js.min.js"></script>
+    <script src="~/js/Country/City.js"></script>
+    <script>
+        var Token = '@tokenSet.RequestToken';
+
+        (function () {
+            ShowSpinner();
+            setTimeout(function () {
+                HideSpinner();
+            }, 1000)
+
+            $.validator.addMethod("pwcheck", function (value) {
+                return /^[A-Za-z0-9\d=!\-@@\/._*]*$/.test(value) // consists of only these
+                    && /[A-Z]/.test(value) // has an uppercase letter
+                    && /\d/.test(value) // has a digit
+                    && /[^a-zA-Z0-9]/.test(value); // has a special character
+            });
+
+            $("#SignUpForm").validate({
+                errorPlacement: function (error, element) {
+                    if (element.attr("id") === "PhoneNumberCode")
+                        error.insertAfter("#PhoneNumberCode_chosen");
+                    else if (element.attr("id") === "GenderId")
+                        error.insertAfter("#GenderId_chosen");
+                    else if (element.attr("id") === "EducationalLevelId")
+                        error.insertAfter("#EducationalLevelId_chosen");
+                    else if (element.attr("id") === "CountryId")
+                        error.insertAfter("#CountryId_chosen");
+                    else if (element.attr("id") === "CityId")
+                        error.insertAfter("#CityId_chosen");
+                    else if (element.attr("id") === "LanguageId")
+                        error.insertAfter("#LanguageId_chosen");
+                    else if (element.attr("id") === "Password")
+                        error.insertAfter("#PasswordDiv");
+                    else if (element.attr("id") === "ConfirmPassword")
+                        error.insertAfter("#ConfirmPasswordDiv");
+                    else
+                        error.insertAfter(element);
+                },
+                rules: {
+                    PhoneNumber: {
+                        required: true,
+                        number: true,
+                        minlength: 5
+                    },
+                    Password: {
+                        required: true,
+                        minlength: 8,
+                        pwcheck: true
+                    },
+                    ConfirmPassword: {
+                        required: true,
+                        equalTo: "#Password"
+                    }
+                },
+                messages: {
+                    Password: {
+                        pwcheck: "@Localizer["The password must contain at least one uppercase letter, one number, and one special character"]"
+                    },
+                    ConfirmPassword: {
+                        equalTo: "@Localizer["Passwords do not match"]"
+                    }
+                }
+            });
+
+            $.ajax({
+                url: 'https://restcountries.com/v3.1/all',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    var dropdown = document.getElementById('PhoneNumberCode');
+                    data.sort(function (a, b) {
+                        var nameA = a.name.common.toUpperCase();
+                        var nameB = b.name.common.toUpperCase();
+                        if (nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    $.each(data, function (index, country) {
+                        if (Object.keys(country?.idd).length != 0) {
+                            var option = document.createElement('option');
+
+                            var countryCode = country?.idd?.root + country?.idd?.suffixes[0];
+                            if (country?.name?.common === "United States") {
+                                countryCode = "+1"; // Manually set the country code for the United States
+                            }
+
+                            if ("@(selectedLang == "عربي")" == "True")
+                                option.text = "(" + countryCode + ") " + country?.translations?.ara?.common;
+                            else
+                                option.text = "(" + countryCode + ") " + country?.name?.common;
+
+                            option.value = countryCode;
+                            dropdown.appendChild(option);
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error: ' + error);
+                }
+            });
+        })()
+
+        function SignUp() {
+            var SignUpFrm = $('#SignUpForm');
+            if (SignUpFrm.valid()) {
+                const phoneNumber = libphonenumber.parsePhoneNumber($("#PhoneNumberCode").val() + $("#PhoneNumber").val());
+                if (phoneNumber.isValid()) {
+                    ShowSpinner();
+                    $.ajax({
+                        type: "POST",
+                        url: "/Authentication/Register",
+                        data: SignUpFrm.serialize(),
+                        headers: {
+                            'RequestVerificationToken': Token
+                        },
+                        success: function (data) {
+                            if (data.success)
+                                window.location.href = data.link;
+                            else
+                                toastr.warning(data.message);
+                            HideSpinner();
+                        },
+                        error: function (data) {
+                            toastr.error(data);
+                            HideSpinner();
+                        }
+                    });
+                }
+                else {
+                    toastr.warning("@Localizer["Invalid Phone Number"]");
+                    HideSpinner();
+                }
+            }
+        }
+    </script>
+ }

@@ -1,0 +1,326 @@
+﻿@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model EnrollStudentAssigment
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Assigment"];
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+<div class="container-fluid container-lg mb-5">
+    <div class="row bg-white m-Assigment">
+        <div class="d-flex justify-content-between px-lg-4 ">
+            <p>@Localizer["Publish End Date:"] @Model.EnrollCourseAssigment.PublishEndDate</p>
+        </div>
+        <hr class="colorhr">
+        <input value="@Model.Id" id="AssigmentId" name="AssigmentId" type="hidden" />
+        <input value="@Model.EnrollCourseAssigmentId" id="CourseAssigmentId" name="CourseAssigmentId" type="hidden" />
+        <div id="GetData">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ConfirmSubmitAssigment" tabindex="-1" aria-labelledby="ConfirmSubmitAssigmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ConfirmSubmitAssigmentDiv">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="ConfirmSubmitAssigmentLabel">@Localizer["Are you sure you want to submit the Assigment?"]</h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="text-center mt-5">
+                <button class="btn btn-primary" type="button" id="btnConfirmSubmitAssigment"><i class="fa fa-save"></i> @Localizer["Ok"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ResultSubmitAssigment" tabindex="-1" aria-labelledby="ResultSubmitAssigmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ResultSubmitAssigmentDiv">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="ResultSubmitAssigmentLabel"></h1>
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                   aria-label="Close"></i>
+            </div>
+            <div class="text-center mt-5">
+                <button class="btn btn-primary" type="button" data-dismiss="modal"><i class="fa fa-times"></i> @Localizer["Close"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+    {
+    <script>
+        var CourseMainPage = "@Url.Action("Details","Courses", new { id = Model.EnrollCourseAssigment.EnrollTeacherCourse.CourseId})";
+        var Success = '@Localizer["The Assigment was submitted successfully"]';
+        var Youmustanswer = '@Localizer["You must answer this question"]';
+        var SomeQuestions = '@Localizer["Some questions have not yet been answered."]';
+        var Fail = '@Localizer["There is an error that happened, please get in touch with the administrator for more information."]';
+        var Token = '@tokenSet.RequestToken';
+        function Get() {
+            $.ajax({
+                type: "GET",
+                url: "/CourseAssigment/GetData/",
+                data: { EnrollCourseAssigmentId: '@Model.EnrollCourseAssigmentId' },
+                success: function (data) {
+                    if (data !== null) {
+                        $('#GetData').html(data);
+                        $("#EnrollStudentAssigmentId").val($("#AssigmentId").val());
+                        $("#EnrollCourseAssigmentId").val($("#CourseAssigmentId").val());
+                    }
+                }
+            });
+        }
+        Get();
+
+        $("#ConfirmSubmitAssigment").off('click').on("click", "#btnConfirmSubmitAssigment", function (event) {
+            event.preventDefault();
+            ShowSpinner();
+            Save();
+            $('#ConfirmSubmitAssigment').modal("hide");
+        });
+
+    function UploadFile(e,QId) {
+         
+        var files = e.target.files;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var formData = new FormData();
+                for (var i = 0; i != files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+                ShowSpinner();
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("UploadStudentExamAttachments", "Files", new {Area = "ControlPanel"})",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        '@tokenSet.HeaderName': Token
+                    },
+                    success: function(result) {
+                        $("input[name=inputHidden_"+QId+"]").val(result[0]);
+                        HideSpinner();
+                    },
+                    error: function(req, status, error) {
+                        alert("Error while adding the File");
+                        HideSpinner();
+                    }
+                });
+            } else {
+                alert("This browser doesn't support HTML5 file uploads!");
+                HideSpinner();
+            }
+        }
+    }
+        function ConfirmSubmitAssigment() {
+            event.preventDefault();
+            $('#ConfirmSubmitAssigment').modal("show");
+        }
+
+        function Save(IsAutoSubmitAssigment) {
+            ShowSpinner();
+            $(".alertcust").html("");
+
+
+            ///////////////Checkbox///////////////////////////
+            var allCheckbox = [];
+            $.each($("input[type=checkbox]"), function (index, value) {
+                if (allCheckbox.indexOf(value.name.split("_")[1]) == -1) {
+                    allCheckbox.push(value.name.split("_")[1]);
+                }
+            });
+
+            var allCheckedCheckbox = [];
+            $.each($("input[type=checkbox]:checked"), function (index, value) {
+                if (allCheckedCheckbox.indexOf(value.name.split("_")[1]) == -1) {
+                    allCheckedCheckbox.push(value.name.split("_")[1]);
+                }
+            });
+
+            var requiredCheckbox = [];
+            $.each(allCheckbox, function (index, value) {
+
+                if (allCheckedCheckbox.indexOf(value) == -1) {
+                    if (IsAutoSubmitAssigment == true) {
+                        $("input[name=Checkbox_" + value + "]:first").prop("checked", true);
+                    } else {
+                        requiredCheckbox.push(value);
+                    }
+
+                }
+            });
+
+            if (requiredCheckbox.length > 0) {
+                $.each(requiredCheckbox, function (index, value) {
+
+                    $("#alert_" + value).html(Youmustanswer);
+                });
+            }
+
+            $.each(allCheckedCheckbox, function (index, value) {
+
+                $("#alert_" + value).html("");
+            });
+
+
+
+            ///////////////radio///////////////////////////
+            var allradio = [];
+            $.each($("input[type=radio]"), function (index, value) {
+                if (allradio.indexOf(value.name.split("_")[1]) == -1) {
+                    allradio.push(value.name.split("_")[1]);
+                }
+            });
+
+            var allCheckedradio = [];
+            $.each($("input[type=radio]:checked"), function (index, value) {
+                if (allCheckedradio.indexOf(value.name.split("_")[1]) == -1) {
+                    allCheckedradio.push(value.name.split("_")[1]);
+                }
+            });
+
+            var requiredradio = [];
+            $.each(allradio, function (index, value) {
+
+                if (allCheckedradio.indexOf(value) == -1) {
+                    if (IsAutoSubmitAssigment == true) {
+                        $("input[name=Radios_" + value + "]:first").prop("checked", true);
+                    } else {
+                        requiredradio.push(value);
+                    }
+
+                }
+            });
+
+            if (requiredradio.length > 0) {
+                $.each(requiredradio, function (index, value) {
+
+                    $("#alert_" + value).html(Youmustanswer);
+                });
+            }
+
+            $.each(allCheckedradio, function (index, value) {
+
+                $("#alert_" + value).html("");
+            });
+
+            ///////////////textarea///////////////////////////
+
+            var alltextarea = [];
+            $.each($("textarea"), function (index, value) {
+                if (alltextarea.indexOf(value.name.split("_")[1]) == -1) {
+                    alltextarea.push(value.name.split("_")[1]);
+                }
+            });
+
+            var allTextareaValue = [];
+            $.each($("textarea"), function (index, value) {
+                if (value.value != '') {
+                    allTextareaValue.push(value.name.split("_")[1]);
+                }
+            });
+
+            var requiredTextarea = [];
+            $.each(alltextarea, function (index, value) {
+
+                if (allTextareaValue.indexOf(value) == -1) {
+                    if (IsAutoSubmitAssigment == true) {
+                        $("textarea[name=textarea_" + value + "]").val("--");
+                    } else {
+                        requiredTextarea.push(value);
+                    }
+
+                }
+            });
+
+            if (requiredTextarea.length > 0) {
+                $.each(requiredTextarea, function (index, value) {
+
+                    $("#alert_" + value).html(Youmustanswer);
+                });
+            }
+
+            $.each(allTextareaValue, function (index, value) {
+
+                $("#alert_" + value).html("");
+            });
+                  ///////////////inputHidden///////////////////////////
+      
+        var allinputHidden = [];
+        $.each($(".inputHidden"), function (index, value) {
+            if (allinputHidden.indexOf(value.name.split("_")[1]) == -1) {
+                allinputHidden.push(value.name.split("_")[1]);
+            }
+        });
+
+        var allinputHiddenValue = [];
+        $.each($(".inputHidden"), function (index, value) {
+            if (value.value != '') {
+                allinputHiddenValue.push(value.name.split("_")[1]);
+            }
+        });
+
+        var requiredinputHidden = [];
+        $.each(allinputHidden, function (index, value) {
+
+            if (allinputHiddenValue.indexOf(value) == -1) {
+                if (IsAutoSubmitAssigment == true) {
+                    $("input[name=inputHidden_" + value + "]").val("--");
+                } else {
+                    requiredinputHidden.push(value);
+                }
+
+            }
+        });
+
+        if (requiredinputHidden.length > 0) {
+            $.each(requiredinputHidden, function (index, value) {
+
+                $("#alert_" + value).html(Youmustanswer);
+            });
+        }
+
+        $.each(allinputHiddenValue, function (index, value) {
+
+            $("#alert_" + value).html("");
+        });
+        
+        //////////////////////////////////////////////////////////////////////////////
+            var req = (requiredTextarea.concat(requiredradio).concat(requiredCheckbox).concat(requiredinputHidden)).sort(function (a, b) { return a - b });
+            if (req.length > 0) {
+                HideSpinner();
+                toastr.error(SomeQuestions);
+            } else {
+
+                $.ajax({
+                    type: "POST",
+                    url: "/CourseAssigment/Create",
+                    dataType: 'json',
+                    cache: false,
+                    data: $("#CreateFrm").serialize(),
+                    success: function (data) {
+                        toastr.success(Success);
+                        ShowSpinner();
+                        setTimeout(function () { window.history.go(-1) }, 1000);
+                    },
+                    error: function () {
+                        HideSpinner();
+                        $('#ResultSubmitAssigment #ResultSubmitAssigmentLabel').html(Fail);
+                        $('#ResultSubmitAssigment').modal("show");
+                    }
+                });
+
+            }
+        }
+    </script>
+    }

@@ -1,0 +1,58 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.PermissionViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Permission Details"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_title">
+            <div class="clearfix"></div>
+        </div>
+        <div class="d-flex tms-page-popup-title">
+
+            <a onclick="history.back()">
+                <i class="fa fa-close"></i>
+            </a>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Permission Details"]
+            </div>
+        </div>
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Page Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.PageName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Permission Key"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.PermissionKey)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Description)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Page Url"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.PageUrl)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status).Name</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>

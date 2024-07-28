@@ -1,0 +1,114 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model IEnumerable<DataEntity.Models.EfModels.EnrollCourseQuiz>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var QuizLowPoint = (decimal)ViewBag.QuizLowPoint;
+    var NewSave = 0;
+    var MinorReview = 0;
+    var GrandRevision = 0;
+    foreach (var item in Model)
+    {
+        if (item.QuestionOne == true)
+            if (item.EnrollCourseQuizPointes.Any())
+                if (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionOne < QuizLowPoint)
+                    NewSave++;
+        if (item.QuestionTwo == true)
+            if (item.EnrollCourseQuizPointes.Any())
+                if (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionTwo < QuizLowPoint)
+                    MinorReview++;
+        if (item.QuestionThree == true)
+            if (item.EnrollCourseQuizPointes.Any())
+                if (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionThree < QuizLowPoint)
+                    GrandRevision++;
+    }
+}
+
+<style>
+    .red {
+        background-color: #ff000024 !important;
+    }
+
+    .green {
+        background-color: #0cff0024 !important;
+    }
+
+    .red:disabled {
+        background-color: #ff000024 !important;
+    }
+
+    .green:disabled {
+        background-color: #0cff0024 !important;
+    }
+</style>
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="x_content">
+            @if (!Model.Any())
+            {
+                <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="tms-table">
+                        <thead>
+                            <tr class="tms-headings">
+                                <th>
+                                    @Localizer["Lecture Name"]
+                                </th>
+                                <th>
+                                    @Localizer["Lecture Description"]
+                                </th>
+                                <th>
+                                    @Localizer["New Save"] (@NewSave)
+                                </th>
+                                <th>
+                                    @Localizer["Minor Review"] (@MinorReview)
+                                </th>
+                                <th>
+                                    @Localizer["Grand Revision"] (@GrandRevision)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="tms-tr">
+                                    <td>
+                                        @item.Lecture?.LectureName
+                                    </td>
+                                    <td>
+                                        @Html.Raw(item.Lecture?.Description?.Replace("&&" , "<hr/>"))
+                                    </td>
+                                    <td class="p-4" style="max-width:120px">
+                                        @if (item.QuestionOne == true)
+                                        {
+                                            <input type="number" disabled class="form-control tms-input @(item.EnrollCourseQuizPointes != null && item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionOne > -1 ? (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionOne < QuizLowPoint ? "red" : "green"): "")" value="@(item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionOne > -1 ? item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionOne: "")" />
+                                        }
+                                    </td>
+                                    <td class="p-4" style="max-width:120px">
+                                        @if (item.QuestionTwo == true)
+                                        {
+                                            <input type="number" disabled class="form-control tms-input @(item.EnrollCourseQuizPointes != null && item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionTwo > -1 ? (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionTwo < QuizLowPoint ? "red" : "green"): "")" value="@(item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionTwo > -1 ? item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionTwo: "")" />
+                                        }
+                                    </td>
+                                    <td class="p-4" style="max-width:120px">
+                                        @if (item.QuestionThree == true)
+                                        {
+                                            <input type="number" disabled class="form-control tms-input @(item.EnrollCourseQuizPointes != null && item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionThree > -1 ? (item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionThree < QuizLowPoint ? "red" : "green"): "")" value="@(item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionThree > -1 ? item.EnrollCourseQuizPointes.FirstOrDefault()?.QuestionThree: "")" />
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

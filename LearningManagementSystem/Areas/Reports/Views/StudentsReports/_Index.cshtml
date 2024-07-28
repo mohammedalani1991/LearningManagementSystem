@@ -1,0 +1,241 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Student>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@inject IEnrollTeacherCourseService CourseService
+@inject IStudentService StudentService
+@inject ICurrencyService CurrencyService
+@using DataEntity.Models.ViewModels
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Gender.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    List<StatusViewModel> status = LookupHelper.GetStatuses(ViewBag.LangId);
+    List<DetailsLookupViewModel> countries = LookupHelper.GetCountries(ViewBag.LangId);
+    List<DetailsLookupViewModel> cities = LookupHelper.GetCities(ViewBag.LangId);
+    List<DetailsLookupViewModel> gender = lookups[GeneralEnums.MasterLookupCodeEnums.Gender.ToString()];
+    var fromDate = (DateTime)ViewBag.FromDate;
+    var toDate = (DateTime)ViewBag.ToDate;
+    var fromDateFilter = $"{fromDate.Date.Year}-{fromDate.Date.Month:D2}-{fromDate.Date.Day:D2}";
+    var toDateFilter = $"{toDate.Date.Year}-{toDate.Date.Month:D2}-{toDate.Date.Day:D2}";
+    var currency = CurrencyService.GetPrimaryCurrency();
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title row w-100">
+            <div class="tms-title col-12 row">
+                <div class="col-7">
+                    <h4>@Localizer["Students Reports"] <small>@ViewData["Title"]</small></h4>
+                </div>
+                <div class="col-5 d-flex justify-content-end px-0">
+                    <a id="btnDownLoad" onclick="Download()" class="btn tms-search-input mx-0" href="#">
+                        <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                        @Localizer["Download"]
+                    </a>
+                    <a style="display: none;" href="" target="_blank" class="nav-link" id="export-to-excel"></a>
+                </div>
+            </div>
+            <div class="col-12">
+                <form data-ajax="true" method="get" action="StudentsReports/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    <div class="row mt-3">
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("page")
+                        @Html.Hidden("table")
+                        @Html.Hidden("filter.SecondOpen",true)
+
+                        <div class="col-md-1 col-sm-3 col-xs-12 px-1">
+                            @Html.DropDownList("filter.Gender", new SelectList(gender, "Id", "Name" ,ViewBag.Gender), Localizer["Gender"].Value, new { @class = "form-control chosen-select tms-ddl"})
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+                            @Html.DropDownList("filter.Country", new SelectList(countries, "Id", "Name" ,ViewBag.Country), Localizer["Country Name"].Value, new { @class = "form-control chosen-select tms-ddl" , onchange="GetCities()"})
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+                            @Html.DropDownList("filter.City",new SelectList(cities, "Id", "Name" ,ViewBag.City), Localizer["City Name"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        </div>
+                        <div class="col-md-1 col-sm-3 col-xs-12 px-1">
+                            @Html.TextBox("filter.AgeFrom", ((int)ViewBag.AgeFrom > 0 ? (int)ViewBag.AgeFrom : null ), new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Age From"].Value })
+                        </div>
+                        <div class="col-md-1 col-sm-3 col-xs-12 px-1">
+                            @Html.TextBox("filter.AgeTo", ((int)ViewBag.AgeTo > 0 ? (int)ViewBag.AgeTo : null ), new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Age To"].Value })
+                        </div>
+                        <div class="col-md-2 col-sm-5 col-xs-12 px-1 top-30">
+                            <label>@Localizer["Created Date"]</label>
+                            <input type="text" placeholder="@Localizer["Created Date"]" class="form-control search-control tms-search-input" value="@fromDateFilter - @toDateFilter" name="filter.FromToDate" id="filter_FromToDate" readonly />
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12 px-1">
+                            @Html.TextBox("filter.CourseNum", ((int)ViewBag.CourseNum > 0 ? (int)ViewBag.CourseNum : null ), new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Number Of Courses"].Value })
+                        </div>
+                        <div class="col-md-1 col-sm-3 col-xs-12 px-1">
+                            @Html.TextBox("filter.Price", ((int)ViewBag.Price > 0 ? (int)ViewBag.Price : null ), new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Paid Amount"].Value })
+                        </div>
+                        <div class="col-md-1 col-sm-3 col-xs-12 px-1">
+                            @Html.DropDownList("filter.Status", new SelectList(status, "Id", "Name",ViewBag.Status), Localizer["Status"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-12 px-1 d-flex">
+                            @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                        </div>
+                        <input class="btn btn-primary" type="submit" value=@Localizer["Search"] style="height:35px" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="FullName d-none">
+                                @Localizer["Full Name"]
+                            </th>
+                            <th class="Gender d-none">
+                                @Localizer["Gender"]
+                            </th>
+                            <th class="Email d-none">
+                                @Localizer["Email"]
+                            </th>
+                            <th class="PaidAmount d-none">
+                                @Localizer["Paid Amount"]
+                            </th>
+                            <th class="CourseNumber d-none">
+                                @Localizer["Course Number"]
+                            </th>
+                            <th class="Age d-none">
+                                @Localizer["Age"]
+                            </th>
+                            <th class="Country d-none">
+                                @Localizer["Country"]
+                            </th>
+                            <th class="City d-none">
+                                @Localizer["City"]
+                            </th>
+                            <th class="Expulsion d-none">
+                                @Localizer["Expulsion Number"]
+                            </th>
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th class="CreatedBy d-none">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="Status d-none">
+                                @Localizer["Status"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Programs"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="FullName d-none">
+                                    @if (AuthenticationHelper.CheckAuthentication("StudentsInfo", "View", User.Identity.Name))
+                                    {
+                                        <a href="@Url.Action("Index", "Student", new {Area = "Reports" , id = item.Id})"> @Html.DisplayFor(modelItem => item.Contact.FullName)</a>
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Contact.FullName)
+                                    }
+                                </td>
+                                <td class="Gender d-none">
+                                    @(gender.FirstOrDefault(r => r.Id == item.Contact.GenderId)?.Name ?? "")
+                                </td>
+                                <td class="Email d-none">
+                                    @Html.DisplayFor(modelItem => item.Contact.Email)
+                                </td>
+                                <td class="PaidAmount d-none">
+                                    @item.EnrollStudentCourses.Sum(r=>r.Price) @Html.Raw(currency.Icon)
+                                </td>
+                                <td class="CourseNumber d-none">
+                                    @item.EnrollStudentCourses.Count()
+                                </td>
+                                <td class="Age d-none">
+                                    @LookupHelper.GetAge(item.BirthDate)
+                                </td>
+                                <td class="Country d-none">
+                                    @(countries.FirstOrDefault(r => r.Id == item.Contact.CountryId)?.Name ?? "")
+                                </td>
+                                <td class="City d-none">
+                                    @(cities.FirstOrDefault(r => r.Id == item.Contact.CityId)?.Name ?? "")
+                                </td>
+                                <td class="Expulsion d-none">
+                                    @item.StudentExpulsionHistories.Where(r=>r.Status == (int)GeneralEnums.StatusEnum.Active && r.TypeId == (int)GeneralEnums.ExpulsionStatus.Expel).Count()
+                                </td>
+                                <td class="CreatedOn d-none">
+                                    @item.CreatedOn.ToShortDateString()
+                                </td>
+                                <td class="CreatedBy d-none">
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td class="Status d-none">
+                                    @(status.FirstOrDefault(r => r.Id == item.Status)?.Name??"")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div mb-5">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, searchText = ViewBag.searchText , Gender = ViewBag.Gender,
+                            Country = ViewBag.Country ,City = ViewBag.City ,AgeFrom = ViewBag.AgeFrom ,AgeTo = ViewBag.AgeTo ,FromDate = ViewBag.FromDate, ToDate = ViewBag.ToDate,Status = ViewBag.Status,CourseNum = ViewBag.CourseNum ,Price = ViewBag.Price,SecondOpen = true,
+                    }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main",OnBegin = "ShowSpinner", OnComplete = "HideSpinner" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Students Number:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        table = '@ViewBag.Table'.split(',');
+        GetTable(s);
+        $("#filter_FromToDate").setDatePickRange('@fromDateFilter', '@toDateFilter');
+
+        if ($("#filter_Country").val() > 0) {
+            GetCities();
+        }
+    });
+
+    function Download() {
+        var ActionLink = '/Reports/StudentsReports/DownloadReport';
+        var href = ActionLink + '?' + $("#Form1").serialize();
+        var anchor = $('#export-to-excel');
+        anchor.attr('href', href);
+        anchor[0].click();
+    }
+
+    function GetCities() {
+        $.ajax({
+            type: "POST",
+            url: "/ControlPanel/Country/GetCountryCities",
+            dataType: 'json',
+            cache: false,
+            data: { id: $("#filter_Country").val() },
+            success: function (data) {
+                $("#filter_City").empty();
+                $("#filter_City").append(data.result);
+                $("#filter_City").val("@((int)ViewBag.City)")
+                $('#filter_City').trigger('chosen:updated');
+            }
+        });
+    }
+</script>

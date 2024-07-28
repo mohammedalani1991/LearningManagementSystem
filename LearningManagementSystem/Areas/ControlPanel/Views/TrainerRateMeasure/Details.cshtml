@@ -1,0 +1,57 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.TrainerRateMeasure
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = @Localizer["Details"];
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div>
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Details"]
+            </div>
+        </div>
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Id"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Id)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Measure"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Measure)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["From Range"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.FromRange)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["To Range"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ToRange)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Type"]</td>
+                    <td class="tms-details-data">
+                        @LookupHelper.GetLookupDetailsById(Model.Type, ViewBag.LangId)?.Name
+                    </td>
+                </tr>                
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status,(int)ViewBag.LangId).Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

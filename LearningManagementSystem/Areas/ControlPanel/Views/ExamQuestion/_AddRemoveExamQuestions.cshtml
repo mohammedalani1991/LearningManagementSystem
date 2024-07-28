@@ -1,0 +1,232 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.ExamTemplateViewModel
+@using DataEntity.Models.EfModels;
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var ViewBagListCourseCategorys = ViewBag.ListCourseCategorys;
+    ViewBagListCourseCategorys.Add(new CourseCategory { Name = Localizer["Select Course Category"].Value, Id = 0 });
+    var ListCourseCategorys = (List<CourseCategory>)ViewBagListCourseCategorys;
+
+    ViewData["Title"] = @Localizer["Add Or Remove Exam Questions"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+    var ViewBagquestionTypes = LookupHelper.GetQuestionsType(); ;
+    ViewBagquestionTypes.Add(new DataEntity.Models.ViewModels.StatusViewModel { Name = Localizer["Select"].Value, Id = 0 });
+
+
+}
+<div class="row QuestionDiv">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add Or Remove Exam Questions"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <div class="row">
+
+                    <ul class="QuestionTabs nav nav-tabs col-md-12 col-sm-12 col-xs-12">
+                        <li class="active AddFromQuestionBank"><a data-toggle="tab" href="#AddFromQuestionBank" class="tms-label"> @Localizer["Add from questions bank"] </a></li>
+                        <li class="AddRandomQuestion"><a data-toggle="tab" href="#AddRandomQuestion" class="tms-label">@Localizer["Add a random questions"] </a></li>
+                    </ul>
+                    <div class="tab-content col-lg-12 col-md-12 col-sm-12 col-xs-12">
+
+                        <div id="AddFromQuestionBank" class="tab-pane fade in active show col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <form action="/ControlPanel/ExamQuestion/TemplateBankExamQuestionsGetData" method="post" id="Form_TemplateAddBankExamQuestions" class="form-horizontal form-label-left">
+                                @Html.Hidden("table")
+                                @Html.Hidden("pagination")
+                                @Html.Hidden("page")
+                                @Html.Hidden("id")
+                                <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                            @Localizer["Template Name"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.EditorFor(model => model.Name, new { htmlAttributes = new {  @class = "form-control tms-input col-md-12 col-xs-12 removeBorder" ,@readonly="true"} })
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                            @Localizer["Language"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl" })
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-xs-6 tms-label" for="Status">
+                                            @Localizer["Question Types"]
+                                        </label>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownList("TypeQuestion", new SelectList(ViewBagquestionTypes, "Id", "Name").OrderBy(e=>e.Value), new { @class = "form-control chosen-select tms-ddl" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="QuestionName">
+                                            @Localizer["Question Name"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.Editor("QuestionName", new { htmlAttributes = new {  @class = "form-control col-md-7 col-xs-12 tms-input" } })
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/ExamQuestion/CourseSearch/">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                                            @Localizer["Course Name"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                           @* @Html.DropDownListFor(model => model.CourseId, new SelectList(Model.ListCourse, "Id", "CourseName"), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })*@
+                                              @Html.DropDownList("CourseId",Enumerable.Empty<SelectListItem>(), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseCategoryId">
+                                            @Localizer["Course Category"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("CourseCategoryId", new SelectList(ListCourseCategorys.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-control chosen-select tms-ddl" })
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                                    <button class="tms-save-btn" type="submit"><i class="fa fa-serach"></i> @Localizer["Search in Bank of Questions"]</button>
+
+                                    <button class="tms-delete-btn float-right" id="btnDeleteAllQuestions" type="button"><i class="fa fa-danger"></i> @Localizer["Delete All Questions"]</button>
+                                </div>
+
+                            </form>
+
+                            <div class="row" id="TemplateBankExamQuestionsGetData">
+                            </div>
+                        </div>
+
+
+                        <div id="AddRandomQuestion" class="tab-pane">
+                             <form action="/ControlPanel/ExamQuestion/AddRemoveTemplateRandomExamQuestions" method="post" id="Form_TemplateAddRandomQuestion" class="form-horizontal form-label-left">
+                                @Html.Hidden("table")
+                                @Html.Hidden("pagination")
+                                @Html.Hidden("page")
+                                @Html.Hidden("id")
+                                          <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                            @Localizer["Template Name"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.EditorFor(model => model.Name, new { htmlAttributes = new {  @class = "form-control tms-input col-md-12 col-xs-12 removeBorder" ,@readonly="true"} })
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                            @Localizer["Language"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl" })
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-xs-6 tms-label" for="Status">
+                                            @Localizer["Question Types"]
+                                        </label>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownList("TypeQuestion", new SelectList(ViewBagquestionTypes, "Id", "Name").OrderBy(e=>e.Value), new { @class = "form-control chosen-select tms-ddl" })
+                                        </div>
+                                    </div>
+                                 <div class="form-group col-lg-5 col-sm-12 col-xs-12 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/ExamQuestion/CourseSearch/">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                                            @Localizer["Course Name"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                           @* @Html.DropDownListFor(model => model.CourseId, new SelectList(Model.ListCourse, "Id", "CourseName"), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })*@
+                                           @Html.DropDownList("CourseId",  Enumerable.Empty<SelectListItem>(), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                          
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseCategoryId">
+                                            @Localizer["Course Category"]
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("CourseCategoryId", new SelectList(ListCourseCategorys.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-control chosen-select tms-ddl" })
+
+                                        </div>
+                                    </div>
+                                      <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                                        <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="NumberRandomQuestions">
+                                            @Localizer["Number of random questions"] <span class="required">*</span>
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.Editor("NumberRandomQuestions", new { htmlAttributes = new { required = "required"  ,@class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 1, @max=100} })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+
+                                    <button class="tms-save-btn" type="submit"><i class="fa fa-serach"></i> @Localizer["Add Random Questions"]</button>
+
+                                     <button class="tms-delete-btn float-right" id="btnDeleteAllQuestions" type="button"><i class="fa fa-danger"></i> @Localizer["Delete All Questions"]</button>
+                                </div>
+                            </form>
+                            <div class="row" id="TemplateRandomExamQuestionsGetData">
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+        .nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+        color: #555;
+        cursor: default;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-bottom-color: transparent;
+    }
+    .nav-tabs>li {
+        float: left;
+        margin-bottom: -1px;
+            font-weight: bold;
+        font-family: 'Montserrat Bold' !important;
+    }
+
+        .removeBorder{
+        border: none !important;
+        background-color: #f7fcff !important;
+        }
+
+
+</style>
+
+<script src="~/js/ExamQuestion/ExamQuestion.js?ver=8.2"></script>

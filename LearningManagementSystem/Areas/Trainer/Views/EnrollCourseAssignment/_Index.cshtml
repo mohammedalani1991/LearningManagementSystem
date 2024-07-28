@@ -1,0 +1,238 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollCourseAssigment>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    var MainUrl = Url.Action("GetData", new { page = ViewBag.page, searchText = ViewBag.searchText, CourseId = ViewBag.CourseId });
+}
+
+<div class="row">
+    <input type="hidden" id="EnrollCourseAssignmentCurrentUrl" value="@MainUrl" />
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                    <form data-ajax="true" method="get" action="/Trainer/EnrollCourseAssignments/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        @Html.Hidden("CourseId")
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        <div class="float-start">
+                             <p> @Localizer["The assignment time will be in the time zone :"] (@ViewBag.TimeZone)  </p>
+                        </div>
+
+                        @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Create", User.Identity.Name))
+                        {
+                            <button class="btn btn-primary float-end" type="button" onclick="ShowAddEnrollCourseAssignment(@ViewBag.CourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Course Assignment"]</button>
+                        }
+
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Id">
+                                @Localizer["Id"]
+                            </th>
+                            <th class="Name">
+                                @Localizer["Name"]
+                            </th>
+                            <th class="SubmissionDate">
+                                @Localizer["Publish Date"]
+                            </th>
+                            <th class="ExpiryDate">
+                                @Localizer["Publish End Date"]
+                            </th>
+                            <th class="Status">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="Id">
+                                    @Html.DisplayFor(modelItem => item.Id)
+                                </td>
+                                <td class="Name">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td class="SubmissionDate">
+                                    @LookupHelper.ConvertTimeToSystemTimeZone(item.PublishDate)
+                                </td>
+                                <td class="ExpiryDate">
+                                    @LookupHelper.ConvertTimeToSystemTimeZone(item.PublishEndDate)
+                                </td>
+                                <td class="Status">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedOn">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Edit", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowEditEnrollCourseAssignment(@item.Id, @ViewBag.LangId)"><i class="fa-solid fa-pen"></i> @Localizer["Edit"]</a> </li>
+
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowDetailsEnrollCourseAssignment(@item.Id, @ViewBag.LangId)"><i class="fa-solid fa-eye"></i> @Localizer["Details"]</a></li>
+                                            }
+
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Delete", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowDeleteEnrollCourseAssignment(@item.Id, @ViewBag.LangId)"><i class="fa-solid fa-trash"></i> @Localizer["Delete"]</a> </li>
+
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowQuestions(@item.Id)"><i class="fa-solid fa-pen"></i> @Localizer["Assignment Questions"]</a></li>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "Edit", User.Identity.Name))
+                                            {
+                                                <li> <a class="dropdown-item" href="javascript:void(0);" onclick="ShowSubmittedAssignments(@item.Id)"><i class="fa-solid fa-upload"></i> @Localizer["Solved Assignments"]</a></li>
+
+                                            }
+                                           
+                                        </ul>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, CourseId = ViewBag.CourseId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_Assignments" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="CreateEnrollCourseAssignment" tabindex="-1" aria-labelledby="CreateEnrollCourseAssignmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="CreateEnrollCourseAssignmentDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="EditEnrollCourseAssignment" tabindex="-1" aria-labelledby="EditEnrollCourseAssignmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="EditEnrollCourseAssignmentDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="DetailsEnrollCourseAssignment" tabindex="-1" aria-labelledby="DetailsEnrollCourseAssignmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DetailsEnrollCourseAssignmentDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="DeleteEnrollCourseAssignment" tabindex="-1" aria-labelledby="DeleteEnrollCourseAssignmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DeleteEnrollCourseAssignmentDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ShowAssignmentQuestions" tabindex="-1" aria-labelledby="ShowAssignmentQuestionsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="ShowAssignmentQuestionsDiv">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ShowStudentsAssignment" tabindex="-1" aria-labelledby="ShowStudentsAssignmentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="ShowStudentsAssignmentDiv">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="Pdf" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='PdfDiv' class="modal-content">
+              <div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+            <embed id="PdfView" src="" frameborder="0" style="height:85vh; width:100% ;z-index:2450">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ImageM" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ImageMDiv' class="modal-content">
+              <div class="modal-header">
+                <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+                    aria-label="Close"></i>
+            </div>
+            <img id="ImageMView" src="" style="height:85vh; width:100% ;z-index:2450">
+        </div>
+    </div>
+</div>
+
+<script>
+    var Token = '@tokenSet.RequestToken';
+
+    var editMassege = '@Localizer["Edited successfully"]';
+    var addMassege = '@Localizer["Added successfully"]';
+    var deleteMassege = '@Localizer["Deleted successfully"]';
+    var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+    var addMassegeError = '@Localizer["An error occurred while adding"]';
+    var editMassegeError = '@Localizer["An error occurred while editing"]';
+    var AddMassegeErrorInvalidDates = '@Localizer["An error occurred while adding, You must add valid dates"]';
+    var EditMassegeErrorInvalidDates = '@Localizer["An error occurred while editing, You must add valid dates"]';
+
+
+    $('.tms-courses').addClass("active");
+    $('.tms-sub-Assignments').addClass("active");
+    $('.tms-sub-top-nav  .tms_sub_courses').addClass("active");
+            function OpenPdf(file) {
+    $('#PdfView').attr("src", file)
+    $('#Pdf').modal("show")
+    }
+        function ImageM(file) {
+    $('#ImageMView').attr("src", file)
+    $('#ImageM').modal("show")
+    }
+</script>
+
+<script src="~/js/EnrollCourseAssignment/EnrollCourseAssignment.js"></script>

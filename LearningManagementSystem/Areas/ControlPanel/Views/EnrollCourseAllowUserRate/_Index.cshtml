@@ -1,0 +1,133 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollCourseAllowUserRate>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+
+    var standardTypes = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.ManagementStandardType.ToString(), ViewBag.LangId);
+
+
+    var MainUrl = Url.Action("GetData", new { page = ViewBag.page, searchText = ViewBag.searchText, CourseId = ViewBag.CourseId });
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <input type="hidden" id="EnrollCourseExamCurrentUrl" value="@MainUrl" />
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Course Allow Users Rate"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    <form data-ajax="true" method="get" action="/ControlPanel/EnrollmentAssignments/GetData" id="Form1" data-ajax-success="GetAssigmentData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        @Html.Hidden("CourseId")
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAllowUserRates", "Create", User.Identity.Name))
+                        {
+                            <button class="tms-save-btn float-end" type="button" onclick="ShowAddEnrollCourseAllowUserRate(@ViewBag.CourseId)"><img src="~/img/add-to-list.png" /> @Localizer["Add New Course Allow Users Rate"]</button>
+                        }
+
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">                           
+                            <th class="EmployeeName">
+                                @Localizer["Employee Name"]
+                            </th>
+                            <th class="RateTypeId">
+                                @Localizer["Rate Type"]
+                            </th>                                                        
+                            <th class="CreatedOn">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">                                
+                                <td class="EmployeeName">
+                                    @Html.DisplayFor(modelItem => item.Contact.FullName)
+                                </td>
+                                <td class="RateType">
+                                    @LookupHelper.GetLookupDetailsById(item.RateTypeId??0,ViewBag.LangId)?.Name
+                                </td>                                
+                                <td class="CreatedOn">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+                                            @*@if (AuthenticationHelper.CheckAuthentication("EnrollCourseAllowUserRates", "Edit", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowEditEnrollCourseAssignment(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                            }*@
+                                            @*@if (AuthenticationHelper.CheckAuthentication("EnrollCourseAllowUserRates", "View", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowDetailsEnrollCourseAssignment(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Details"]</button>
+                                            }*@
+
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAllowUserRates", "Delete", User.Identity.Name))
+                                            {
+                                                <button onclick="ShowDeleteEnrollCourseAllowUserRate(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Delete"]</button>
+                                            }                                            
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.PageCount > 0)
+            {
+                <div class="paging-div">
+                    @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, CourseId = ViewBag.CourseId}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "GetData" }))
+                    <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media (min-width: 1200px) {
+        .modal-xl {
+            --bs-modal-width: 1140px !important;
+        }
+    }
+
+    .custmSelect {
+        display: inline-block !important;
+        width: 290px !important;
+        padding-top: 2px;
+    }
+
+    .table-responsive {
+        overflow: inherit !important;
+    }
+</style>

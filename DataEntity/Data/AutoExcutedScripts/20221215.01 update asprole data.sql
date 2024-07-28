@@ -1,0 +1,1 @@
+﻿  update AspNetRoles set Name='Student',NormalizedName='Student' where id=2

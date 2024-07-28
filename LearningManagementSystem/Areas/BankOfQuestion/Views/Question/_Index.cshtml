@@ -1,0 +1,271 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Question>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICourseService CourseService
+@inject ICourseCategoryService CourseCategoryService
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+
+    List<StatusViewModel> questionType = LookupHelper.GetQuestionsType(ViewBag.LangId);
+    var courses = CourseService.GetCoursesList(ViewBag.LangId);
+    var categorys = CourseCategoryService.GetAllCourseCategorys(ViewBag.LangId);
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Question"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                    <form data-ajax="true" method="get" action="Question/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("table")
+                            @Html.Hidden("pagination")
+                            @Html.Hidden("page")
+                            <div class="col-md-5 col-sm-3 col-xs-12">
+                                @Html.DropDownList("Category", new SelectList(categorys, "Id", "Name"), Localizer["Category Name"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                            <div class="col-md-5 col-sm-3 col-xs-12">
+                                @Html.DropDownList("Course", new SelectList(courses, "Id", "CourseName"), Localizer["Course Name"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                            <div class="col-md-6 col-sm-3 col-xs-12">
+                                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                            </div>
+                            <div>
+                                <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                @if (AuthenticationHelper.CheckAuthentication("Question", "Create", User.Identity.Name))
+                {
+                    <div>
+                        <button class="tms-btn" type="button" onclick="ShowAddQuestion()"><img src="~/img/add-to-list.png" /> @Localizer["Add New"]</button>
+                    </div>
+
+                    <a href="~/Template/TemplateQuestions.xlsx" target="_blank">
+                        <label class="btn mb-0" style="background: #2B61AE;border:0;color:white;border-radius:10px;cursor:pointer;padding:8px 14px;font-size:14px">
+                            <i class="fa fa-download" aria-hidden="true"></i>
+                            @Localizer["Download template Questions"]
+                        </label>
+
+                    </a>
+
+
+                    <div class=" mx-2">
+                        <label for="file-upload" class="btn mb-0" style="background: #2B61AE; border:0;color:white;border-radius:10px;cursor:pointer;padding:8px 14px;font-size:14px">
+                            <i class="fa fa-upload" aria-hidden="true"></i>  @Localizer["Upload"]
+                        </label>
+                        <input id="file-upload" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="OpenModel()" />
+                    </div>
+
+                    
+
+                }
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th class="Name d-none">
+                                @Localizer["Question"]
+                            </th>
+
+                            <th class="Type d-none">
+                                @Localizer["Type"]
+                            </th>
+                            <th class="CourseId d-none">
+                                @Localizer["Course"]
+                            </th>
+                            <th class="CategoryId d-none">
+                                @Localizer["Category"]
+                            </th>
+                            <th class="Mark d-none">
+                                @Localizer["Mark"]
+                            </th>
+
+                            <th class="Status d-none">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy d-none">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn d-none">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                <a onclick="ShowEditTable()" class="btn btn-sm btn-secondary add-cursor text-white my-0" title="@Localizer["Edit Question"]">
+                                    <i class="fa fa-tasks"></i>
+                                </a>
+                                @if (AuthenticationHelper.CheckAuthentication("Question", "Create", User.Identity.Name))
+                                {
+
+                                    @Html.DropDownList("pagin", new SelectList(paginations, "Code", "Name", paginationValue), null, new { @class = "mx-3 p-1 rounded", style = "max-height: 26px;min-width: 49px;", required = "required", @onchange = "ChangePagenation()" })
+                                }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="Name d-none">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td class="Type d-none">
+                                    @(questionType.FirstOrDefault(r => r.Id == item.Type)?.Name ?? "")
+                                </td>
+                                <td class="CourseId d-none">
+                                    @CourseService.GetCourseById(item.CourseId??0,ViewBag.LangId)?.CourseName
+                                </td>
+                                <td class="CategoryId d-none">
+                                    @CourseCategoryService.GetCourseCategoryById(item.CategoryId??0 ,ViewBag.LangId)?.Name
+                                </td>
+                                <td class="Mark d-none">
+                                    @Html.DisplayFor(modelItem => item.Mark)
+                                </td>
+                                <td class="Status d-none">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedBy d-none">
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td class="CreatedOn d-none">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    <div class="nav-item dropdown open tms-choose-op mx-auto">
+                                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false">
+                                            @Localizer["Choose a process"]
+                                        </a>
+                                        <div class="dropdown-menu tms-dropdown-menu" aria-labelledby="navbarDropdown">
+
+                                            @if (AuthenticationHelper.CheckAuthentication("Question", "Edit", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowEditQuestion(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item tms-first-drop-item">@Localizer["Edit"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("Question", "View", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowDetailsQuestion(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item">@Localizer["Details"]</button>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("Question", "Delete", User.Identity.Name))
+                                            {
+                                                <button onClick="ShowDeleteQuestion(@item.Id, @ViewBag.LangId)" type="button" class="tms-dropdown-menu-item">@Localizer["Delete"]</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, searchText = ViewBag.searchText ,Category= ViewBag.Category ,Course= ViewBag.Course}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="fileModel" class="modal fade show" style="z-index:4000">
+    <div class="modal-confirm modal-dialog err-pop modal-dialog-centered">
+        <div class="modal-content" style="height:400px">
+            <div class="modal-header flex-column">
+                <div class="icon-box" style="border:3px solid #2B61AE">
+                    <i class="fa fa-upload" style="color:#2B61AE"></i>
+                </div>
+                <h4 class="modal-title w-100">@Localizer["Upload the Excel file"]</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>@Localizer["Are you sure you want to add the questions from the Excel file?"]</p>
+            </div>
+            <div class="modal-footer justify-content-center align-items-start">
+                <button type="button" class="btn btn-secondary shadow-lg" data-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn shadow-lg" style="background: #2B61AE; border:0;" onclick="UpdateFile()">@Localizer["Upload"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id='CreateExcelQuestion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateExcelQuestionDiv' class="modal-content">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel p-0">
+                        <div class="d-flex tms-page-popup-title">
+                            <div data-dismiss="modal" class="tms-close-div">
+                                <i class="fa fa-close"></i>
+                            </div>
+                            <div class="tms-table-popup-title" style="width:97%;">
+                                @Localizer["Add Questions"]
+                            </div>
+                        </div>
+
+                        <div class="x_content">
+                            <form method="post" id="Questions-Create" class="form-horizontal form-label-left">
+                                <div class="row">
+                                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                                        <label class="control-label col-xs-6 tms-label" for="LanguageId">
+                                            @Localizer["Language"]<span class="required">*</span>
+                                        </label>
+                                        <div class="col-lg-12">
+                                            @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CategoryIdForModal">
+                                            @Localizer["Category"] <span class="required">*</span>
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("CategoryIdForModal", new SelectList(categorys, "Id", "Name"),Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl" ,onchange= "GetCourses(this)", required = "required"})
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseIdForModal">
+                                            @Localizer["Course"] <span class="required">*</span>
+                                        </label>
+                                        <div class="col-md-12 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("CourseIdForModal", new SelectList(courses , "Id" ,"CourseName") ,Localizer["Select"].Value , new { @class = "form-control chosen-select tms-ddl" , required = "required"})
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button class="tms-save-btn" type="button" onclick="AddQuestions()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+    table = '@ViewBag.Table'.split(',');
+    GetTable(s);
+</script>

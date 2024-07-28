@@ -1,0 +1,187 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollCourseQuiz>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel;
+@inject IEnrollCourseQuizService EnrollCourseQuizService
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+<div class="row" id="Quizzes">
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12">
+                    @Html.Hidden("Page")
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "RefetchQuiz", User.Identity.Name))
+                    {
+                        <button class="btn btn-primary float-end mx-2" type="button" onclick="RefetchQuizzes('@ViewBag.EnrollTeacherCourseId')"><img src="~/img/add-to-list.png" /> @Localizer["Refetch the Daily recitation"]</button>
+                    }
+                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuizPointes", User.Identity.Name))
+                    {
+                        <button class="btn btn-primary float-end" type="button" onclick="ShowStudentForMarks(@ViewBag.EnrollTeacherCourseId)">@Localizer["Marks"]</button>
+                    }
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Id">
+                                @Localizer["Lecture Name"]
+                            </th>
+                            <th class="Id">
+                                @Localizer["Lecture Description"]
+                            </th>
+                            <th class="CourseId">
+                                @Localizer["New Save"]
+                            </th>
+                            <th class="SectionName">
+                                @Localizer["Minor Review"]
+                            </th>
+                            <th class="Lectures">
+                                @Localizer["Grand Revision"]
+                            </th>
+                            <th>
+                                @Localizer["Number Of Students"]
+                            </th>
+                            <th>
+                                @Localizer["Choose a process"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="7">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            var count = EnrollCourseQuizService.GetQuizPointsByQuizId(item.Id).GroupBy(r => r.EnrollStudentCourseId).Count();
+                            <tr class="tms-tr">
+                                <td>
+                                    @item.Lecture.LectureName
+                                </td>
+                                <td>
+                                    @Html.Raw(item.Lecture?.Description?.Replace("\r" , "<hr/>"))
+                                </td>
+                                <td>
+                                    <input attr-Quiz-id="@item.Id" attr-Quiz-num="1" type="checkbox" disabled @(item.QuestionOne.Value ? "checked" : "") />
+                                </td>
+                                <td>
+                                    <input attr-Quiz-id="@item.Id" attr-Quiz-num="2" type="checkbox" disabled @(item.QuestionTwo.Value ? "checked" : "") />
+                                </td>
+                                <td>
+                                    <input attr-Quiz-id="@item.Id" attr-Quiz-num="3" type="checkbox" disabled @(item.QuestionThree.Value ? "checked" : "") />
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuizPointes", User.Identity.Name))
+                                    {
+                                        <button onclick="ShowStudentForQuiz(@item.Id ,@item.EnrollTeacherCourseId)" class="btn btn-primary pointer">@count/@ViewBag.Count</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-primary pointer">@count/@ViewBag.Count</button>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuizPointes", User.Identity.Name))
+                                            {
+                                                <li><a class="dropdown-item" onclick="ShowStudentForQuiz(@item.Id ,@item.EnrollTeacherCourseId)">@Localizer["Start Quiz"]</a></li>
+                                            }
+                                        </ul>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="paddtop-Page">
+                    @if (Model.PageCount > 0)
+                    {
+                        <div class="paging-div">
+                            @Html.PagedListPager(Model, page => Url.Action("GetQuizzes", new { page , id = ViewBag.EnrollTeacherCourseId }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_Quizzes" }))
+                            <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*EnrollCourseQuiz Modals*@
+
+<div id='ShowStudentForQuiz' class='modal  fade' tabindex="-1" aria-labelledby="ShowStudentForQuizLabel" aria-hidden="true">
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='ShowStudentForQuizDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowStudentQuizMarks' class='modal  fade' tabindex="-1" aria-labelledby="ShowStudentQuizMarksLabel" aria-hidden="true">
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='ShowStudentQuizMarksDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+    $("#Quizzes").off("click").on("click", "[attr-Quiz-id]", function () {
+        ShowSpinner();
+        var quizId = $(this).attr("attr-Quiz-id");
+        var quizNum = $(this).attr("attr-Quiz-num");
+        var checkedRow = $(this).is(":checked");
+        var checkbox = $(this).find("[attr-Quiz-id='" + quizId + "']").prevObject;
+        $.ajax({
+            type: "Post",
+            url: "/Trainer/EnrollCourseQuiz/AddOrRemoveQuiz/",
+            data: { quizId, quizNum, checkedRow },
+            success: function (data) {
+                if (data == "Ok") {
+                    toastr.success(editMassege);
+                    HideSpinner();
+                }
+                else {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                    if (checkbox[0].checked == true)
+                        checkbox.prop("checked", false);
+                    else
+                        checkbox.prop("checked", true);
+                }
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+                if (checkbox[0].checked == true)
+                    checkbox.prop("checked", false);
+                else
+                    checkbox.prop("checked", true);
+            },
+        });
+
+    });
+
+
+    $('#ShowStudentForQuiz').on('hidden.bs.modal', function () {
+        if (get)
+            GetTrainerEnrollQuizzes($("#EnrollTeacherCourseId").val());
+    });
+
+</script>

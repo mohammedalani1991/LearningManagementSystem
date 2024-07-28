@@ -1,0 +1,79 @@
+﻿@model List<DataEntity.Models.EfModels.CourseAttendance>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Localization
+
+@{
+    bool NeedApproval = ViewBag.NeedApproval;
+    bool enroll = ViewBag.Enroll;
+}
+
+@if (enroll)
+{
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="x_content">
+            @if (!NeedApproval)
+            {
+                if (!Model.Any())
+                {
+                    <div><h3 class="text-center">@Localizer["There is No Data"]</h3></div>
+                }
+                else
+                {
+                    <div class="table-responsive table-bordered">
+                        <table class="table text-center m-0">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>@Localizer["Attended"]</th>
+                                    <th>@Localizer["Date"]</th>
+                                    <th>@Localizer["Day"]</th>
+                                    <th>
+                                        @Localizer["Absence Note"]
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr class="tms-tr">
+                                        <td>
+                                            @if (item.IsPresent == true)
+                                            {
+                                                <span class="fa fa-check"></span>
+                                            }
+                                            else
+                                            {
+                                                <span class="fa fa-times"></span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @item.Date.Value.ToShortDateString()
+                                        </td>
+                                        <td>
+                                            @Localizer[item.Date.Value.DayOfWeek.ToString()]
+                                        </td>
+                                        <td>
+                                            @if (item.IsPresent == false)
+                                            {
+                                                <input type="text" class="form-control tms-input AbsenceNote" data-auth="true" value="@item.AbsenceNote" disabled />
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+            else
+            {
+                <div>
+                    <p>@Localizer["You need to check the [Pre Requests] tab to can see the content"]</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+}

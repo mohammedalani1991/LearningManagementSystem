@@ -1,0 +1,193 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.CmsProjectResourcesViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@using System.Web;
+
+@{
+    ViewData["Title"] = @Localizer["Sources Content (Resource)"];
+    var count = 100;
+}
+
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Model.Name | @Localizer["Project Content (Resource)"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/CmsProject/EditSource" method="post" id="CmsProject-EditSource" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;">
+                                @Localizer["Project Content (Resource)"]
+
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <hr />
+                            </div>
+                        </div>
+                        @Html.HiddenFor(r=>r.Id)
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="SourcesContent_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="SourceViewModel">
+                                        <div data-repeater-item>
+                                            <div class="form-group">
+                                                <div class="col-md-12 mt-2">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="ProjectResourceViewModel" class="mb-5">
+                                                            @if (Model.Link.Count() != 0)
+                                                            {
+                                                                @foreach (var ProjectResource in Model.Link)
+                                                                {
+                                                                    count++;
+                                                                    <div data-repeater-item>
+                                                                        <div class="row">
+                                                                            <div class=" p-0 m-0 form-group col-md-11 Linkgroup">
+                                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                    @Localizer["Link"]<span class="required">*</span>
+                                                                                </label>
+                                                                                <div class="input-group p-0 m-0 col-md-12 col-sm-6 col-xs-12 pb-4">
+                                                                                    <input id="Link @count" name="Link @count" class="form-control tms-input col-md-7 col-xs-12 Link" value="@ProjectResource" required />
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class=" p-0 m-0 form-group col-md-1 col-sm-12 col-xs-12">
+                                                                                <button style="color:red;" data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9" type="button">
+                                                                                    <i class="fa fa-trash btnDeleteIcon"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <div data-repeater-item>
+                                                                    <div class="row">
+                                                                        <div class=" p-0 m-0 form-group col-md-11 Linkgroup">
+                                                                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">
+                                                                                @Localizer["Link"]<span class="required">*</span>
+                                                                            </label>
+                                                                            <div class="input-group p-0 m-0 col-md-12 col-sm-6 col-xs-12 pb-4">
+                                                                                <input id="Link @count" name="Link @count" class="form-control tms-input col-md-7 col-xs-12 Link" required />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class=" p-0 m-0 form-group col-md-1 col-sm-12 col-xs-12">
+                                                                            <button style="color:red;" data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9" type="button">
+                                                                                <i class="fa fa-trash btnDeleteIcon"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+
+                                                        </div>
+
+                                                        <button class="tms-save-btn btn-light-primary tms-custom-btn" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Resource"]
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="button" onclick="AddResource()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(function () {
+        $("[AddedValue]").each(function () {
+            if ($(this).attr("AddedValue"))
+                $(this).val($(this).attr("AddedValue"));
+        });
+
+        $('#SourcesContent_Repeater_Nested').repeater({
+            initEmpty: false,
+            repeaters: [{
+                selector: '.inner-repeater',
+                show: function () {
+                    $(this).slideDown();
+                    linkCounter++;  // Increment the counter
+                    var newIdAndName = "Link" + linkCounter;
+                    $(this).find(".Link").val("").removeAttr("addedvalue").attr("name", newIdAndName).attr("id", newIdAndName);
+                    $(this).find(".tms-imageview-btn").remove();
+                    $(this).find("#Source").val($(this).find("#Source option:first").val()).trigger("change");
+                },
+
+                hide: function (deleteElement) {
+                    $(this).slideUp(deleteElement);
+                }
+            }],
+            show: function () {
+                $(this).slideDown();
+            },
+
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+            }
+        });
+    });
+
+    function AddResource() {
+        let obj = {
+            Id: $("#Id").val(),
+            Link: $('.Link').map(function () {
+                return this.value;
+            }).get()
+        };
+
+        if ($("#CmsProject-EditSource").valid()) {
+            ShowSpinner();
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/CmsProject/EditSource",
+                data: { resources: obj },
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    toastr.success(editMassege);
+                    $('#EditCmsProjectSource').modal("hide");
+                    HideSpinner();
+                },
+                error: function (data) {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                },
+            });
+        }
+    };
+</script>

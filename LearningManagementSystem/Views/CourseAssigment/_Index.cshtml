@@ -1,0 +1,122 @@
+﻿@using X.PagedList.Web.Common
+@using LearningManagementSystem.Core
+@model List<EnrollCourseAssigmentQuestion>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@inject ISettingService _SettingService
+
+@{
+
+    Layout = null;
+    string Cssclass = "div";
+}
+
+<div class="Qus">
+    <div class="divs">
+        <form id="CreateFrm">
+            <input type="hidden" id="EnrollStudentAssigmentId" name="EnrollStudentAssigmentId" value="" />
+            <input type="hidden" id="EnrollCourseAssigmentId" name="EnrollCourseAssigmentId" value="" />
+            <div class="@Cssclass">
+                @foreach (var item in Model)
+                {
+                    if (item.QuestionType == (int)GeneralEnums.QuestionEnum.Text)
+                    {
+                        <div>
+                            <span class="field-validation-valid text-danger alertcust" id="alert_@item.Id" data-valmsg-replace="true"></span>
+                            <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                <p>@Html.Raw(item.QuestionName)</p>
+                            </div>
+                            <div class="mtb-30">
+                                <textarea name="textarea_@item.Id" class="form-control textarea" placeholder="@Localizer["Add the answer here"]" rows="3"></textarea>
+                            </div>
+                            <hr class="colorhr">
+
+
+                        </div>
+                    }
+                    else if (item.QuestionType == (int)GeneralEnums.QuestionEnum.CheckBox)
+                    {
+                        <div class="pt-3">
+                            <span class="field-validation-valid text-danger alertcust" id="alert_@item.Id" data-valmsg-replace="true"></span>
+                            <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                <p>@Html.Raw(item.QuestionName)</p>
+                            </div>
+                            <div class="mtb-30">
+                                @foreach (var op in item.EnrollCourseAssigmentQuestionOptions)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="Checkbox_@item.Id" id="@op.Id"
+                                   value="@op.Id">
+                                        <label class="form-check-label" for="@op.Id">
+                                            @op.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+
+
+                        </div>
+                        <hr class="colorhr">
+                    }
+                    else if (item.QuestionType == (int)GeneralEnums.QuestionEnum.RadioButton)
+                    {
+                        <div class="pt-3">
+                            <span class="field-validation-valid text-danger alertcust" id="alert_@item.Id" data-valmsg-replace="true"></span>
+                            <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                <p>@Html.Raw(item.QuestionName)</p>
+                            </div>
+                            <div class="mtb-30">
+                                @foreach (var op in item.EnrollCourseAssigmentQuestionOptions)
+                                {
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="Radios_@item.Id" id="@op.Id"
+                                   value="@op.Id">
+                                        <label class="form-check-label" for="@op.Id">
+                                            @op.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                        <hr class="colorhr">
+                    }else   if (item.QuestionType == (int)GeneralEnums.QuestionEnum.UploadAttachment)
+                    {
+                        <div>
+                            <span class="field-validation-valid text-danger alertcust" id="alert_@item.Id" data-valmsg-replace="true"></span>
+                            <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                <p>@Html.Raw(item.QuestionName)</p>
+                            </div>
+                            <div class="mtb-30">
+                                            <label class="custom-file-upload">
+                                                <input type="file" accept="image/*" onchange="UploadFile(event,@item.Id)" required class="required" />
+                                                <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                            </label>
+                                            <input type="hidden" class="inputHidden" name="inputHidden_@item.Id">
+                            </div>
+                            <hr class="colorhr">
+
+
+                        </div>
+                    }
+                }
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary btn-lg" id="BtnConfirmSubmitAssigment" onclick="ConfirmSubmitAssigment()" type="button"><i class="fa fa-save"></i> @Localizer["Submit Assigment"]</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.textarea').on("cut copy paste", function (e) {
+            e.preventDefault();
+        });
+    });
+</script>

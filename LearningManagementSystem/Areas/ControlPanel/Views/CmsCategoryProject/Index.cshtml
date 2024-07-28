@@ -1,0 +1,70 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.CmsProjectCategory>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+
+<div id="main"></div>
+
+<div id='CreateCmsCategoryProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateCategoryProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCmsCategoryProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+     <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditCategoryProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsCmsCategoryProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DetailsCategoryProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteCmsCategoryProject' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DeleteCategoryProjectDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditCategoryProjectDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Name", "Description",  "Status", "CreatedBy", "CreatedOn"]
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        $('.tms-cms').addClass("active");
+        $('.tms-sub-cmsCategoryProjects').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_cms').addClass("active");
+
+    </script>
+
+    <script src="~/js/CmsCategoryProject/CmsCategoryProjects.js" async></script>
+}

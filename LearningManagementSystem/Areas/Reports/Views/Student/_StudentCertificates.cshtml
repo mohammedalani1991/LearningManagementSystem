@@ -1,0 +1,37 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="x_content mt-3">
+            <div class="row g-3" id="empty">
+                @foreach (var item in Model)
+                {
+                    @foreach (var item1 in item.Course.Course.CourseCertifications)
+                    {
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card border-Certificate-card">
+                                <img src="@item.Course.Course.ImageUrl" alt="" class="img-fluid wh-img-Certificate" style="min-height:180px;border-radius:10px 10px 0 0">
+                                <p class="text-center  fs-Certificate mt-2">@item.Course.Course.CourseName || @item1.CreatedBy</p>
+                                @using (Html.BeginForm("DownloadCertificates", "Student", new { courseId = item.Id, templatetId = item1.TemplateHtmlId, studentId = ViewBag.StudentId }, FormMethod.Post))
+                                {
+                                    <div class="d-flex justify-content-center">
+                                        <button type="submit" class="btn w-75 btn-outline-primary rounded-pill">
+                                            <i class="fa-solid fa-arrow-up-from-bracket mx-2"></i>@Localizer["Download"]
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    if ($('#empty').children().length == 0) {
+        $("#empty").append("<div class='col-12'><h3 class='text-center'>@Localizer["There is No Data"]</h3></div>")
+    }
+</script>

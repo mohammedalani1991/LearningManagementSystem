@@ -1,0 +1,84 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralContactViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    string title = "Delete Contact";
+
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        title = LookupHelper.GetContactDeletePagesTitle()[ViewBag.ContactTypeId];
+    }
+
+    ViewData["Title"] = @Localizer["Delete Contact"];
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Contact"]
+            </div>
+        </div>
+        <div class="x_content">
+
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Full Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.FullName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Email"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.Email)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Id Number"]</td>
+                    <td class="tms-details-data">@Model.ContactViewModel.IdNumber</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Mobile"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.Mobile)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.ContactViewModel.Status)?.Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Gender"]</td>
+                    @if (Model.ContactViewModel?.GenderId != null)
+                    {
+            <td class="tms-details-data">@(LookupHelper.GetLookupDetailsById(Model.ContactViewModel?.GenderId??0, ViewBag.LangId)?.Name)</td> }
+                        else
+                        {
+            <td class="tms-details-data"></td>}
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Choose Role"]</td>
+                    <td class="tms-details-data">
+                        <ol>
+                            @if (Model.UserProfileViewModel?.Roles != null)
+                            {
+                                foreach (var item in Model.UserProfileViewModel?.Roles)
+                                {
+                <li>@item.Name</li>}
+                            }
+                        </ol>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <form>
+            <div class="text-center">
+                <button class="tms-delete-btn" type="button" onclick="Delete('@Model.ContactViewModel.Id')"><i class="fa fa-trash"></i> @Localizer["Delete Contact"]</button>
+            </div>
+        </form>
+    </div>
+</div>

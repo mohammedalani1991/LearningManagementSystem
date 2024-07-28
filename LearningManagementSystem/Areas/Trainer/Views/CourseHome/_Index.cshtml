@@ -1,0 +1,219 @@
+﻿@model DataEntity.Models.ViewModels.EnrollTeacherCourseViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Core;
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@using LearningManagementSystem.Services.General
+@inject ISettingService SettingService
+
+@{
+    var checkIfClassOnline = LookupHelper.CheckIfClassOnline(ViewBag.EnrollTeacherCourseById);
+    var closeCourse = Boolean.Parse(SettingService.GetOrCreate(Constants.SystemSettings.Close_Course_After_Calculation, "false")?.Value);
+}
+
+<style>
+    .courses-tab {
+        white-space: nowrap;
+        display: flex;
+        overflow: auto;
+    }
+
+        .courses-tab::-webkit-scrollbar {
+            height: 0;
+        }
+</style>
+
+<div class="row courses-title align-items-center">
+    <div class="col-md-8 col-12 d-flex justify-content-start ">
+        <span class="My-Cources">@Localizer["My Courses"]</span>
+        <span class="quran-Basic">/ @ViewBag.CourseName</span>
+    </div>
+    <div class="col-md 4 col-12 d-flex justify-content-end">
+        @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "CalculateStudentsMark", User.Identity.Name) && Model.CalculationTypeId == (int)GeneralEnums.CourseType.Admin && (closeCourse ? (Model.IsCourseDone.HasValue ? !Model.IsCourseDone.Value : true) : true))
+        {
+            <button type="button" class="btn text-white mx-2" style="background-color:orange" data-bs-toggle="modal" data-bs-target="#CalculateStudentsMarkModal">@Localizer["Calculate Students Mark"]</button>
+        }
+        @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "EditCertificateAdoption", User.Identity.Name) && Model.CertificateAdoption != true)
+        {
+            <button type="button" class="btn btn-primary" onclick="ShowCertificates(@Model.Id,true)">@Localizer["Show Certificates"]</button>
+        }
+        @if (AuthenticationHelper.CheckAuthentication("EnrollmentCourse", "EditCertificateAdoption", User.Identity.Name) && Model.CertificateAdoption == true)
+        {
+            <button type="button" class="btn btn-primary" onclick="ShowCertificates(@Model.Id,false)">@Localizer["Hide Certificates"]</button>
+        }
+    </div>
+</div>
+<div class="Course-Contant"> @Localizer["Course Data"] </div>
+<div class="col-12 dropdown d-block d-lg-none mb-3">
+    <button class="btn w-100 form-select dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span id="nameprofile">
+            <i class="fa-solid fa-bars"></i> @Localizer["Menu"]
+        </span>
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_CoursesContent'); GetTrainerEnrollCoursesContent(@ViewBag.EnrollTeacherCourseById);">@Localizer["Course Content <small>(Sections, Lectures, Resources)</small>"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_Exams'); GetTrainerEnrollCourseExam(@ViewBag.EnrollTeacherCourseById);">@Localizer["Exams & Quizzes"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetPracticalExams(@ViewBag.EnrollTeacherCourseById);">@Localizer["Practical Exams"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollStudents", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_Students'); GetTrainerEnrollStudents(@ViewBag.EnrollTeacherCourseById);">@Localizer["Students"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_Assignments'); GetTrainerEnrollAssignments(@ViewBag.EnrollTeacherCourseById);">@Localizer["Assignments"]</button>
+            }
+        </li>
+        <li>
+            @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuiz", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_Quizzes'); GetTrainerEnrollQuizzes(@ViewBag.EnrollTeacherCourseById);">@Localizer["Daily recitation"]</button>
+            }
+        </li>
+        <li>
+            @if (!checkIfClassOnline)
+            {
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_Attendances'); GetAttendances(@ViewBag.EnrollTeacherCourseById);">@Localizer["Student Attendance"]</button>
+                <button class="tablinks dropdown-item" onclick="openCourse(event, 'UserProfile_TeacherAttendances'); GetTeacherAttendances(@ViewBag.EnrollTeacherCourseById);">@Localizer["Teacher Attendance"]</button>
+            }
+        </li>
+    </ul>
+</div>
+
+<div class="courses-tab menu-sliders">
+    <button class="tablinkss menu-slide TrainerEnrollCoursesContent" id="defaultTrainerEnrollCoursesContent" onclick="openCourse(event, 'Details'); GetDetails(@ViewBag.EnrollTeacherCourseById);">@Localizer["Details"]</button>
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCoursesContent", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_CoursesContent'); GetTrainerEnrollCoursesContent(@ViewBag.EnrollTeacherCourseById);">@Localizer["Course Content <small>(Sections, Lectures, Resources)</small>"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseExam", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_Exams'); GetTrainerEnrollCourseExam(@ViewBag.EnrollTeacherCourseById);">@Localizer["Exams & Quizzes"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "View", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("PracticalExams"))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_PracticalExams'); GetPracticalExams(@ViewBag.EnrollTeacherCourseById);">@Localizer["Practical Exams"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollStudents", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_Students'); GetTrainerEnrollStudents(@ViewBag.EnrollTeacherCourseById);">@Localizer["Students"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseAssignments", "View", User.Identity.Name))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_Assignments'); GetTrainerEnrollAssignments(@ViewBag.EnrollTeacherCourseById);">@Localizer["Assignments"]</button>
+    }
+    @if (AuthenticationHelper.CheckAuthentication("EnrollCourseQuiz", "AddAndEditQuiz", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("Quizzes"))
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_Quizzes'); GetTrainerEnrollQuizzes(@ViewBag.EnrollTeacherCourseById);">@Localizer["Daily recitation"]</button>
+    }
+    @if (!checkIfClassOnline)
+    {
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_Attendances'); GetAttendances(@ViewBag.EnrollTeacherCourseById);">@Localizer["Student Attendance"]</button>
+        <button class="tablinkss menu-slide" onclick="openCourse(event, 'UserProfile_TeacherAttendances'); GetTeacherAttendances(@ViewBag.EnrollTeacherCourseById);">@Localizer["Teacher Attendance"]</button>
+    }
+</div>
+
+<div id="Details" class="tabcontentt"></div>
+<div id="UserProfile_CoursesContent" class="tabcontentt"></div>
+<div id="UserProfile_Exams" class="tabcontentt"></div>
+<div id="UserProfile_PracticalExams" class="tabcontentt"></div>
+<div id="UserProfile_Students" class="tabcontentt"></div>
+<div id="UserProfile_Assignments" class="tabcontentt"></div>
+<div id="UserProfile_Attendances" class="tabcontentt"></div>
+<div id="UserProfile_Quizzes" class="tabcontentt"></div>
+<div id="UserProfile_TeacherAttendances" class="tabcontentt"></div>
+
+<div id="CalculateStudentsMarkModal" class="modal fade">
+    <div class="modal-dialog modal-confirm modal-dialog-centered" style="width:50vh !important">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <div class="icon-box" style="border:3px solid orange">
+                    <i class="fa fa-calculator" style="color:orange"></i>
+                </div>
+                <h4 class="modal-title w-100">@Localizer["Are you sure?"]</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>@Localizer["Do you really want to Calculate All the Student Marks?"]</p>
+                @if (closeCourse)
+                {
+                    <p style="color:red ;font-size:12px">@Localizer["The Course Will be Closed And You will Not Be Able to Add or Edit it"]</p>
+                }
+            </div>
+            <div class="modal-footer justify-content-center">
+                <input type="hidden" id="ExpelStudentId" />
+                <button type="button" class="btn btn-secondary shadow-lg" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button id="Expel_Modal" type="button" class="btn shadow-lg" style="margin-top:6px ;background-color:orange" onclick="CalculateMarks(@Model.Id)">@Localizer["Calculate"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .TrainerEnrollCoursesContent small {
+        font-size: 0.775em !important;
+    }
+</style>
+<script>
+    document.getElementById("defaultTrainerEnrollCoursesContent").click();
+
+    function CalculateMarks(id) {
+        ShowSpinner();
+        $.ajax({
+            type: "Get",
+            url: "/ControlPanel/EnrollmentCourse/CalculateMarks",
+            data: { CourseId: id },
+            success: function (data) {
+                HideSpinner();
+                toastr.success("@Localizer["Marks has Been Calculated"]");
+                $("#CalculateStudentsMarkModal").modal('hide')
+                GetTrainerHomePage(id)
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error("@Localizer["An Error Occurred"]");
+            },
+        });
+    }
+
+    function ShowCertificates(id, show) {
+        ShowSpinner();
+        $.ajax({
+            type: "Get",
+            url: "/ControlPanel/EnrollmentCourse/ShowCertificates",
+            data: { id, show },
+            success: function (data) {
+                HideSpinner();
+                if (show)
+                    toastr.success("@Localizer["Certificates Can be Viewed"]");
+                else
+                    toastr.success("@Localizer["Certificates are Hidden"]");
+
+                GetTrainerHomePage(id)
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error("@Localizer["An Error Occurred"]");
+            },
+        });
+    }
+</script>

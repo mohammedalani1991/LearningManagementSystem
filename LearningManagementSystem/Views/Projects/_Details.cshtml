@@ -1,0 +1,64 @@
+﻿@model DataEntity.Models.ViewModels.CmsProjectViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.Helpers
+
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+
+@{
+    Layout = null;
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+}
+
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">@Localizer["Project Details"]</h1>
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+       aria-label="Close"></i>
+</div>
+<div class="modal-body">
+    <div class="position-relative">
+        <img src="@(Model.ImageUrl??"https://images.unsplash.com/photo-1572177812156-58036aae439c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80")" style="object-fit: cover;"
+             class="midelimg">
+    </div>
+
+    <div class="row justify-content-between align-items-center">
+        <p class="col-6 m-0 tite-project">@Model.Name</p>
+        @if (ViewBag.Active)
+        {
+            <div class=" col-6 Active-Project">
+                @Localizer["Active"]
+            </div>
+        }
+        else
+        {
+            <div class=" col-6 Deactive-Project">
+                @Localizer["Deactive"]
+            </div>
+        }
+    </div>
+    <div class="fs-18 m-0" style="max-height:170px;overflow:hidden">
+        @Html.Raw(Model.Description)
+    </div>
+    <div class="row justify-content-between align-items-center mt-4">
+        <p class="col-12 col-md-6 m-0"></p>
+        <div class="col-12 col-md-6 text-end">
+            @Localizer["Project Budget"]: <span class="text-primarycolor"> @CurrencyService.GetValue((decimal)Model.ProjectCost) <small style="font-size:17px">@Html.Raw(currency.Icon)</small></span>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <a href="@Url.Action("ProjectDetails", "Projects",new {id = Model.Id ,Area = ""})" class="btn border-0 btn-primary">@Localizer["Details"]</a>
+</div>

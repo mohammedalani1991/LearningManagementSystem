@@ -1,0 +1,74 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.CmsPage>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='CreateCmsPage' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='CreateCmsPageDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditCmsPage' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='EditCmsPageDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsCmsPage' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered ">
+        <div id='DetailsCompanyDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteCmsPage' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DeleteRegimentDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='ShowImageCmsPage' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='ShowImageRegimentDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Id", "Name", "CateryId", "ImageUrl", "ShowInHomePage", "PublishDate", "EndDate", "SortOrder", "Status"]
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+         var editMassegeError = '@Localizer["An error occurred while editing"]';
+        $('.tms-cms').addClass("active");
+        $('.tms-sub-cmspages').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_cms').addClass("active");
+    </script>
+
+    <script src="~/js/CmsPage/CmsPage.js?ver=2.1"></script>
+}

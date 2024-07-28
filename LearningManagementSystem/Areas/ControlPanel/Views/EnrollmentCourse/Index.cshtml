@@ -1,0 +1,138 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<div id="main"></div>
+
+<div id='CreateExamsAndAssignments' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='CreateExamsAndAssignmentsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='AddExamsAndAssignments' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='AddExamsAndAssignmentsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='CreateEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='CreateEnrollmentCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='EditEnrollmentCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DetailsCompanyDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='DeleteRegimentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditLecturesContent' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-xl">
+        <div id='EditLecturesContentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='ShowEnrollStudent' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ShowEnrollStudentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='RegenerateEnrollmentCourse' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='RegenerateEnrollmentCourseDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='ShowCountOfEnrolledStudents' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ShowCountOfEnrolledStudentsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='ShowAddNewStudent' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ShowAddNewStudentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowAddTeams' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='ShowAddTeamsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+<style>
+    .hidden {
+        opacity: 0;
+    }
+</style>
+
+@section JavaScript
+    {
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Id", "TeacherId", "CourseId", "SemesterId", "SectionName", "Status", "CreatedOn", "CountOfStudent"]
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var PassStudentMassege = '@Localizer["Pass successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var PassStudentMassegeError = '@Localizer["An error occurred while  Passing"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var editMassegeErrorCount = '@Localizer["Make sure that student count larger than existing students"]';
+        var AddMassegeErrorInvalidData = '@Localizer["An error occurred while adding, You must add all the required fields!"]';
+        var RegenerateMassege = '@Localizer["Regenerated the course data successfully"]';
+        var RegenerateMassegeError = '@Localizer["An error occurred while regenerating the course data"]';
+        var AddMassegeErrorSameEnrollCourse = '@Localizer["The selected course that you trying to enroll for the trainer already enrolled before!"]';
+        var AddMassegeErrorInvalidCourseTime = '@Localizer["Please add valid days for the course!"]';
+        var FailMaxEnrollStudent = '@Localizer["You have exceeded the maximum number of students on the course!"]';
+        var FailExistsStudent = '@Localizer["The student you want to add already exists!"]';
+        var FailAgeAllowedForRegistration = '@Localizer["The student to be added does not meet the requirements of the course in terms of age allowed for registration!"]';
+        var HasPreRequestsCourse = '@Localizer["You cannot enroll in this course, Please check the [Prerequisites] tab and finish the required courses!"]';
+        var FailAgeGroup = '@Localizer["The student to be added does not meet the requirements of the course in terms of age group (Male, Female)!"]';
+        var FailExpilled = '@Localizer["The Student Has Been Expelled Until"]';
+        var Title = '@Localizer["Add - Enroll Trainer for Course"]'
+        var AddMassegeErrorInvalidDates = '@Localizer["An error occurred while adding, You must add valid dates"]';
+
+        $('.tms-courses').addClass("active");
+        $('.tms-sub-EnrollmentCourse').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_courses').addClass("active");
+    </script>
+
+    <script src="~/js/EnrollmentCourse/EnrollmentCourse.js?ver=18.1"></script>
+}

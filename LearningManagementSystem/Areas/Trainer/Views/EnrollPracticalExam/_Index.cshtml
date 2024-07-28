@@ -1,0 +1,169 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.PracticalEnrollmentExam>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var types = lookups[GeneralEnums.MasterLookupCodeEnums.PracticalQuestionType.ToString()];
+
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+
+<style>
+    .pointer {
+        cursor: pointer;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <form class="row align-items-center justify-content-between" data-ajax="true" method="get" action="/Trainer/EnrollPracticalExam/GetPracticalExams" id="Form1" data-ajax-success="GetPracticalExamsData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        @Html.Hidden("table")
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        @Html.Hidden("TecherCourseId")
+                        <div class="col-7">
+                            <p class="m-0"> @Localizer["The exam time will be in the time zone :"] (@ViewBag.TimeZone)  </p>
+                        </div>
+                        <div class="col-4 d-flex">
+                            @Html.DropDownList("Type",new SelectList(types, "Id", "Name"),  Localizer["Type"].Value, new { @class = "form-control chosen-select tms-ddl mx-2" })
+
+                            <input class="btn btn-primary" type="submit" value=@Localizer["Search"] />
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Name"]
+                            </th>
+                            <th>
+                                @Localizer["Type"]
+                            </th>
+                            <th>
+                                @Localizer["Number Of Registered Students"]
+                            </th>
+                            <th>
+                                @Localizer["Start Date"]
+                            </th>
+                            <th>
+                                @Localizer["End Date"]
+                            </th>
+                            <th>
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Choose a process"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.PracticalExam.Name)
+                                </td>
+                                <td>
+                                    @LookupHelper.GetLookupDetailsById(item.TypeId??0 , (int)ViewBag.LangId)?.Name
+                                </td>
+                                <td>
+                                    @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddStudent", User.Identity.Name))
+                                    {
+                                        <button onclick="ShowEnrolledStudents(@item.Id ,@ViewBag.TecherCourseId)" class="btn btn-primary pointer">@item.PracticalEnrollmentExamStudents?.Count()/@ViewBag.Count</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-primary pointer">@item.PracticalEnrollmentExamStudents?.Count()/@ViewBag.Count</button>
+                                    }
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.StartDate)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.EndDate)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "AddStudent", User.Identity.Name))
+                                            {
+                                                <li><a onclick="ShowEnrolledStudents(@item.Id ,@ViewBag.TecherCourseId)" class="dropdown-item pointer">@Localizer["Add Subjects"]</a> </li>
+                                            }
+                                            @if (AuthenticationHelper.CheckAuthentication("PracticalEnrollmentExam", "MarkAdoption", User.Identity.Name) && AuthenticationHelper.CheckSuperAuthentication("MarkAdoptionForPracticalExam"))
+                                            {
+                                                if (item.MarkAdoption != true)
+                                                {
+                                                    <li> <a class="dropdown-item" href="javascript:void(0);" onclick="MarkPracticalExamAdoption(@item.Id, true)"><i class="fa-regular fa-eye"></i> @Localizer["Mark Adoption"]</a></li>
+                                                }
+                                                else
+                                                {
+                                                    <li> <a class="dropdown-item" href="javascript:void(0);" onclick="MarkPracticalExamAdoption(@item.Id, false)"><i class="fa-regular fa-eye-slash"></i> @Localizer["Cancel Mark Adoption"]</a></li>
+                                                }
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="paddtop-Page">
+            @if (Model.PageCount > 0)
+            {
+                <div class="paging-div">
+                    @Html.PagedListPager(Model, page => Url.Action("GetPracticalExams", new { page, TecherCourseId = ViewBag.TecherCourseId,Type = ViewBag.Type}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "UserProfile_PracticalExams" }))
+                    <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ShowEnrolledStudents" tabindex="-1" aria-labelledby="ShowEnrolledStudentsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="ShowEnrolledStudentsDiv">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" id="ShowAddSubjects" tabindex="-1" style="overflow-y:scroll !important;" aria-labelledby="ShowAddSubjectsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div id='ShowAddSubjectsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" id="ShowAddPoints" tabindex="-1" aria-labelledby="ShowAddPointsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div id='ShowAddPointsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script src="~/js/EnrollPracticalExam/EnrollPracticalExam.js"></script>

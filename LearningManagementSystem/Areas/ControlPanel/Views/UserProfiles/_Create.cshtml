@@ -1,0 +1,859 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralContactViewModel
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@inject IViewLocalizer Localizer
+
+@{
+    int image = (int)GeneralEnums.FileEnum.Image;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var lookupName = new HashSet<string>()
+{
+        GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.Gender.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.Job.ToString(), GeneralEnums.MasterLookupCodeEnums.JobType.ToString(), GeneralEnums.MasterLookupCodeEnums.ContactTypes.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.PaymentWay.ToString(), GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString(), GeneralEnums.MasterLookupCodeEnums.RightTime.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.CommunicationChannel.ToString(), GeneralEnums.MasterLookupCodeEnums.FirstSubChannel.ToString(), GeneralEnums.MasterLookupCodeEnums.SecondSubChannel.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.Campaign.ToString(), GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(), GeneralEnums.MasterLookupCodeEnums.TrainingConsultant.ToString(),
+        GeneralEnums.MasterLookupCodeEnums.Colors.ToString()
+    };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var colors = lookups[GeneralEnums.MasterLookupCodeEnums.Colors.ToString()];
+
+    string title = "Create Contact";
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        title = LookupHelper.GetContactCrearePagesTitle()[ViewBag.ContactTypeId];
+    }
+
+    ViewData["Title"] = @Localizer[title];
+
+    var paymentWay = lookups[GeneralEnums.MasterLookupCodeEnums.PaymentWay.ToString()];
+    var educationalLevel = lookups[GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString()];
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var gender = lookups[GeneralEnums.MasterLookupCodeEnums.Gender.ToString()];
+    var Job = lookups[GeneralEnums.MasterLookupCodeEnums.Job.ToString()];
+    var JobType = lookups[GeneralEnums.MasterLookupCodeEnums.JobType.ToString()];
+    var Type = lookups[GeneralEnums.MasterLookupCodeEnums.ContactTypes.ToString()];
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+    var roles = LookupHelper.GetActiveRoles(ViewBag.RoleId);
+    var rightTime = lookups[GeneralEnums.MasterLookupCodeEnums.RightTime.ToString()];
+    var communicationChannel = LookupHelper.GetCommunicationChannel(ViewBag.LangId);
+    var campaign = lookups[GeneralEnums.MasterLookupCodeEnums.Campaign.ToString()];
+    var generalSpecialty = lookups[GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString()];
+    var advisors = LookupHelper.GetAdvisersList();
+    var contractType = LookupHelper.GetContactType((int)ViewBag.LangId);
+    var selectedDiv = contractType.Where(c => c.DivInfo != "")
+        .Select(c => c.DivInfo);
+    var cities = LookupHelper.GetCities(ViewBag.LangId);
+    var countries = LookupHelper.GetCountries(ViewBag.LangId);
+
+    if (ViewBag.ContactTypeId != null)
+    {
+        selectedDiv = contractType.Where(c => c.Value == ViewBag.ContactTypeId && c.DivInfo != "")
+            .Select(c => c.DivInfo);
+    }
+    else
+    {
+        selectedDiv = new List<string>();
+    }
+
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <a onclick="CloseCreateContact()" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </a>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer[title]
+                </div>
+            </div>
+
+            <div class="x_content">
+                <br />
+                    <form id="ContactForm-Create" class="form-horizontal form-label-left" action="/ControlPanel/UserProfiles/CreateContact" method="post">
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    <div>
+                        <h4 style="color:#1dbebe">@Localizer["Contact Info"]</h4>
+                    </div>
+                    <hr />
+
+                    @if (ViewBag.ContactTypeId == null || ViewBag.ContactTypeId == 0)
+                    {
+                        <div class="form-group" style="margin-bottom: 50px;">
+                            <p>@Localizer["Choose Contact Type"]</p>
+
+                            <div class="col-md-12 d-flex flex-wrap col-md-offset-2">
+                                @{
+                                    int cnt = 0;
+
+                                    foreach (var item in contractType)
+                                    {
+                                        if (cnt++ % 7 == 0)
+                                        {
+                                        }
+                                            @:<div style="padding: 15px;">
+                                                <input type="checkbox"
+                                                       onclick="ToggleDivInfo(this, '@item.DivInfo')"
+                                                       id="@cnt"
+                                                       name="contactType"
+                                                       value="@item.Value"
+                                                       class="chk-contact"
+                                                       @(Html.Raw(item.Selected ? "checked=\"checked\"" : "")) />
+
+                                                <label for="@cnt">@Localizer[item.Text]</label>
+
+                                            @:</div>
+                                    }
+                                        @:
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="checkbox" style=" display:none"
+                               name="contactType"
+                               value="@ViewBag.ContactTypeId"
+                               checked="checked" />
+                    }
+                    <div class="row">
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="LanguageId">
+                                @Localizer["Language"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("ContactViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="FullName">
+                                @Localizer["First Name"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ContactViewModel.FirstName, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.FirstName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for=".">
+                                @Localizer["Second Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ContactViewModel.SecondName, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.SecondName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="c col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="FullName">
+                                @Localizer["Third Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ContactViewModel.ThirdName, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.ThirdName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="FullName">
+                                @Localizer["Last Name"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ContactViewModel.LastName, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.LastName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @if (ViewBag.ContactTypeId == (int)GeneralEnums.ContactTypeEnum.Visetor)
+                        {
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Email">
+                                    @Localizer["Email"]
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.Email, new { htmlAttributes = new { @class = "form-control tms-input", type = "email" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Email, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Email">
+                                    @Localizer["Email"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.Email, new { htmlAttributes = new { @class = "form-control tms-input", required = "required", type = "email" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Email, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        }
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group row w-100">
+                             <div class="col-5 px-0">
+                                <label class="col-xs-6 control-label tms-label" for="Mobile">
+                                    @Localizer["Country Code"] <span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.DropDownList("ContactViewModel.PhoneNumberCode", new SelectList(new List<SelectListItem>()), Localizer["Other"].Value , new { required = "required",@class = "chosen-select" })
+                                </div>
+                            </div>
+                            <div class="col-7 px-0">
+                                <label class="col-xs-6 control-label tms-label" for="Mobile">
+                                    @Localizer["Mobile"] <span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.Mobile, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Mobile, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        @*<div class="form-group col-lg-4 col-sm-12 col-xs-12">
+                                <label class="control-label col-xs-6 tms-label" for="PhoneNumber">
+                                    @Localizer["Phone Number"] <span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { required = "required", @class = "form-control tms-input" } })
+                                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>*@
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="GenderLookupId">
+                                @Localizer["Gender"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("ContactViewModel.GenderId", new SelectList(gender, "Id", "Name"), Localizer["Select Gender"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.GenderId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="FullName">
+                                @Localizer["Identity Number"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.ContactViewModel.IdNumber, new { htmlAttributes = new {@class = "form-control tms-input" } })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.IdNumber, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("ContactViewModel.Status", new SelectList(statuses, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.Status, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="form-group" id="EmployeeInfo" style="display:none">
+                        <div>
+                            <h4 style="color:#1dbebe">@Localizer["Employee Info"]</h4>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Status">
+                                    @Localizer["Start Work Date"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    <input type="date" name="EmployeeViewModel.StartWorkDate" id="EmployeeViewModel.StartWorkDate" class="form-control tms-ddl required-input tms-input" />
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Status">
+                                    @Localizer["Job"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.DropDownList("EmployeeViewModel.JobId", new SelectList(Job, "Id", "Name"), Localizer["Select Job"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Status">
+                                    @Localizer["Job Type"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.DropDownList("EmployeeViewModel.JobTypeId", new SelectList(JobType, "Id", "Name"), Localizer["Select Job Type"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Address">
+                                    @Localizer["Address"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.EmployeeViewModel.Address, new { htmlAttributes = new { @class = "form-control tms-input tms-ddl required-input" } })
+                                    @Html.ValidationMessageFor(model => model.EmployeeViewModel.Address, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <br />
+                    <div class="form-group row" id="StudentInfo" style="display:none">
+                        <div class="col-12">
+                            <h4 style="color:#1dbebe">@Localizer["Student Info"]</h4>
+                        </div>
+                        <hr />
+
+                        <div class="form-group col-6 col-md-6">
+                            <label class="col-xs-6 control-label tms-label" for="EducationalLevelId">
+                                @Localizer["Educational Level"] <span class="required">*</span>
+                            </label>
+                            <div class="col-12">
+                                @Html.DropDownList("StudentViewModel.EducationalLevelId", new SelectList(educationalLevel, "Id", "Name"), string.Empty, new { @class = "form-control chosen-select tms-ddl required-input" })
+                                @Html.ValidationMessageFor(model => model.StudentViewModel.EducationalLevelId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-6 col-md-6">
+                            <label class="col-xs-6 control-label tms-label" for="BirthDate">
+                                @Localizer["Birth Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-12">
+                                @Html.EditorFor(model => model.StudentViewModel.BirthDate, new { htmlAttributes = new { type = "date", @class = "form-control col-md-7 col-xs-12 tms-ddl required-input" } })
+                                @Html.ValidationMessageFor(model => model.StudentViewModel.BirthDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-6 col-md-6">
+                            <label class="col-xs-6 control-label tms-label" for="Country">
+                                @Localizer["Country"]<span class="required">*</span>
+                            </label>
+                            <div class="col-12">
+                                @Html.DropDownList("ContactViewModel.CountryId", new SelectList(countries, "Id", "Name"), string.Empty, new { @class = "form-control tms-ddl chosen-select required-input", onchange = "GetCountryCities3()" })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.CountryId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-6 col-md-6">
+                            <label class="col-xs-6 control-label tms-label" for="Country">
+                                @Localizer["City"]<span class="required">*</span>
+                            </label>
+                            <div class="col-12">
+                                @Html.DropDownList("ContactViewModel.CityId", new SelectList(cities, "Id", "Name"), string.Empty, new { @class = "form-control tms-ddl chosen-select required-input" })
+                                @Html.ValidationMessageFor(model => model.ContactViewModel.CityId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="form-group" id="VisitorInfo" style="display:none">
+                        <div>
+                            <h4 style="color:#1dbebe">@Localizer["Visitor Info"]</h4>
+                        </div>
+                        <hr />
+                        <div class="row">
+
+                        </div>
+
+                    </div>
+                    <br />
+                    <br />
+                <div class="form-group row" id="TrainerInfo" style="display:none">
+                        <div class="col-12">
+                            <h4 style="color:#1dbebe">@Localizer["Trainer Info"]</h4>
+                        </div>
+                        <hr />
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="StartWorkDate">
+                                @Localizer["Start Work Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.TrainerViewModel.StartWorkDate, new { htmlAttributes = new { type = "date", @class = "form-control tms-input tms-ddl required-input" } })
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.StartWorkDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="GeneralSpecialtyId">
+                                @Localizer["General Specialty"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("TrainerViewModel.GeneralSpecialtyId", new SelectList(generalSpecialty, "Id", "Name"), Localizer["Select General Specialty"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.GeneralSpecialtyId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="WorkHouers">
+                                @Localizer["Work Hours"]<span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.EditorFor(model => model.TrainerViewModel.WorkHouers, new { htmlAttributes = new { @class = "form-control tms-input tms-ddl required-input" } })
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.WorkHouers, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="IsFullTimeWorker">
+                                @Localizer["Is Full Time Worker"]
+                            </label>
+                            <div class="col-lg-12">
+                                <select class="chosen-select form-control tms-ddl" name="TrainerViewModel.IsFullTimeWorker" id="IsFullTimeWorker">
+                                    <option value="">@Localizer["Is Full Time Worker ?"]</option>
+                                    <option value="true">@Localizer["Yes"]</option>
+                                    <option value="false">@Localizer["No"]</option>
+                                </select>
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.IsFullTimeWorker, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ShowInPages">
+                                @Localizer["Show In Pages"]
+                            </label>
+                            <div class="col-lg-12">
+                                <select class="chosen-select form-control tms-ddl" name="TrainerViewModel.ShowInPages" id="ShowInPages">
+                                    <option value="">@Localizer["Show In Pages"]</option>
+                                    <option value="true">@Localizer["Yes"]</option>
+                                    <option value="false">@Localizer["No"]</option>
+                                </select>
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.ShowInPages, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ImageUrl">
+                                @Localizer["Image Url"]
+                            </label>
+                            <div class="col-lg-12">
+                                <label class="custom-file-upload">
+                                    <input type="file" accept="image/*" onchange="UploadProfilePhoto(event)" />
+                                    <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                </label>
+                                @Html.HiddenFor(r => r.TrainerViewModel.ImageUrl)
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.ImageUrl, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="ImageUrl">
+                                @Localizer["Signature"]
+                            </label>
+                            <div class="col-lg-12">
+                                <label class="custom-file-upload">
+                                    <input type="file" accept="image/*" onchange="UploadProfilePhoto(event,true)" />
+                                    <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                </label>                                
+                                @Html.HiddenFor(r => r.TrainerViewModel.Signature)
+                                @Html.ValidationMessageFor(model => model.TrainerViewModel.Signature, "", new { @class = "text-danger" })
+                                <img src="" id="SignatureView" style="width:100%;height:100px" class="mt-2 rounded" alt="">
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12" id="QuestionDescriptionDiv">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="QuestionDescription">
+                                @Localizer["Description"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.TextAreaFor(model => model.TrainerViewModel.Description, new { @class = "tinyRichText" })
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <br />
+                    <hr />
+                    <div style="text-align:center">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary mx-2">
+                                <input type="radio" name="IsUser" value="@((int) GeneralEnums.UserEnum.IsUser)" id="IsUser" onchange="Toggle()" autocomplete="off"> @Localizer["Is User"]
+                            </label>
+                            <label class="active btn btn-secondary">
+                                <input type="radio" name="IsUser" value="@((int) GeneralEnums.UserEnum.NotUser)" id="NotUser" onchange="Toggle()" checked autocomplete="off">@Localizer["Not User"]
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="UserInfo" style="display:none">
+                        <div>
+                            <h4 style="color:#1dbebe">@Localizer["User Info"]</h4>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Password">
+                                    @Localizer["Password"]<span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.UserProfileViewModel.Password, new { htmlAttributes = new { type = "password", @class = "form-control tms-input" } })
+                                        <span class="input-group-text" style="left:25px">
+                                            <i class="fa fa-eye" id="togglePassword1"></i>
+                                        </span>
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.Password, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="ConfirmPassword">
+                                    @Localizer["Confirm Password"] <span class="required">*</span>
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.EditorFor(model => model.UserProfileViewModel.ConfirmPassword, new { htmlAttributes = new { type = "password", @class = "form-control tms-input" } })
+                                        <span class="input-group-text" style="left:25px">
+                                            <i class="fa fa-eye" id="toggleConfirmPassword1"></i>
+                                        </span>
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.ConfirmPassword, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                          
+
+                            <div class="col-lg-12 col-sm-12 col-xs-12 form-group">
+                                <label class="col-xs-6 control-label tms-label" for="Status">
+                                    @Localizer["Choose Role"]
+                                </label>
+                                <div class="col-lg-12">
+                                    @Html.DropDownListFor(r => r.UserProfileViewModel.RoleIds, new SelectList(roles, "Id", "Name"), new { @class = "form-control chosen-select tms-ddl", @multiple = "multiple",style="height:60px"})
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.RoleIds, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button type="button" class="tms-save-btn" onclick="CreateContact()"> 
+                            <i class="fa fa-save"></i> @Localizer["Saving Changes"]
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     $(document).ready(function () {
+            $("#togglePassword1").click(function () {
+                var passwordField = $("#UserProfileViewModel_Password");
+                var passwordFieldType = passwordField.attr("type");
+
+                if (passwordFieldType === "password") {
+                    passwordField.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passwordField.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+
+            $("#toggleConfirmPassword1").click(function () {
+                var confirmPasswordField = $("#UserProfileViewModel_ConfirmPassword");
+                var confirmPasswordFieldType = confirmPasswordField.attr("type");
+
+                if (confirmPasswordFieldType === "password") {
+                    confirmPasswordField.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    confirmPasswordField.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+        });
+
+     (function () {
+            $.ajax({
+                url: 'https://restcountries.com/v3.1/all',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    var dropdown = document.getElementById('ContactViewModel_PhoneNumberCode');
+                    data.sort(function (a, b) {
+                        var nameA = a.name.common.toUpperCase();
+                        var nameB = b.name.common.toUpperCase();
+                        if (nameA < nameB) {
+                            return -1;
+                        }
+                        if (nameA > nameB) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                     $.each(data, function (index, country) {
+                        if (Object.keys(country?.idd).length != 0) {
+                            var option = document.createElement('option');
+
+                            var countryCode = country?.idd?.root + country?.idd?.suffixes[0];
+                            if (country?.name?.common === "United States") {
+                                countryCode = "+1"; // Manually set the country code for the United States
+                            }
+
+                            if ("@(ViewBag.LangId == 7)" == "True")
+                                option.text = "(" + countryCode + ") " + country?.translations?.ara?.common;
+                            else
+                                option.text = "(" + countryCode + ") " + country?.name?.common;
+
+                            option.value = countryCode;
+                            dropdown.appendChild(option);
+                        }
+                    });
+                    $('#ContactViewModel_PhoneNumberCode').trigger('chosen:updated');
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error: ' + error);
+                }
+            });
+        })()
+</script>
+
+<script>
+     InitTinymce();
+
+    $(document).ready(function () {
+        $('[id="ContactViewModel_LanguageId"]').val(@ViewBag.LangId);
+
+        var array = @Html.Raw(Json.Serialize(selectedDiv));
+
+        for (var i = 0; i < array.length; i++)
+        {
+        ShowDivInfo(array[i]);
+        }
+
+          $.validator.addMethod("phoneNumber", function (value, element) {
+    var phoneNumber = /^(\+)?[0-9]{9,12}$/;
+    return this.optional(element) || phoneNumber.test(value);
+        }, '@Localizer["Please enter a valid 9 to 12-digit phone number."]');
+
+        $("#ContactForm-Edit").validate({
+            rules: {
+                "ContactViewModel.Mobile": {
+                    required: true                }
+            }
+        });
+    });
+
+    function Toggle() {
+        if ($('input[name="IsUser"]:checked').val() == @((int) GeneralEnums.UserEnum.IsUser))
+        {
+            $('#UserInfo').show();
+            $('#Email').prop('required', true);
+            $('#Password').prop('required', true);
+            $('#ConfirmPassword').prop('required', true);
+        }
+        else
+        {
+            $('#UserInfo').hide();
+            $('#Email').prop('required', false);
+            $('#Password').prop('required', false);
+            $('#ConfirmPassword').prop('required', false);
+        }
+        }
+
+      function ToggleDivInfo(box, id) {
+            if (box.checked == false) {
+                HideDivInfo(id);
+
+                if (id == "VisitorInfo") {
+                    $('#ContactViewModel_Email').prop('required', true);
+                    $('#ContactViewModel_Email').parent().parent().find("label").html("@Localizer["Email"] <span class ='required'>*</span>")
+                }
+            } 
+            else {
+                ShowDivInfo(id);
+
+                if (id == "VisitorInfo") {
+                    $('#ContactViewModel_Email').prop('required', false);
+                    $('#ContactViewModel_Email').parent().parent().find("label").html("@Localizer["Email"]");
+                } else {
+                    $('#ContactViewModel_Email').prop('required', true);
+                    $('#ContactViewModel_Email').parent().parent().find("label").html("@Localizer["Email"] <span class ='required'>*</span>");
+                }
+            }
+
+          if (id === 'StudentInfo') {
+              let checkboxes = document.querySelectorAll('.chk-contact');
+              for (let i = 0; i < checkboxes.length; i++) {
+                  if (checkboxes[i] !== box) {
+                      checkboxes[i].checked = false;
+                  }
+              }
+              HideDivInfo("TrainerInfo");
+              HideDivInfo("EmployeeInfo");
+          } else {
+              let checkboxes = document.querySelectorAll('.chk-contact');
+              checkboxes[0].checked = false;
+              HideDivInfo("StudentInfo");
+          }
+        }
+
+
+        function ShowDivInfo(id)
+        {
+            $("#" + id + ' .tms-ddl required-input').prop('required', true);
+            $("#" + id ).show();
+        }
+
+        function HideDivInfo(id)
+        {
+            $("#" + id + ' .tms-ddl required-input').prop('required', false);
+            $("#" + id).hide();
+        }
+</script>
+
+
+<script>
+    $('#VistorViewModel_CommunicationChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetFirstSubChannel/",
+            data: { communicationChannelId: this.value },
+            success: function (data) {
+                var firstSubChannel = $("#VistorViewModel_FirstSubChannelId");
+                var secondSubChannel = $("#VistorViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                firstSubChannel.empty();
+                firstSubChannel.append($("<option />").val("").text("@Localizer["Choose First Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    firstSubChannel.append(option);
+                    firstSubChannel.trigger("chosen:updated");
+                });
+            }
+        });
+    });
+
+    $('#VistorViewModel_FirstSubChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetSecondSubChannel/",
+            data: { communicationChannelId: $('#VistorViewModel_CommunicationChannelId').val(), parentId: this.value },
+            success: function (data) {
+                var secondSubChannel = $("#VistorViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                secondSubChannel.append($("<option />").val("").text("@Localizer["Choose Second Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    secondSubChannel.append(option);
+                     secondSubChannel.trigger("chosen:updated");
+                });
+            }
+        });
+    });
+
+</script>
+
+<script>
+    $('#LeadViewModel_CommunicationChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetFirstSubChannel/",
+            data: { communicationChannelId: this.value },
+            success: function (data) {
+                var firstSubChannel = $("#LeadViewModel_FirstSubChannelId");
+                var secondSubChannel = $("#LeadViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                firstSubChannel.empty();
+                firstSubChannel.append($("<option />").val("").text("@Localizer["Choose First Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    firstSubChannel.append(option);
+                     firstSubChannel.trigger("chosen:updated");
+
+                });
+            }
+        });
+    });
+
+    $('#LeadViewModel_FirstSubChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetSecondSubChannel/",
+            data: { communicationChannelId: $('#LeadViewModel_CommunicationChannelId').val(), parentId: this.value },
+            success: function (data) {
+                var secondSubChannel = $("#LeadViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                secondSubChannel.append($("<option />").val("").text("@Localizer["Choose Second Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    secondSubChannel.append(option);
+                    secondSubChannel.trigger("chosen:updated");
+                });
+            }
+        });
+    });
+
+</script>
+
+<script>
+    $('#StudentViewModel_CommunicationChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetFirstSubChannel/",
+            data: { communicationChannelId: this.value },
+            success: function (data) {
+                var firstSubChannel = $("#StudentViewModel_FirstSubChannelId");
+                var secondSubChannel = $("#StudentViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                firstSubChannel.empty();
+                firstSubChannel.append($("<option />").val("").text("@Localizer["Choose First Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    firstSubChannel.append(option);
+                     firstSubChannel.trigger("chosen:updated");
+
+                });
+            }
+        });
+    });
+
+    $('#StudentViewModel_FirstSubChannelId').on('change', function () {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/ControlPanel/SubCommunicationChannels/GetSecondSubChannel/",
+            data: { communicationChannelId: $('#StudentViewModel_CommunicationChannelId').val(), parentId: this.value },
+            success: function (data) {
+                var secondSubChannel = $("#StudentViewModel_SecondSubChannelId");
+                secondSubChannel.empty();
+                secondSubChannel.append($("<option />").val("").text("@Localizer["Choose Second Sub Channel"]"));
+                $.each(data, function () {
+                    var option = $("<option />").val(this.id).text(this.name);
+                    secondSubChannel.append(option);
+                    secondSubChannel.trigger("chosen:updated");
+                });
+            }
+        });
+    });
+
+
+    function UploadProfilePhoto(e ,Signature) {
+         var files = e.target.files;
+         debugger;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var formData = new FormData();
+                formData.append("fileType", @image);
+                for (var i = 0; i != files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+                 $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("UploadFiles", "Files", new {Area = "ControlPanel"})",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                    '@tokenSet.HeaderName' : '@tokenSet.RequestToken'
+                    },
+                     success: function (result) {
+                        if(Signature){
+                            $("#TrainerViewModel_Signature").val(result[0]);
+                            $("#SignatureView").attr("src", result[0]);
+                         }
+                         else
+                            $("#TrainerViewModel_ImageUrl").val(result[0]);
+                    },
+                     error: function (req, status, error) {
+                        alert("Error while adding the Image");
+                    }
+                 });
+            } else {
+                 alert("This browser doesn't support HTML5 file uploads!");
+            }
+        }
+    }
+
+</script>

@@ -1,0 +1,137 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.EfModels;
+@model DataEntity.Models.ViewModels.EnrollCourseAssignmentViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add New Course Assignment"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/EnrollmentAssignments/CreateGroup" method="post" id="EnrollmentAssignmentsGroup-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <input id="SemesterId" name="SemesterId" value="@ViewBag.SemesterId" class="hidden" />
+                        <input id="CourseId" name="CourseId" value="@ViewBag.CourseId" class="hidden" />
+                        <input id="TeacherId" name="TeacherId" value="@ViewBag.TeacherId" class="hidden" />
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessageFor(model => model.LanguageId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Name">
+                                @Localizer["Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="PublishDate">
+                                @Localizer["Publish Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.PublishDate, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.PublishDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 mb-3 mb-3">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="PublishEndDate">
+                                @Localizer["Publish End Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.EditorFor(model => model.PublishEndDate, new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                @Html.ValidationMessageFor(model => model.PublishEndDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 mb-3">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Description">
+                                @Localizer["Description"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.TextAreaFor(model => model.Description, new { @class = "tinyRichText"})
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="button" onclick="CreateAssignmentGroup()"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    InitTinymce();
+
+    function CreateAssignmentGroup() {
+        var EnrollCourseAssignmentFrm = $('#EnrollmentAssignmentsGroup-Create');
+        var formDataArray = EnrollCourseAssignmentFrm.serializeArray();
+        formDataArray.push({ name: 'Description1', value: tinymce.get('Description').getContent() });
+        var serializedData = $.param(formDataArray);
+        if (EnrollCourseAssignmentFrm.valid()) {
+            if ($("#PublishDate").val() >= $("#PublishEndDate").val())
+                toastr.warning(AddMassegeErrorInvalidDates);
+            else {
+                ShowSpinner();
+                $.ajax({
+                    type: EnrollCourseAssignmentFrm.attr('method'),
+                    url: EnrollCourseAssignmentFrm.attr('action'),
+                    data: serializedData,
+                    headers: {
+                        'RequestVerificationToken': Token
+                    },
+                    success: function (data) {
+                        if (data == "Fail") {
+                            HideSpinner();
+                            toastr.warning(AddMassegeErrorInvalidDates);
+                        } else {
+                            toastr.success(addMassege);
+                            $('#AddExamsAndAssignments').modal("hide");
+                            HideSpinner();
+                        }
+                    },
+                    error: function (data) {
+                        HideSpinner();
+                        toastr.error(addMassegeError);
+                    },
+                });
+            }
+        }
+    }
+</script>

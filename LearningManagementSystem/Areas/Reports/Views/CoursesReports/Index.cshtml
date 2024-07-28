@@ -1,0 +1,105 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div id="main"></div>
+
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='AttendancesModal' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id='GetData' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+@section JavaScript
+    {
+    <script>
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["CourseName", "TeacherName", "AgeAllowedForRegistration", "CourseCategory", "SectionName", "GenderGroup", "CountOfAllowedStudent", "CountOfStudent", "Passed", "Attendance", "Warning", "EnrollLectures", "PublicationDate", "PublicationEndDate", "WorkStartDate", "WorkEndDate", "SemesterName", "Status", "CreatedOn", "CreatedBy"]
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-CoursesReports').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+
+        function Get() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/CoursesReports/GetData",
+                dataType: 'html',
+                data: { searchText: $("#searchText").val(), page: $("#page").val() },
+                success: function (data) {
+                    HideSpinner();
+                    $('#main').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        Get();
+
+        function ShowEditTable() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/CoursesReports/ShowTable/",
+                success: function (data) {
+                    HideSpinner();
+                    $('#EditTable .modal-content').html(data);
+                    $(".td").map(function () {
+                        table.forEach(element => {
+                            if ($(this).html().trim() == element) {
+                                $(this).parent().find("input[type='checkbox']").prop('checked', true)
+                            }
+                        }
+                        );
+                    })
+                    $('#EditTable').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        function GetCities() {
+            $.ajax({
+                type: "POST",
+                url: "/ControlPanel/Country/GetCountryCities",
+                dataType: 'json',
+                cache: false,
+                data: { id: $("#filter_Country").val() },
+                success: function (data) {
+                    $("#filter_City").empty();
+                    $("#filter_City").append(data.result);
+                    $('#filter_City').trigger('chosen:updated');
+                }
+            });
+        }
+
+        function GetData(data){
+            $('#main').html(data);
+        }
+
+        function GetTeacherAttendancesData(CourseId) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/EnrollmentCourse/GetTeacherAttendancesData",
+                dataType: 'html',
+                data: { CourseId },
+                success: function (data) {
+                    HideSpinner();
+                    $('#GetData').html(data);
+                    $('#AttendancesModal').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+    </script>
+}

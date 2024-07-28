@@ -1,0 +1,100 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.QuestionViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.ViewModels
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.ControlPanel
+
+@inject ICourseService CourseService
+@inject ICourseCategoryService CourseCategoryService
+
+@{ 
+    List<StatusViewModel> questionType = LookupHelper.GetQuestionsType(ViewBag.LangId);
+}
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Question"]
+            </div>
+        </div>
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Question"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Type"]</td>
+                    <td class="tms-details-data">@(questionType.FirstOrDefault(r=>r.Id==Model.Type)?.Name??"")</td>
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Category"]</td>
+                    <td class="tms-details-data">@CourseCategoryService.GetCourseCategoryById(Model.CategoryId??0 ,(int)ViewBag.LangId)?.Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Course"]</td>
+                    <td class="tms-details-data">@CourseService.GetCourseById(Model.CourseId??0 ,(int)ViewBag.LangId)?.CourseName</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Mark"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Mark)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy) </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.Status).Name</td>
+                </tr>
+                @if (Model.Type == (int)GeneralEnums.QuestionEnum.RadioButton || Model.Type == (int)GeneralEnums.QuestionEnum.CheckBox )
+                {
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Options"]</td>
+                        <td class="tms-details-data">
+                            <table class="table tms-details">
+                                <thead>
+                                    <tr>
+                                        <th>  @Localizer["Option"]</th>
+                                        <th>  @Localizer["Is Correct"]</th>
+                                    </tr>
+                                </thead>
+                                @foreach (var item in Model.OptionList)
+                                {
+                                    <tr>
+                                        <td class="tms-details-data">@item.Name</td>
+                                        <td class="tms-details-data">@item.IsCorrect</td>
+
+                                    </tr>
+                                }
+                            </table>
+
+
+                        </td>
+                    </tr>
+                }
+            </table>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center">
+                    <button class="tms-delete-btn" type="button" onclick="ConfirmDelete(@Model.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Question"]</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script>
+    var arabicId =@((int)GeneralEnums.LanguageEnum.Arabic);
+</script>

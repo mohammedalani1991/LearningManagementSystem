@@ -1,0 +1,147 @@
+﻿/* BASIC */
+html {
+    background-color: #56baed;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    height: 100vh;
+}
+
+a {
+    color: #92badd;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+h2 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin: 40px 8px 10px 8px;
+    color: #cccccc;
+}
+
+
+/* STRUCTURE */
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100%;
+    background-color: #F1F4FA;
+}
+
+#header {
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    padding: 0px;
+}
+
+#formContent {    
+    border-radius: 8px;
+    background: #fff;   
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    padding: 15px 30px;
+    box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+#formFooter {
+    background-color: #f6f6f6;
+    border-top: 1px solid #dce8f1;
+    padding: 25px;
+    text-align: center;
+    -webkit-border-radius: 0 0 10px 10px;
+    border-radius: 0 0 10px 10px;
+}
+
+
+/* TABS */
+
+h2.inactive {
+    color: #cccccc;
+}
+
+h2.active {
+    color: #0d0d0d;
+    border-bottom: 2px solid #5fbae9;
+}
+
+.first {
+    margin-top:30px;
+    color: #2B61AE;
+    font-size:20px;      
+}
+.second {
+    color: #1F1F1F;
+    font-size: 14px;
+    margin-bottom:30px;
+}
+
+.input-parent {
+    border: 1px solid #C2C2C2;
+    border-radius: 12px;
+    padding: 3px 10px;
+}
+/* FORM TYPOGRAPHY*/
+#loginButton {
+    background-color: #2B61AE;
+    border: none;
+    width: 90%;
+    color: white;
+    padding: 10px 80px;
+    margin: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    text-transform: uppercase;
+    font-size: 15px;
+    box-shadow: 0 10px 30px 0 rgba(95,186,233,0.4);    
+    border-radius: 14px;    
+}
+
+input[type=button]:active, input[type=submit]:active, input[type=reset]:active {
+    -moz-transform: scale(0.95);
+    -webkit-transform: scale(0.95);
+    -o-transform: scale(0.95);
+    -ms-transform: scale(0.95);
+    transform: scale(0.95);
+}
+
+input[type=email], input[type=password], input[type=text] {
+    border:none;
+    background-color: #fff !important;
+}
+
+input[type=email]:focus, input[type=password]:focus {
+    background-color: #fff;
+    border-bottom: 2px solid #2B61AE;
+    padding:0px 10px !important;
+    width:100%;
+}
+
+
+.underlineHover {
+    color: #2B61AE;
+    text-decoration: underline !important;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.remember-me {
+    text-align: start;
+    width: 50%;
+    margin: 0px 15px;
+    color: #ABABAB;
+}
+
+

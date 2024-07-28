@@ -1,0 +1,63 @@
+﻿@page
+@model EmailModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    Layout = null;
+    ViewData["Title"] = @Localizer["Manage Email"];
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+
+<div class="row">
+    <div class="col-12 p-0">
+        <partial name="_StatusMessage" model="Model.StatusMessage" />
+    </div>
+
+    <div class="col-12 p-0">
+        <form id="email-form" method="post" onsubmit="ChangeEmail()">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="mb-3">
+                <label>@Localizer["Email"]</label>
+                @if (Model.IsEmailConfirmed)
+                {
+                    <div class="mb-3">
+                        <input asp-for="Email" class="form-control w-form-control shadow-none" disabled />
+                    </div>
+                }
+                else
+                {
+                    <input asp-for="Email" class="form-control w-form-control shadow-none" disabled />
+                }
+            </div>
+            <div class="mb-3">
+                <label>@Localizer["New Email"]</label>
+                <input asp-for="Input.NewEmail" class="form-control w-form-control shadow-none" />
+                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
+            </div>
+            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">@Localizer["Change email"]</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<script>
+        function ChangeEmail() {
+            debugger;
+            event.preventDefault();
+            $.ajax({
+                type: "Post",
+                url: "/Identity/Account/Manage/Email?handler=ChangeEmail",
+                data: $("#email-form").serialize(),
+
+                success: function (data) {
+                    $('#E-Mail').html(data);
+                },
+                error: function (data) {
+                },
+            });
+        }
+    </script>

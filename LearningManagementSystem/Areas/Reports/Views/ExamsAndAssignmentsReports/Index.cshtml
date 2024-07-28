@@ -1,0 +1,184 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div id="main"></div>
+
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditTableDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowSubmittedExams' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ShowSubmittedExamsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowEnrolledStudents' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ShowEnrolledStudentsDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowStudentsAssignment' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ShowStudentsAssignmentDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+<div id='ShowExamViewmodal' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div id='ShowExamViewmodalDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+@section JavaScript
+    {
+    <script>
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Type", "Name", "CourseName", "TeacherName", "SemesterName", "SectionName", "PublicationDate", "PublicationEndDate", "Status", "CreatedOn", "NumberOfStudents", "NumberOfSubmitted", "NumberOfSuccess"]
+        $('.tms-reports').addClass("active");
+        $('.tms-sub-ExamsAndAssignmentsReports').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_reports').addClass("active");
+
+        function Get() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/ExamsAndAssignmentsReports/GetData",
+                dataType: 'html',
+                data: { searchText: $("#searchText").val(), page: $("#page").val() },
+                success: function (data) {
+                    HideSpinner();
+                    $('#main').html(data);
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        Get();
+
+        function ShowEditTable() {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/Reports/ExamsAndAssignmentsReports/ShowTable/",
+                success: function (data) {
+                    HideSpinner();
+                    $('#EditTable .modal-content').html(data);
+                    $(".td").map(function () {
+                        table.forEach(element => {
+                            if ($(this).html().trim() == element) {
+                                $(this).parent().find("input[type='checkbox']").prop('checked', true)
+                            }
+                        }
+                        );
+                    })
+                    $('#EditTable').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        function Download() {
+            var ActionLink = '/Reports/ExamsAndAssignmentsReports/DownloadReport';
+            var href = ActionLink + '?' + $("#Form1").serialize();
+            var anchor = $('#export-to-excel');
+            anchor.attr('href', href);
+            anchor[0].click();
+        }
+
+        function GetData(data) {
+            $('#main').html(data);
+        }
+
+        function ShowSubmitted(type, id, techerCourseId) {
+            ShowSpinner();
+            if (type == 1)
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/EnrollmentExams/ShowSubmittedExams/",
+                    data: { id: id },
+                    success: function (data) {
+                        HideSpinner();
+                        $('#ShowSubmittedExams .modal-content').html(data);
+                        $('#ShowSubmittedExams').modal("show");
+
+                    }
+                }).fail(function (jqXHR, textStatus, error) {
+                    HideSpinner();
+                });
+            else if (type == 2)
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/PracticalEnrollmentExam/ShowEnrolledStudents/",
+                    data: { PracticalEnrollmentExamId: id, EnrollTeacherCourseId: techerCourseId },
+                    success: function (data) {
+                        HideSpinner();
+                        $('#ShowEnrolledStudents .modal-content').html(data);
+                        $('#ShowEnrolledStudents').modal("show");
+
+                    }
+                }).fail(function (jqXHR, textStatus, error) {
+                    HideSpinner();
+                });
+            else if (type == 3)
+                $.ajax({
+                    type: "GET",
+                    url: "/ControlPanel/EnrollmentAssignments/GetStudentAssigments/",
+                    data: { assigmentId: id },
+                    success: function (data) {
+                        HideSpinner();
+                        $('#ShowStudentsAssignment .modal-content').html(data);
+                        $('#ShowStudentsAssignment').modal("show");
+
+                    }
+                }).fail(function (jqXHR, textStatus, error) {
+                    HideSpinner();
+                });
+
+            HideSpinner();
+        }
+
+        function TrainerShowExamView(EnrollCourseExamId, EnrollStudentExamID, langId) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/EnrollmentExams/ShowExamView/",
+                data: { EnrollCourseExamId: EnrollCourseExamId, EnrollStudentExamID: EnrollStudentExamID },
+                success: function (data) {
+                    HideSpinner();
+                    $('#ShowExamViewmodal .modal-content').html(data);
+                    $('#ShowExamViewmodal').modal("show");
+
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+
+        function ShowAssignmentQuestionsDeitelts(id) {
+            ShowSpinner();
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/EnrollmentAssignments/GetAssignmentQuestions/",
+                data: { id: id },
+                success: function (data) {
+                    HideSpinner();
+                    $('#ShowExamViewmodal .modal-content').html(data);
+                    $('#ShowExamViewmodal').modal("show");
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        }
+    </script>
+}

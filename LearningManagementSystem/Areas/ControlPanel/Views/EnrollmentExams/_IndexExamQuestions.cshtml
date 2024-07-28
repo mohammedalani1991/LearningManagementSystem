@@ -1,0 +1,117 @@
+﻿@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.ViewModels
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollCourseExamQuestion>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    List<StatusViewModel> questionType = LookupHelper.GetQuestionsType(ViewBag.LangId);
+
+}
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex justify-content-between">
+            <div class="tms-title">
+                <h4><small>@Localizer["The number of questions in the exam:"] <span class="NumberSelectedQuestions"> - @ViewBag.ExamQuestionsCount</span></small></h4>
+            </div>
+            <input id="ViewModleEnrollCourseExamId" value="@ViewBag.EnrollCourseExamId" type="hidden" />
+            <input id="ViewModleLangId" value="@ViewBag.LangId" type="hidden" />
+            <div class="float-right">
+                @if (AuthenticationHelper.CheckAuthentication("EnrollExamQuestion", "View", User.Identity.Name))
+                {
+                    <button class="btn btn-primary float-end mx-2" type="button" onclick="ShowAddRemoveExamQuestions(@ViewBag.LangId,@ViewBag.EnrollCourseExamId)"><img src="~/img/add-to-list.png" /> @Localizer["Select From Teacher Questions"]</button>
+                    <button class="btn btn-primary float-end" type="button" onclick="ShowAddRemoveExamFromBankOfQuestions(@ViewBag.LangId,@ViewBag.EnrollCourseExamId)"><img src="~/img/add-to-list.png" /> @Localizer["Select From Bank of Questions"]</button>
+                }
+            </div>
+
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+
+                            <th class="Name ">
+                                @Localizer["Question Name"]
+                            </th>
+
+                            <th class="Type ">
+                                @Localizer["Type"]
+                            </th>
+                            <th class="Mark">
+                                @Localizer["Mark"]
+                            </th>
+                            <th class="Status ">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy ">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn ">
+                                @Localizer["Created On"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="8">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+
+                                <td class="Name ">
+                                    @Html.DisplayFor(modelItem => item.Question.Question.Name)
+                                </td>
+                                <td class="Type ">
+                                    @(questionType.FirstOrDefault(r => r.Id == item.Question.Question.Type)?.Name ?? "")
+                                </td>
+
+                                <td class="Mark d-flex justify-content-center">
+                                    <input type="number" min="1" attr-question-id="@item.Id" value="@item.Mark" class="btnEditMarkQuestion form-control tms-input col-md-2 col-xs-2">
+                                </td>
+                                <td class="Status ">
+                                    @LookupHelper.GetStatusById(item.Status)?.Name
+                                </td>
+                                <td class="CreatedBy ">
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td class="CreatedOn ">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("ShowExamQuestions", new { page, id = ViewBag.id }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "ShowExamQuestionsDiv" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btnEditMarkQuestion {
+        height: 41px !important;
+        text-align: center;
+    }
+</style>
+
+

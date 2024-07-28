@@ -1,0 +1,65 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.EnrollCourseAssigment
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Course Assigment"]
+            </div>
+        </div>
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Id"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Id)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.Name)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Publish Date"]</td>
+                    <td class="tms-details-data">@LookupHelper.ConvertTimeToSystemTimeZone(Model.PublishDate) </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Publish End Date"]</td>
+                    <td class="tms-details-data">@LookupHelper.ConvertTimeToSystemTimeZone(Model.PublishEndDate) </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Assignment Time Zone"]</td>
+                    <td class="tms-details-data">@Html.Raw(ViewBag.TimeZone) </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Description"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.Description)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">
+                        @LookupHelper.GetStatusById(Model.Status ,(int)ViewBag.LangId)?.Name
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CreatedBy)</td>
+                </tr>
+            </table>
+            <div class="text-center">
+                <button class="tms-delete-btn" type="button" onclick="ConfirmDeleteAssignment(@Model.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Assignment"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

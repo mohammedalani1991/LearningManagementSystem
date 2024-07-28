@@ -1,0 +1,173 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.EnrollTeacherCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+}
+<div class="row">
+        <div class="d-flex justify-content-start align-items-start  courses-title">
+    <span class="My-Cources">@Localizer["Courses"]</span>
+    </div>
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                    <form data-ajax="true" method="get" action="/Trainer/EnrollCourses/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                        @Html.Hidden("table")
+                        @Html.Hidden("pagination")
+                        @Html.Hidden("Page")
+                        <div class="float-start">
+                            @Html.DropDownList("CourseId",new SelectList(ViewBag.TrainerCourses, "Id", "CourseName"),  Localizer["Search In Courses"].Value, new { @class = "form-select Filter custmSelect" })
+                            <input class="btn btn-outline-primary" onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive table-bordered">
+                <table class="table text-center m-0">
+                    <thead class="table-primary">
+                        <tr class="tms-headings">
+                            <th class="Id">
+                                @Localizer["Id"]
+                            </th>
+                            <th class="CourseId">
+                                @Localizer["Course Name"]
+                            </th>
+                            <th class="LearningMethodId">
+                                @Localizer["Learning Method"]
+                            </th>
+                            <th class="SemesterId">
+                                @Localizer["Semester Name"]
+                            </th>
+                            <th class="SectionName">
+                                @Localizer["Section Name"]
+                            </th>
+
+                            <th class="Status">
+                                @Localizer["Status"]
+                            </th>
+                            <th class="CreatedBy">
+                                @Localizer["Created By"]
+                            </th>
+                            <th class="CreatedOn">
+                                @Localizer["Created On"]
+                            </th>
+                            <th>
+                                @Localizer["Choose a process"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="9">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td class="Id ">
+                                    @Html.DisplayFor(modelItem => item.CourseId)
+                                </td>
+                                <td class="CourseId ">
+                                    <a class="tablelink" style="cursor:pointer" onclick="GetTrainerHomePage(@item.Id)">
+                                        @Html.DisplayFor(modelItem => item.CourseName)
+                                    </a>
+
+                                </td>
+
+                                @if (item.LearningMethodId != null)
+                                {
+                                    <td class="LearningMethodId">@LookupHelper.GetLookupDetailsById(item.LearningMethodId ?? 0,(int)ViewBag.LangId).Name</td>
+                                }
+                                else
+                                {
+                                    <td class="LearningMethodId">--</td>
+                                }
+                                <td class="SemesterId">
+                                    @if (item.Semester != null)
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Semester.Name)
+                                    }
+                                    else
+                                    {
+                                        <span>--</span>
+                                    }
+                                </td>
+                                <td class="SectionName ">
+                                    @if (!string.IsNullOrEmpty(item.SectionName))
+                                    {
+                                        @Html.DisplayFor(modelItem => item.SectionName)
+                                    }
+                                    else
+                                    {
+                                        <span>--</span>
+                                    }
+                                </td>
+
+                                <td class="Status ">
+                                    @LookupHelper.GetStatusById(item.Status ,(int)ViewBag.LangId)?.Name
+                                </td>
+                                <td class="CreatedBy ">
+                                    @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId)
+                                </td>
+                                <td class="CreatedOn ">
+                                    @Html.DisplayFor(modelItem => item.CreatedOn)
+                                </td>
+                                <td>
+
+                                    <div class="dropdown dropdown-lg d-inline-block ms-auto ">
+                                        <button class="btnn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (AuthenticationHelper.CheckAuthentication("EnrollCourses", "View", User.Identity.Name))
+                                            {
+                                                <li>   <a class="dropdown-item" href="javascript:void(0);" onclick="ShowDetailsCourses(@item.Id, @ViewBag.LangId)"><i class="fa-solid fa-eye"></i>@Localizer["Details"]</a> </li>
+
+                                            }
+
+                                        </ul>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="paddtop-Page">
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page ,CourseId = ViewBag.CourseId}), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "MyCoursesData" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="DetailsTrainerCourses" tabindex="-1" aria-labelledby="DetailsTrainerCoursesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" id="DetailsTrainerCoursesDiv">
+        </div>
+    </div>
+</div>
+<style>
+    .custmSelect {
+        display: inline-block !important;
+        width: 290px !important;
+        padding-top: 2px;
+    }
+
+</style>
+<script src="~/js/EnrollCourses/EnrollCourses.js?ver=10.1"></script>

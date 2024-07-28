@@ -1,0 +1,179 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Services.ControlPanel
+@using DataEntity.Models.EfModels
+@using LearningManagementSystem.Core
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@inject IUserProfileService UserProfileService
+@inject ICookieService Cookie
+@inject UserManager<IdentityUser> UserManager
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var languageId = CultureHelper.GetCurrentLanguageId(requestCulture);
+
+    var userProfile = !string.IsNullOrWhiteSpace(User.Identity?.Name)
+        ? UserProfileService.GetUserProfileByUsername(User.Identity?.Name) : new UserProfile();
+    var username = string.IsNullOrWhiteSpace(userProfile?.Contact?.FullName) ? User.Identity?.Name : userProfile.Contact.FullName;
+
+    var branches = LookupHelper.GetBranches(languageId);
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}{Context.Request.QueryString}";
+    var branchId = Cookie.GetCookie(Constants.CookieNames.SelectedBranchId);
+    var selectedBranch = "";
+    if (branchId == null || branchId == "0")
+    {
+        selectedBranch = Localizer["All Branches"].Value;
+        Cookie.CreateCookie(Constants.CookieNames.SelectedBranchId, "0", 7);
+    }
+    else
+    {
+        int id = Int32.Parse(branchId);
+        selectedBranch = branches.Where(a => a.Id.Equals(id)).FirstOrDefault()?.Name;
+    }
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"] - Learning Management System</title>
+    <!-- Bootstrap -->
+    <link href="@Url.Content("~/lib/bootstrap/dist/css/bootstrap.min.css")" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="@Url.Content("~/theme/ControlPanel/vendors/font-awesome/css/font-awesome.min.css")" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/theme/img/favicon.ico">
+    <!-- include summernote css/js -->
+    <link href="@Url.Content("~/theme/summernote/summernote.css")" rel="stylesheet">
+    <link href="@Url.Content("~/theme/summernote/summernote-lite.css")" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/bbbootstrap/libraries@main/choices.min.css">
+    <link href="~/css/custom.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/custom-fonts.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @if (selectedLang == "عربي")
+    {
+        <link href="~/css/ar-site.css" rel="stylesheet" />
+    }
+    @RenderSection("Css", required: false)
+    <script async defer src="https://tools.luckyorange.com/core/lo.js?site-id=c18af0f4"></script>
+
+</head>
+<body>
+    @RenderBody()
+
+
+    <script src="https://cdn.tiny.cloud/1/1bjwtmr4qw3nyx3or98iw46353588p9bxfds2ou5llsoac3l/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js" integrity="sha512-37T7leoNS06R80c8Ulq7cdCDU5MNQBwlYoy1TX/WUsLFC2eYNqtKlV0QjH7r8JpG/S0GUMZwebnVFLPd6SU5yg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/bbbootstrap/libraries@main/choices.min.js"></script>
+    <script src="@Url.Content("~/lib/bootstrap/dist/js/bootstrap.bundle.min.js")"></script>
+    <script src="@Url.Content("~/theme/summernote/summernote.js")"></script>
+    <script src="~/js/toast.min.js"></script>
+    <script src="~/js/jquery.unobtrusive-ajax.min.js"></script>
+
+    @if (selectedLang == "عربي")
+    {
+        <script src="@Url.Content("~/js/ar-custom.js")"></script>
+        <script asp-append-version="true" src="@Url.Content("~/js/ar-site.js")"></script>
+    }
+    else
+    {
+        <script src="@Url.Content("~/js/custom.js")"></script>
+        <script asp-append-version="true" src="@Url.Content("~/js/site.js")"></script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        function InitTinymce() {
+            tinymce.remove();
+            tinymce.init({
+                selector: 'textarea.tinyRichText',
+                browser_spellcheck: true,
+                plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak table directionality',
+                toolbar_mode: 'wrap',
+                toolbar: "undo redo | styleselect | fontselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent",
+                font_formats: " Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Symbol=symbol;Tahoma=tahoma,arial,helvetica,sans-serif;Terminal=terminal,monaco;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;Webdings=webdings;Wingdings=wingdings,zapf dingbats;"
+                    + "Al Jazeera Arabic Regular=Al-Jazeera-Arabic-Regular; Cairo=Cairo, sans-serif;Tajawal=Tajawal, sans-serif; TEWarshTharwatEmara=TEWarshTharwatEmara;" +
+                    "Al Jazeera Arabic Bold= Al-Jazeera-Arabic-Bold ;ae_AlMateen = ae_AlMateen; aga-islamic-phrases =aga-islamic-phrases; ARABSQ =ARABSQ ;ARBSQDTP=ARBSQDTP;",
+                toolbar2: 'alignleft aligncenter alignright | forecolor backcolor | bullist numlist | ltr rtl ',
+                directionality: "ltr",
+                height: "400",
+                fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 30pt',
+                content_css: '@Url.Content("~/css/custom-fonts.css")',
+                contextmenu: false,
+                content_style: "body { font-family: 'Al-Jazeera-Arabic-Regular'; }"
+            });
+        }
+
+        $('.summernote').summernote();
+
+        function ChangePagenation() {
+            $("#pagination").val($("#pagin").val());
+            $("#Form1").submit();
+        }
+
+        function GetTable(s) {
+            $(s).map(function (i, x) {
+                table.forEach(element => {
+                    if (x == element) {
+                        $("." + x + "").removeClass("d-none");
+                        $(this).parent().find("input[type='checkbox']").prop('checked', true)
+                    }
+                }
+                );
+            })
+        }
+
+        function ChangeTable() {
+            table = [];
+            $(".TableCheckBox").map(function () {
+                if ($(this).is(':checked'))
+                    table.push($(this).parent().parent().find(".td").html().trim())
+            })
+            $("#table").val(table);
+            $("#Form1").submit();
+        }
+
+    </script>
+
+    <script>
+        let optionsSuccess = {
+            settings: {
+                duration: 5000,
+            },
+            style: {
+                main: {
+                    background: "#42ba96",
+                    color: "#fff",
+                },
+            },
+        };
+        let optionsError = {
+            settings: {
+                duration: 5000,
+            },
+            style: {
+                main: {
+                    background: "#df4759",
+                    color: "#fff",
+                },
+            },
+        };
+    </script>
+
+    @RenderSection("JavaScript", required: false)
+</body>
+</html>
+@*toster*@
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>

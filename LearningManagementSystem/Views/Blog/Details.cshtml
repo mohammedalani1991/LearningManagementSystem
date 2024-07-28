@@ -1,0 +1,77 @@
+﻿@using LearningManagementSystem.Core;
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.EfModels.CmsPage
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.General
+
+@inject ISettingService _SettingService
+@{
+
+    X.PagedList.IPagedList<CmsPage> pages = ViewBag.Pages;
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Blog"];
+    bool ShowPostedBy = false;
+    Boolean.TryParse(_SettingService.GetOrCreate(Constants.SystemSettings.ShowPostedBy, "false").Value, out ShowPostedBy);
+}
+
+<div id="Blogs-Detail">
+    <div class="container-fluid container-lg pt-3">
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <p class="title-blog">
+                    @Model.Name
+                </p>
+            </div>
+            <div class="col-12 col-lg-8">
+                <img src="@Model.ImageUrl"
+                     class="img-fluid w-100 img-Detail">
+                @if (ShowPostedBy)
+                {
+                    <div class="blogs-p-card1 pt-2">
+                        <p class="d-inline-block Blogs-user-name">
+                            <i class="fa-regular fa-user"></i> @Localizer["Posted By"] @Model.CreatedBy.GetFullNameByEmail(ViewBag.LangId == null ? 0 : (int)ViewBag.LangId)
+                        </p>
+                        <p class="d-inline"><i class="fa-regular fa-calendar"></i> @Model.PublishDate?.ToString("yyyy-MM-dd")</p>
+                    </div>
+                }
+                <div class="mt-5">
+                @Html.Raw(Model.Description)
+                </div>
+            </div>
+            <div class="col-4 d-none d-lg-block  border-padding-left">
+                @foreach (var item in pages)
+                {
+                    <div class="row">
+                        <a class="Det-tit" href="@Url.Action("Details","Blog",new {Id=item.Id })">
+                            @item.Name
+                        </a>
+                        <p class="Det-Dec">
+                            @item.ShortDescription
+                        </p>
+                        <div>
+                            @if (ShowPostedBy)
+                            {
+                                <p class="blogs-p-card1 d-flex flex-lg-column flex-xxl-row justify-content-between pt-2">
+                                    <span class="col-lg-12 col-xxl Blogs-user-name">
+                                        <i class="fa-regular fa-user"></i>
+                                        @Localizer["Posted By"]
+                                        @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId).GetFullNameByEmail(ViewBag.LangId == null ? 0 : (int)ViewBag.LangId)
+                                    </span>
+                                    <span class="col-lg-12 col-xxl text-end">
+                                        <i class="fa-regular fa-calendar"></i>@item.PublishDate?.ToString("yyyy-MM-dd")
+                                    </span>
+                                </p>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+    </div>
+</div>

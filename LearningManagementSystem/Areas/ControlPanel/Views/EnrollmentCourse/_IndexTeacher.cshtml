@@ -1,0 +1,94 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Mvc.Core
+@using X.PagedList.Web.Common
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.TeacherAttendance>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization;
+
+@{
+    var paginations = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.Pagination.ToString(), ViewBag.LangId);
+    var paginationValue = ViewBag.PaginationValue;
+    CultureInfo arCulture = new CultureInfo("ar-SA");
+    DateTimeFormatInfo arDateTimeFormat = arCulture.DateTimeFormat;
+    CultureInfo enCulture = new CultureInfo("en");
+    DateTimeFormatInfo enDateTimeFormat = enCulture.DateTimeFormat;
+}
+
+<style>
+    .prev1 {
+        border-radius: 0 7px 7px 0;
+    }
+
+    .next1 {
+        border-radius: 7px 0 0 7px;
+    }
+</style>
+
+
+<div class="col-md-12 col-sm-12 col-xs-12 tms-page">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                </div>
+            </div>
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                        <tr class="tms-headings">
+                            <th>
+                                @Localizer["Date"]
+                            </th>
+                            <th>
+                                @Localizer["Absence Note"]
+                            </th>
+                            <th>
+                                @Localizer["Attend"]
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="tms-tr">
+                                <td>
+                                    @if (ViewBag.LangId == 7)
+                                    {
+                                        @(arDateTimeFormat.GetDayName(item.Date.DayOfWeek) + " " + Localizer[enDateTimeFormat.GetMonthName(item.Date.Month)].Value + " " + item.Date.ToShortDateString())
+                                    }
+                                    else
+                                    {
+                                        @item.Date.ToLongDateString()
+                                    }
+                                </td>
+                                <td>
+                                    @item.Note
+                                </td>
+                                <td>
+                                    @Html.Raw((item.Attended == true ?  "<button class='btn btn-primary' disabled>"+@Localizer["Attended"].Value+"</button>" : "<button class='btn btn-danger'disabled>"+@Localizer["Did Not Attended"].Value +"</button>"))
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                @if (Model.PageCount > 0)
+                {
+                    <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetTeacherAttendancesData", new { CourseId = ViewBag.CourseId, page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "GetData" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,100 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.ContactU>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel bg-transparent">
+        <div class="tms-page-title d-flex">
+            <div class="tms-title">
+                <h4><small>@Localizer["Contact Us"]</small></h4>
+            </div>
+            <div class="tms-action d-flex justify-content-end">
+                <div class="col-md-7 col-sm-12 col-xs-12">
+                  <form data-ajax="true" method="get" action="ContactUs/GetData" id="Form1" data-ajax-success="GetData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    
+                        <div class="d-flex justify-content-end">
+                            @Html.Hidden("pagination")
+                            @Html.Hidden("page")
+                            <div class="col-md-6 col-sm-3 col-xs-12">
+                                @Html.TextBox("searchText", null, new { @class = "form-control search-control tms-search-input", placeholder = Localizer["Search For ..."].Value })
+                            </div>
+
+                            <div>
+                                <input class="btn btn-primary" onclick="BtnSearchRestPageNumber()" type="submit" value=@Localizer["Search"] />
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+        <div class="x_content">
+            <div class="table-responsive">
+                <table class="tms-table">
+                    <thead>
+                    <tr class="tms-headings">
+                        <th>
+                            @Localizer["Name"]
+                        </th>
+                        <th>
+                            @Localizer["Email"]
+                        </th>
+                        <th>
+                            @Localizer["Subject"]
+                        </th>
+                         <th>
+                            @Localizer["Message"]
+                        </th>
+                        <th>
+                            @Localizer["Created On"]
+                        </th>
+                   
+                    </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr class="tms-tr">
+                                <td colspan="5">@Localizer["No data available in the table"] </td>
+                            </tr>
+                        }
+                    @foreach (var item in Model)
+                    {
+                        <tr class="tms-tr">
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Email)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Subject)
+                            </td>  
+                            <td style="width: 40%;">
+                                @Html.DisplayFor(modelItem => item.Message)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CreatedOn)
+                            </td>
+
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+
+                @if (Model.PageCount > 0)
+                {
+                     <div class="paging-div">
+                        @Html.PagedListPager(Model, page => Url.Action("GetData", new { page, searchText = ViewBag.searchText }), PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "main" }))
+                        <div class="d-flex justify-content-center">@Localizer["Page"] <p class="text-danger px-1">@(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber)</p>@Localizer["from"] <p class="text-primary px-1">@Model.PageCount</p> @Localizer["Item No:"]  <p class="text-primary px-1">@Model.TotalItemCount</p> </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

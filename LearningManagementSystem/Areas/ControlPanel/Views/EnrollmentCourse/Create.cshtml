@@ -1,0 +1,517 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollmentCourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString(), GeneralEnums.MasterLookupCodeEnums.CourseAgeGroup.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Add - Enroll Trainer for Course"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var LearningMethod = lookups[GeneralEnums.MasterLookupCodeEnums.LearningMethod.ToString()];
+    var CourseAgeGroup = lookups[GeneralEnums.MasterLookupCodeEnums.CourseAgeGroup.ToString()];
+    var statuses = LookupHelper.GetStatuses((int)ViewBag.LangId);
+    var days = LookupHelper.GetDaysOfTheWeek((int)ViewBag.LangId);
+    var courseType = LookupHelper.GetCourseType((int)ViewBag.LangId);
+    var LearningMethod_OnlineCode = Enum.GetName(typeof(GeneralEnums.LearningMethodEnum), GeneralEnums.LearningMethodEnum.ElectronicOnce);
+
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="d-flex tms-page-popup-title">
+                <div data-dismiss="modal" class="tms-close-div">
+                    <i class="fa fa-close"></i>
+                </div>
+                <div class="tms-table-popup-title" style="width:97%;">
+                    @Localizer["Add - Enroll Trainer for Course"]
+                </div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/EnrollmentCourse/Create" method="post" id="EnrollmentCourse-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl", required = "required", onchange = "onDdlChangedForCreate(this)" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/EnrollmentCourse/CourseSearch/">
+                            @Html.Hidden("EnrollTeacherCourseViewModel.CourseName")
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                                @Localizer["Course Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("CourseViewModel.Id", Enumerable.Empty<SelectListItem>(), Localizer["Search In Courses"].Value, new { @class = " form-control chosen-select tms-ddl", required = "required", onchange="SetLearningMethod(this)" })
+                                @Html.ValidationMessage("CourseViewModel.Id", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.CountOfStudent">
+                                @Localizer["Count Of Student"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.CountOfStudent", new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 1 } })
+
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.LearningMethodId">
+                                @Localizer["Learning Method"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.LearningMethodId", new SelectList(LearningMethod, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.AgeAllowedForRegistration">
+                                @Localizer["Age From"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.AgeAllowedForRegistration", new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 5, required = "required" } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.AgeAllowedForRegistration", "", new { @class = "text-danger" })
+
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.AgeGroupTo">
+                                @Localizer["Age To"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.AgeGroupTo", new { htmlAttributes = new { @class = "form-control tms-input col-md-7 col-xs-12", @type = "number", @min = 5 } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.AgeGroupTo", "", new { @class = "text-danger" })
+
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.AgeGroup">
+                                @Localizer["Gender"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.AgeGroup", new SelectList(CourseAgeGroup, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.AgeGroup", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        @* <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                        <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.CalculationTypeId">
+                        @Localizer["Calculation Way"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-12 col-sm-6 col-xs-12">
+                        @Html.DropDownList("EnrollTeacherCourseViewModel.CalculationTypeId", new SelectList(courseType, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                        @Html.ValidationMessage("EnrollTeacherCourseViewModel.CalculationTypeId", "", new { @class = "text-danger" })
+                        </div>
+                        </div>*@
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 DivIslinkedSection">
+                            <label class="control-label col-md-2 col-sm-3 col-xs-12 tms-label">
+                                @Localizer["Is linked Section"]
+                            </label>
+                            <div class="col-md-1 col-sm-6 col-xs-12">
+
+                                @Html.Editor("EnrollTeacherCourseViewModel.IslinkedSection", new { htmlAttributes = new { type = "hidden" } })
+                                @Html.Editor("chIslinkedSection", new { htmlAttributes = new { type = "checkbox", @class = "form-control tms-input col-md-4 col-xs-12 IslinkedSection" } })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12 EnrollmentCourseWithoutSection">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.SectionName">
+                                @Localizer["Section Name"] <span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.SectionName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.SectionName", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12 DivIslinkedSemester">
+                            <label class="control-label col-md-2 col-sm-3 col-xs-12 tms-label">
+                                @Localizer["Is linked Semester"]
+                            </label>
+                            <div class="col-md-1 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.IslinkedSemester", new { htmlAttributes = new { type = "hidden" } })
+                                @Html.Editor("chIslinkedSemester", new { htmlAttributes = new { type = "checkbox", @class = "form-control tms-input col-md-4 col-xs-12 IslinkedSemester" } })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12  SemesterDiv">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.SemesterId">
+                                @Localizer["Semester Name"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-11 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.SemesterId", new SelectList(ViewBag.ListSemesters, "Id", "Name"), Localizer["Search In Semester"].Value, new { required = "required", @class = " form-control chosen-select tms-ddl required" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.SemesterId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.PublicationDate">
+                                @Localizer["Publication Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.PublicationDate", new { htmlAttributes = new { required = "required", type = "date", @class = "form-control tms-input col-md-7 col-xs-12 PublicationDate" } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.PublicationDate", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.PublicationEndDate">
+                                @Localizer["Publication End Date"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.PublicationEndDate", new { htmlAttributes = new { type = "date", @class = "form-control tms-input col-md-7 col-xs-12 PublicationEndDate" } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.PublicationEndDate", "", new { @class = "text-danger" })
+
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.WorkStartDate">
+                                @Localizer["Work Start Date"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.WorkStartDate", new { htmlAttributes = new { type = "date", required = "required", @class = "form-control tms-input col-md-7 col-xs-12 WorkStartDate" } })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.WorkStartDate", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="EnrollTeacherCourseViewModel.WorkEndDate">
+                                @Localizer["Work End Date"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("EnrollTeacherCourseViewModel.WorkEndDate", new { htmlAttributes = new { type = "date", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                            </div>
+                        </div>
+
+
+
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="EnrollmentCourseAddTime_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="EnrollCourseTimeViewModel">
+                                        <div data-repeater-item>
+                                            <div class="form-group">
+                                                <div class="col-md-5">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Day"] <span class="required">*</span></label>
+                                                    @Html.DropDownList("DayId",new SelectList(days, "Id", "Name"), Localizer["Select the Day"].Value, new { @class = " form-control chosen-select tms-ddl required", required = "required" })
+                                                    @Html.ValidationMessage("DayId", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["From Time"] <span class="required">*</span></label>
+                                                    @Html.Editor("FromTime", new { htmlAttributes = new { required = "required", type = "time", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                                    @Html.ValidationMessage("FromTime", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["To Time"] <span class="required">*</span></label>
+                                                    @Html.Editor("ToTime", new { htmlAttributes = new { required = "required", type = "time", @class = "form-control tms-input col-md-7 col-xs-12 required" } })
+                                                    @Html.ValidationMessage("ToTime", "", new { @class = "text-danger" })
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9" type="button">
+                                                        <i class="fa fa-trash btnDeleteIcon"></i>@Localizer["Delete Row"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <button data-repeater-create class="tms-save-btn  btn-light-primary  TestClass" type="button">
+                                        <i class="fa fa-plus"></i> @Localizer["Add Day Row"]
+                                    </button>
+                                </div>
+                                <!--end::Form group-->
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+                        <div class="form-group col-lg-6 col-sm-12 col-xs-12">
+                            <!--begin::Repeater-->
+                            <div id="EnrollmentCourseAddTrainer_Repeater_Nested" class="Repeater_Nested">
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="TrainerViewModel">
+                                        <div data-repeater-item>
+                                            <div class="form-group">
+                                                <div class="col-12">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Trainer Name"] <span class="required">*</span></label>
+                                                    @Html.DropDownList("Id", new SelectList(ViewBag.ListTrainers, "Id", "Contact.FullName"), Localizer["Search In Trainers"].Value, new { @class = " form-control chosen-select tms-ddl", required = "required" })
+                                                    @Html.ValidationMessage("Id", "", new { @class = "text-danger" })
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12 form-group">
+                            <label class="col-xs-6 control-label tms-label" for="Status">
+                                @Localizer["Status"] <span class="required">*</span>
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.Status", new SelectList(statuses, "Id", "Name"), Localizer["Select"].Value, new { @class = "form-control chosen-select tms-ddl", required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="Notes">
+                                @Localizer["Notes for enrolled"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.TextAreaFor(model => model.EnrollTeacherCourseViewModel.NotesForEnrolled, new { @class = "tinyRichText" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="tms-save-btn" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .TestClass {
+        font-size: 10px;
+        margin-top: 0px;
+        margin-left: 14px;
+    }
+
+</style>
+<script type="text/javascript">
+    var LearningMethod_OnlineCode = '@LearningMethod_OnlineCode';
+
+    InitTinymce();
+
+    EnrollmentCourseSection(false);
+    EnrollmentCourseSemester(false);
+    LearningMethod_Online(false);
+    $("#EnrollTeacherCourseViewModel_IslinkedSemester").val("0");
+    $("#EnrollTeacherCourseViewModel_IslinkedSection").val("0");
+    $("#EnrollmentCourse-Create #EnrollTeacherCourseViewModel_SemesterId").change(function () {
+        GetSemesterByID($(this).val(), $("#EnrollTeacherCourseViewModel_LanguageId").val());
+    });
+    $("#EnrollmentCourse-Create .IslinkedSection").change(function () {
+        var _this = $(this).is(":checked");
+
+        EnrollmentCourseSection(_this);
+    });
+    $("#EnrollmentCourse-Create .IslinkedSemester").change(function () {
+        var _this = $(this).is(":checked");
+        EnrollmentCourseSemester(_this);
+    });
+
+    $('#EnrollmentCourseAddTrainer_Repeater_Nested,#EnrollmentCourseAddTime_Repeater_Nested').repeater({
+        show: function () {
+            $(this).slideDown();
+            $(this).find(".chosen-select").chosen();
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        },
+        isFirstItemUndeletable: false,
+        initEmpty: false
+    });
+
+
+    $("#EnrollmentCourse-Create #EnrollTeacherCourseViewModel_LearningMethodId").change(function () {
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentCourse/GetLearningMethodCode",
+            data: { id: $("#EnrollTeacherCourseViewModel_LearningMethodId").val() },
+            success: function (data) {
+                if (LearningMethod_OnlineCode == data)
+                    LearningMethod_Online(true);
+                else
+                    LearningMethod_Online(false);
+            }
+        }).fail(function (jqXHR, textStatus, error) {
+            HideSpinner();
+        });
+    });
+
+    function LearningMethod_Online(_this) {
+
+        if (_this) {
+            EnrollmentCourseSection(false);
+            EnrollmentCourseSemester(false);
+            $(".DivIslinkedSection").hide();
+            $(".DivIslinkedSemester").hide();
+            $("#EnrollmentCourseAddTime_Repeater_Nested").hide();
+            $("#EnrollTeacherCourseViewModel_PublicationEndDate").val("").attr("readonly", true);
+            $("#EnrollTeacherCourseViewModel_WorkEndDate").val("").attr("readonly", true);
+            $("#EnrollmentCourseAddTime_Repeater_Nested #DayId").val("-10");//This is only for skipping the validation and will not be added
+            $("#EnrollmentCourseAddTime_Repeater_Nested  input,#EnrollmentCourseAddTime_Repeater_Nested select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', false);
+            });
+
+
+        } else {
+
+            $(".DivIslinkedSection").show();
+            $(".DivIslinkedSemester").show();
+            $("#EnrollmentCourseAddTime_Repeater_Nested").show();
+            $("#EnrollTeacherCourseViewModel_PublicationEndDate").val("").attr("readonly", false);
+            $("#EnrollTeacherCourseViewModel_WorkEndDate").val("").attr("readonly", false);
+            $("#EnrollmentCourseAddTime_Repeater_Nested  input,#EnrollmentCourseAddTime_Repeater_Nested select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', true);
+            });
+
+
+            if ($("#EnrollTeacherCourseViewModel_IslinkedSection").val() == "0")
+                EnrollmentCourseSection(false);
+            else
+                EnrollmentCourseSection(true);
+
+            if ($("#EnrollTeacherCourseViewModel_IslinkedSemester").val() == "0")
+                EnrollmentCourseSemester(false);
+            else
+                EnrollmentCourseSemester(true);
+
+        }
+
+    }
+    function EnrollmentCourseSection(_this) {
+
+        if (_this) {
+            $("#EnrollTeacherCourseViewModel_IslinkedSection").val("1");
+            $(".IslinkedSection").prop("checked", true);
+            $(".EnrollmentCourseWithoutSection").show();
+            $(".EnrollmentCourseWithoutSection  input,.EnrollmentCourseWithoutSection select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', true);
+            });
+
+        } else {
+
+            $("#EnrollTeacherCourseViewModel_IslinkedSection").val("0");
+            $(".IslinkedSection").prop("checked", false);
+            $(".EnrollmentCourseWithoutSection").hide();
+
+            $(".EnrollmentCourseWithoutSection  input,.EnrollmentCourseWithoutSection select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', false);
+            });
+        }
+    }
+    function EnrollmentCourseSemester(_this) {
+
+        if (_this) {
+            $("#EnrollTeacherCourseViewModel_IslinkedSemester").val("1");
+            $(".IslinkedSemester").prop("checked", true);
+            $(".SemesterDiv").show();
+            $(".SemesterDiv  input,.SemesterDiv select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', true);
+            });
+
+            if ($("#EnrollTeacherCourseViewModel_SemesterId").val()) {
+                GetSemesterByID($("#EnrollTeacherCourseViewModel_SemesterId").val(), $("#EnrollTeacherCourseViewModel_LanguageId").val());
+            }
+        } else {
+            $("#EnrollTeacherCourseViewModel_IslinkedSemester").val("0");
+            $(".IslinkedSemester").prop("checked", false);
+            $(".SemesterDiv").hide();
+            $(".SemesterDiv  input,.SemesterDiv select").each(function () {
+                if ($(this).hasClass("required"))
+                    $(this).prop('required', false);
+            });
+            $(".PublicationDate").val("").attr("readonly", false);
+            $(".PublicationEndDate").val("").attr("readonly", false);
+        }
+    }
+    function GetSemesterByID(SemesterId, langId) {
+        ShowSpinner();
+        if (SemesterId > 0) {
+            $.ajax({
+                type: "GET",
+                url: "/ControlPanel/EnrollmentCourse/GetSemesterByID",
+                data: { SemesterId: SemesterId, languageId: langId },
+                success: function (data) {
+                    HideSpinner();
+                    if (data != null) {
+                        $(".PublicationDate").val(dateToYMD(data.publicationDate)).attr("readonly", true);
+                        $(".WorkStartDate").val(dateToYMD(data.workStartDate));
+                        $("#EnrollTeacherCourseViewModel_WorkEndDate").val(dateToYMD(data.workEndDate));
+                        if (data.publicationEndDate != null)
+                            $(".PublicationEndDate").val(dateToYMD(data.publicationEndDate)).attr("readonly", true);
+                        else
+                            $(".PublicationEndDate").val("").attr("readonly", false);
+                    } else {
+                        $(".PublicationDate").val("").attr("readonly", false);
+                        $(".PublicationEndDate").val("").attr("readonly", false);
+                        $(".WorkStartDate").val("");
+                        $("#EnrollTeacherCourseViewModel_WorkEndDate").val("");
+                    }
+                },
+                error: function (data) {
+                    HideSpinner();
+                }
+            }).fail(function (jqXHR, textStatus, error) {
+                HideSpinner();
+            });
+        } else {
+            HideSpinner();
+            $(".PublicationDate").val("").attr("readonly", false);
+            $(".PublicationEndDate").val("").attr("readonly", false);
+            $(".WorkStartDate").val("");
+            $("#EnrollTeacherCourseViewModel_WorkEndDate").val("");
+        }
+    }
+    function dateToYMD(end_date) {
+        var ed = new Date(end_date);
+        var d = ed.getDate();
+        var m = ed.getMonth() + 1;
+        var y = ed.getFullYear();
+        return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+    }
+
+
+    function createMeetingLink() {
+        // Define the options for the meeting link
+        var meetingOptions = {
+            meetingType: 'scheduled',
+            chatEnabled: true,
+            attendees: [], // Set Attendees to an empty array for anyone with the link
+            subject: 'My Teams Meeting',
+            startDateTime: '2023-03-01T12:00:00Z',
+            endDateTime: '2023-03-01T13:00:00Z',
+            location: {
+                displayName: 'My Office',
+                locationAnnotation: '5th Floor, Room 501'
+            }
+        };
+
+        // Generate the Teams meeting link
+        MicrosoftTeams.createMeetingLink(meetingOptions, (result) => {
+            if (result.status === 'success') {
+                console.log(`Teams meeting link: ${result.link}`);
+            } else {
+                console.error(`Error creating Teams meeting link: ${result.error}`);
+            }
+        });
+    }
+
+    function SetLearningMethod(current) {
+        $.ajax({
+            type: "GET",
+            url: "/ControlPanel/EnrollmentCourse/GetLearningMethod",
+            data: { id: current.value },
+            success: function (data) {
+                $("#EnrollTeacherCourseViewModel_LearningMethodId").val(data).trigger("chosen:updated");
+            },
+        }).fail(function (jqXHR, textStatus, error) {
+        });
+    }
+</script>
+<script src="~/js/EnrollmentCourse/EnrollmentCourse.js?ver=16.1"></script>

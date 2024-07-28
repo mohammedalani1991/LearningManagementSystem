@@ -1,0 +1,609 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralContactViewModel
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString(), GeneralEnums.MasterLookupCodeEnums.Gender.ToString(),
+     GeneralEnums.MasterLookupCodeEnums.Job.ToString(),GeneralEnums.MasterLookupCodeEnums.JobType.ToString() , GeneralEnums.MasterLookupCodeEnums.ContactTypes.ToString(),
+     GeneralEnums.MasterLookupCodeEnums.PaymentWay.ToString(),GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString(),GeneralEnums.MasterLookupCodeEnums.RightTime.ToString(),
+     GeneralEnums.MasterLookupCodeEnums.CommunicationChannel.ToString(),GeneralEnums.MasterLookupCodeEnums.FirstSubChannel.ToString(),GeneralEnums.MasterLookupCodeEnums.SecondSubChannel.ToString(),
+     GeneralEnums.MasterLookupCodeEnums.Campaign.ToString(),GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(),GeneralEnums.MasterLookupCodeEnums.TrainingConsultant.ToString(),
+    GeneralEnums.MasterLookupCodeEnums.Colors.ToString()};
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+    var colors = lookups[GeneralEnums.MasterLookupCodeEnums.Colors.ToString()];
+
+    ViewData["Title"] = @Localizer["Contact"];
+    var paymentWay = lookups[GeneralEnums.MasterLookupCodeEnums.PaymentWay.ToString()];
+    var educationalLevel = lookups[GeneralEnums.MasterLookupCodeEnums.EducationalLevel.ToString()];
+
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+    var gender = lookups[GeneralEnums.MasterLookupCodeEnums.Gender.ToString()];
+    var Job = lookups[GeneralEnums.MasterLookupCodeEnums.Job.ToString()];
+    var JobType = lookups[GeneralEnums.MasterLookupCodeEnums.JobType.ToString()];
+    var Type = lookups[GeneralEnums.MasterLookupCodeEnums.ContactTypes.ToString()];
+    var statuses = LookupHelper.GetStatuses();
+    var roles = LookupHelper.GetActiveRoles(ViewBag.RoleId);
+    var rightTime = lookups[GeneralEnums.MasterLookupCodeEnums.RightTime.ToString()];
+    var communicationChannel = lookups[GeneralEnums.MasterLookupCodeEnums.CommunicationChannel.ToString()];
+    var firstSubChannel = lookups[GeneralEnums.MasterLookupCodeEnums.FirstSubChannel.ToString()];
+    var secondSubChannel = lookups[GeneralEnums.MasterLookupCodeEnums.SecondSubChannel.ToString()];
+    var campaign = lookups[GeneralEnums.MasterLookupCodeEnums.Campaign.ToString()];
+    var generalSpecialty = lookups[GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString()];
+    var trainingConsultant = lookups[GeneralEnums.MasterLookupCodeEnums.TrainingConsultant.ToString()];
+    var contractType = LookupHelper.GetContactType((int)ViewBag.LangId);
+    var selectedDiv = contractType.Where(c => c.DivInfo != "").Select(c => c.DivInfo);
+    var cities = LookupHelper.GetCities(ViewBag.LangId);
+    var countries = LookupHelper.GetCountries(ViewBag.LangId);
+
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        selectedDiv = contractType.Where(c => c.Value == ViewBag.ContactTypeId && c.DivInfo != "").Select(c => c.DivInfo);
+
+    }
+    else
+    {
+        selectedDiv = new List<string>();
+    }
+
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2> <small>@Localizer["Create Contact"]</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                @using (Html.BeginForm("Create", "UserProfiles", FormMethod.Post, new { id = "demo-form2", @class = "form-horizontal form-label-left" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div>
+                        <h4 style="color:#1dbebe">@Localizer["Contact Info"]</h4>
+                    </div>
+                    <hr />
+
+                    if (ViewBag.ContactTypeId == null)
+                    {
+                        <div class="form-group" style="margin-bottom: 50px;">
+                            <p>@Localizer["Choose Contact Type"]</p>
+
+                            <div class="col-md-offset-2 col-md-10">
+                                <table>
+                                    <tr>
+                                        @{
+                                            int cnt = 0;
+
+                                            foreach (var item in contractType)
+                                            {
+                                                if (cnt++ % 6 == 0)
+                                                {
+                                                @:</tr><tr>
+                                                }
+                                                @:<td style="padding: 15px;">
+                                                    <input type="checkbox"
+                                                           onclick="ToggleDivInfo(this, '@item.DivInfo')"
+                                                           id="@cnt"
+                                                           name="contactType"
+                                                           value="@item.Value"
+                                                           @(Html.Raw(item.Selected ? "checked=\"checked\"" : "")) />
+
+                                                    <label for="@cnt">@Localizer[item.Text]</label>
+
+                                                @:</td>
+                                            }
+                                        @:</tr>
+                                        }
+                                    </table>
+                                </div>
+                            </div>
+                        }
+                        <div class="form-group">
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="LanguageId">
+                                    @Localizer["Language"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("ContactViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), string.Empty, new { @class = "form-control", required = "required" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-6 col-md-6 ">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="FullName">
+                                    @Localizer["First Name"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.FirstName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.FirstName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6 ">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for=".">
+                                    @Localizer["Second Name"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.SecondName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.SecondName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6 c">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="FullName">
+                                    @Localizer["Third Name"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.ThirdName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.ThirdName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6 ">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="FullName">
+                                    @Localizer["Last Name"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.LastName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.LastName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Email">
+                                    @Localizer["Email"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.Email, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Email, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Mobile">
+                                    @Localizer["Mobile"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.ContactViewModel.Mobile, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Mobile, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="PhoneNumber">
+                                        @Localizer["Phone Number"] <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="GenderLookupId">
+                                    @Localizer["Gender"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("ContactViewModel.GenderId", new SelectList(gender, "Id", "Name"), string.Empty, new { @class = "form-control", required = "required" })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.GenderId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                                    @Localizer["Status"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("ContactViewModel.Status", new SelectList(statuses, "Id", "Name"), new { @class = "form-control", required = "required" })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.Status, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="form-group" id="EmployeeInfo" style="display:none">
+                            <div>
+                                <h4 style="color:#1dbebe">@Localizer["Employee Info"]</h4>
+                            </div>
+                            <hr />
+                            <div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                                        @Localizer["Start Work Date"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input type="date" name="EmployeeViewModel.StartWorkDate" id="EmployeeViewModel.StartWorkDate" class="form-control required-input" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                                        @Localizer["Job"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        @Html.DropDownList("EmployeeViewModel.JobId", new SelectList(Job, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Status">
+                                        @Localizer["Job Type"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        @Html.DropDownList("EmployeeViewModel.JobTypeId", new SelectList(JobType, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Address">
+                                        @Localizer["Address"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.EmployeeViewModel.Address, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                        @Html.ValidationMessageFor(model => model.EmployeeViewModel.Address, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <br />
+                        <div class="form-group" id="StudentInfo" style="display:none">
+                            <div>
+                                <h4 style="color:#1dbebe">@Localizer["Student Info"]</h4>
+                            </div>
+                            <hr />
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="EducationalLevelId">
+                                    @Localizer["Educational Level"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("StudentViewModel.EducationalLevelId", new SelectList(educationalLevel, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                    @Html.ValidationMessageFor(model => model.StudentViewModel.EducationalLevelId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="IdNumber">
+                                    @Localizer["IdNumber"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.StudentViewModel.IdNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                    @Html.ValidationMessageFor(model => model.StudentViewModel.IdNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Work">
+                                        @Localizer["Work"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.Work, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.Work, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="WorkPlace">
+                                        @Localizer["Work Place"]
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.WorkPlace, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.WorkPlace, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Country">
+                                    @Localizer["Country"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("ContactViewModel.CountryId", new SelectList(countries, "Id", "Name"), string.Empty, new { @class = "form-control required-input", onchange = "GetCountryCities3()" })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.CountryId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Country">
+                                    @Localizer["Country"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("ContactViewModel.CityId", new SelectList(cities, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                    @Html.ValidationMessageFor(model => model.ContactViewModel.CityId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Address">
+                                        @Localizer["Address"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.Address, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.Address, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="BirthDate">
+                                    @Localizer["Birth Date"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.StudentViewModel.BirthDate, new { htmlAttributes = new { type = "date", @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                    @Html.ValidationMessageFor(model => model.StudentViewModel.BirthDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="BirthPlace">
+                                        @Localizer["Birth Place"]
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.BirthPlace, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.BirthPlace, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="FirstInstallmentDate">
+                                        @Localizer["First Installment Date"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.FirstInstallmentDate, new { htmlAttributes = new { type = "date", @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.FirstInstallmentDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="InstallmentsNumber">
+                                        @Localizer["Installments Number"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.InstallmentsNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.InstallmentsNumber, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="CoverageValue">
+                                        @Localizer["Coverage Value"]
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.CoverageValue, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.CoverageValue, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="CoverageValue">
+                                        @Localizer["Coverage Ratio"]
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.CoverageRatio, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.CoverageRatio, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="RightTime">
+                                        @Localizer["Right Time"] <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.DropDownList("StudentViewModel.RightTimeId", new SelectList(rightTime, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.RightTimeId, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="PaymentWayId">
+                                        @Localizer["Payment Way"] <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.DropDownList("StudentViewModel.PaymentWayId", new SelectList(paymentWay, "Id", "Name"), string.Empty, new { @class = "form-control required-input" })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.PaymentWayId, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="SubscriptionPrice">
+                                        @Localizer["Subscription Price"]<span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.SubscriptionPrice, new { htmlAttributes = new { @class = "required-input form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.SubscriptionPrice, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                            @*<div class="form-group col-6 col-md-6">
+                                    <label class="control-label col-md-3 col-sm-3 col-xs-12" for="SubscriptionDate">
+                                        @Localizer["Subscription Date"]
+                                    </label>
+                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                        @Html.EditorFor(model => model.StudentViewModel.SubscriptionDate, new { htmlAttributes = new { type = "date", @class = "form-control col-md-7 col-xs-12" } })
+                                        @Html.ValidationMessageFor(model => model.StudentViewModel.SubscriptionDate, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>*@
+                        </div>
+                        <br />
+
+
+                        <div class="form-group" id="TrainerInfo" style="display:none">
+                            <div>
+                                <h4 style="color:#1dbebe">@Localizer["Trainer Info"]</h4>
+                            </div>
+                            <hr />
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="IdNumber">
+                                    @Localizer["IdNumber"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.TrainerViewModel.IdNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.IdNumber, "", new { @class = "text-danger" })
+
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="StartWorkDate">
+                                    @Localizer["Start Work Date"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.TrainerViewModel.StartWorkDate, new { htmlAttributes = new { type = "date", @class = "form-control col-md-7 col-xs-12 required-input" } })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.StartWorkDate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="GeneralSpecialtyId">
+                                    @Localizer["General Specialty"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("TrainerViewModel.GeneralSpecialtyId", new SelectList(generalSpecialty, "Id", "Name"), string.Empty, new { @class = "form-control" })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.GeneralSpecialtyId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="WorkHouers">
+                                    @Localizer["WorkHouers"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.TrainerViewModel.WorkHouers, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.WorkHouers, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="IsFullTimeWorker">
+                                    @Localizer["IsFullTimeWorker"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.TrainerViewModel.IsFullTimeWorker, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.IsFullTimeWorker, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group col-6 col-md-6">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ShowInPages">
+                                    @Localizer["Show In Pages"]
+                                </label>
+                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.TrainerViewModel.ShowInPages, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.TrainerViewModel.ShowInPages, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+
+
+
+
+                        </div>
+                        <br />
+                        <br />
+                        <hr />
+                        <div style="text-align:center">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-secondary">
+                                    <input type="radio" name="IsUser" value="@((int)GeneralEnums.UserEnum.IsUser)" id="IsUser" onchange="Toggle()" autocomplete="off"> @Localizer["Is User"]
+                                </label>
+                                <label class="btn btn-secondary active">
+                                    <input type="radio" name="IsUser" value="@((int)GeneralEnums.UserEnum.NotUser)" id="NotUser" onchange="Toggle()" checked autocomplete="off">@Localizer["Not User"]
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="UserInfo" style="display:none">
+                            <div>
+                                <h4 style="color:#1dbebe">@Localizer["User Info"]</h4>
+                            </div>
+                            <hr />
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="IdNumber">
+                                    @Localizer["Identity Number"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.UserProfileViewModel.IdNumber, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.IdNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Password">
+                                    @Localizer["Password"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.UserProfileViewModel.Password, new { htmlAttributes = new { type = "password", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.Password, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ConfirmPassword">
+                                    @Localizer["Confirm Password"] <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    @Html.EditorFor(model => model.UserProfileViewModel.ConfirmPassword, new { htmlAttributes = new { type = "password", @class = "form-control col-md-7 col-xs-12" } })
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.ConfirmPassword, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-12 col-xs-12" for="Status">
+                                    @Localizer["Choose Role"]<span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    @Html.DropDownListFor(r => r.UserProfileViewModel.RoleIds, new SelectList(roles, "Id", "Name"), new { @class = "form-control", @multiple = "multiple" })
+                                    @Html.ValidationMessageFor(model => model.UserProfileViewModel.RoleIds, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                            <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                                <input type="submit" value=@Localizer["Submit"] class="btn btn-success" />
+                            </div>
+                        </div>
+                    }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        var array = @Html.Raw(Json.Serialize(selectedDiv));
+
+        for (var i = 0; i < array.length; i++)
+        {
+        ShowDivInfo(array[i]);
+        }
+    });
+
+    function Toggle() {
+        if ($('input[name="IsUser"]:checked').val() == @((int)GeneralEnums.UserEnum.IsUser))
+        {
+            $('#UserInfo').show();
+            $('#Email').prop('required', true);
+           
+            $('#IdNumber').prop('required', true);
+            $('#Password').prop('required', true);
+            $('#ConfirmPassword').prop('required', true);
+        }
+        else
+        {
+            $('#UserInfo').hide();
+            $('#Email').prop('required', false);
+            $('#IdNumber').prop('required', false);
+          
+            $('#Password').prop('required', false);
+            $('#ConfirmPassword').prop('required', false);
+        }
+        }
+
+        function ToggleDivInfo(box, id)
+        {
+            debugger;
+            if (box.checked == false)
+            {
+                HideDivInfo(id);
+            }
+            else
+            {
+                ShowDivInfo(id);
+            }
+        }
+
+
+        function ShowDivInfo(id)
+        {
+            $("#" + id + ' .required-input').prop('required', true);
+            $("#" + id ).show();
+        }
+
+        function HideDivInfo(id)
+        {
+            $("#" + id + ' .required-input').prop('required', false);
+            $("#" + id).hide();
+        }
+</script>

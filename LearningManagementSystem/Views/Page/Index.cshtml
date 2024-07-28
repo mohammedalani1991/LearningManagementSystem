@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels
+@using DataEntity.Models.ViewModels
+@model DataEntity.Models.ViewModels.AboutDicViewModel
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Model.Name;
+
+    List<DetailsLookupViewModel> generalSpecialization = LookupHelper.GetLookupDetailsByMasterCode(GeneralEnums.MasterLookupCodeEnums.GeneralSpecialty.ToString(), ViewBag.LangId);
+    var dicGeneralSpecialization = generalSpecialization.ToDictionary(item => item.Id,
+                     item => item.Name);
+}
+
+
+<div id="Aboutus">
+    <div class="container-fluid p-0">
+        <div class="div-img-title">
+            <div class="position-absolute top-50 end-0 translate-middle-y">
+                <img src="~/theme/Public/assets/images/About/A-right.png" class="img-fluid">
+            </div>
+            <div class="position-absolute top-50 start-50 translate-middle mx-auto w-100">
+                <h1 class="fs-titlebag text-center text-white">@(Model?.Name??"")</h1>
+                <div class="spas-titlebag shadow-sm mx-auto"></div>
+            </div>
+            <div class="position-absolute top-50 start-0 translate-middle-y">
+                <img src="~/theme/Public/assets/images/About/A-left.png" class="img-fluid">
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid container">
+        <div class="bg-white rou-8">
+            @Html.Raw(Model?.Value??"")
+        </div>
+
+        <div class="row pxt-93 pdding-topCors gutter-cor">
+            <h2 class="Trainers mb-0">
+                @Localizer["Our Trainers"]
+            </h2>
+
+            @foreach (var item in ViewBag.Trainer)
+            {
+                var trainer = (Trainer)item;
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a href="@Url.Action("Details","Trainers",new {Id=trainer.Id })">
+                        <div class="bg-white shadow-sm rounded-5 p-Cbgwhite">
+                            <img src="@trainer.ImageUrl" class="img-fluid w-100 heightstat rounded-5">
+                            <h5 class="text-center fs-tit-Trainers">
+                                @trainer.Contact.FirstName @trainer.Contact.LastName
+                            </h5>
+                            @if (item.GeneralSpecialtyId != null)
+                            {
+                        <p class="text-center fs-sup-Trainers">@(dicGeneralSpecialization.FirstOrDefault(r=>r.Key==item.GeneralSpecialtyId).Value??"")</p>
+                            }
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,279 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="About The Course" xml:space="preserve">
+    <value>حول المساق</value>
+  </data>
+  <data name="Acquired Skills" xml:space="preserve">
+    <value>المهارات المكتسبة</value>
+  </data>
+  <data name="Added successfully" xml:space="preserve">
+    <value>تم الاضافة بنجاح</value>
+  </data>
+  <data name="Age Allowed For Registration" xml:space="preserve">
+    <value>العمر المسموح به للتسجيل</value>
+  </data>
+  <data name="Age Group" xml:space="preserve">
+    <value>الفئة العمرية للدورة</value>
+  </data>
+  <data name="An error occurred while adding" xml:space="preserve">
+    <value>حدث خطأ أثناء الإضافة !</value>
+  </data>
+  <data name="Are you sure you want to submit the exam?" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد ارسال الاختبار؟</value>
+  </data>
+  <data name="Assignments" xml:space="preserve">
+    <value>الواجبات</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>الاقسام</value>
+  </data>
+  <data name="Certificates" xml:space="preserve">
+    <value>الشهادات</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>اغلاق</value>
+  </data>
+  <data name="Count Of Student" xml:space="preserve">
+    <value>عدد الطلبة</value>
+  </data>
+  <data name="Course Category" xml:space="preserve">
+    <value>فئة الدورة</value>
+  </data>
+  <data name="Course Duration/Hours" xml:space="preserve">
+    <value>مده الدوره/ساعة</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>التفاصيل</value>
+  </data>
+  <data name="Exam" xml:space="preserve">
+    <value>امتحان</value>
+  </data>
+  <data name="Exams" xml:space="preserve">
+    <value>الامتحانات</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>ساعة</value>
+  </data>
+  <data name="Lesson" xml:space="preserve">
+    <value>الدرس</value>
+  </data>
+  <data name="Lesson Attachments:" xml:space="preserve">
+    <value>مرفقات الدرس:</value>
+  </data>
+  <data name="Lesson Notes:" xml:space="preserve">
+    <value>ملاحظات الدرس:</value>
+  </data>
+  <data name="Lessons" xml:space="preserve">
+    <value>الدروس</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>الملاحظات</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>موافق</value>
+  </data>
+  <data name="Our Courses" xml:space="preserve">
+    <value>الدورات</value>
+  </data>
+  <data name="Prerequisites" xml:space="preserve">
+    <value>متطلبات سابقة</value>
+  </data>
+  <data name="Read More" xml:space="preserve">
+    <value>اقرأ المزيد</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>مطلوب</value>
+  </data>
+  <data name="Requirements" xml:space="preserve">
+    <value>المتطلبات</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="Search and Filter" xml:space="preserve">
+    <value>البحث والتصفية</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>الشعبة</value>
+  </data>
+  <data name="Select Category" xml:space="preserve">
+    <value>أختار القسم</value>
+  </data>
+  <data name="Select trainer" xml:space="preserve">
+    <value>أختار المدرب</value>
+  </data>
+  <data name="Sign Up" xml:space="preserve">
+    <value>التسجيل</value>
+  </data>
+  <data name="Start Assignment" xml:space="preserve">
+    <value>بدء الواجب</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value>القسم</value>
+  </data>
+  <data name="Submission Date" xml:space="preserve">
+    <value>تاريخ التقديم</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="Take Exam" xml:space="preserve">
+    <value>ابدا الامتحان</value>
+  </data>
+  <data name="Target Group" xml:space="preserve">
+    <value>الفئة المستهدفة</value>
+  </data>
+  <data name="The Course is Full" xml:space="preserve">
+    <value>الدورة ممتلئة</value>
+  </data>
+  <data name="The selected course that you trying to enroll for the trainer already enrolled before!" xml:space="preserve">
+    <value>الدورة المختارة التي تحاول تسجيلها للمدرب قد سجلت بالفعل من قبل!</value>
+  </data>
+  <data name="The student to be added does not meet the requirements of the course in terms of age allowed for registration!" xml:space="preserve">
+    <value>الطالب المراد إضافته لا يستوفي متطلبات المقرر من حيث العمر المسموح به للتسجيل!</value>
+  </data>
+  <data name="The student to be added does not meet the requirements of the course in terms of age group (Male, Female)!" xml:space="preserve">
+    <value>الطالب المراد إضافته لا يستوفي اشتراطات المقرر من حيث الفئة العمرية (ذكر ، أنثى)!</value>
+  </data>
+  <data name="You cannot enroll in this course, Please check the [Pre Requests] tab and finish the required courses!" xml:space="preserve">
+    <value>لا يمكنك التسجيل في هذه الدورة ، يرجى التحقق من علامة التبويب [الطلبات المسبقة] وإنهاء الدورات المطلوبة!</value>
+  </data>
+  <data name="The student you want to add already exists!" xml:space="preserve">
+    <value>الطالب الذي تريد إضافته موجود بالفعل!</value>
+  </data>
+  <data name="You have exceeded the maximum number of students on the course!" xml:space="preserve">
+    <value>لقد تجاوزت الحد الأقصى لعدد الطلاب في الدورة!</value>
+  </data>
+  <data name="You have added a request before!" xml:space="preserve">
+    <value> لقد قمت بإضافة طلب من قبل!</value>
+  </data>
+  <data name="Register time is up" xml:space="preserve">
+    <value>انتهى وقت التسجيل</value>
+  </data>
+  <data name="Learning Method" xml:space="preserve">
+    <value>طريقة التعليم</value>
+  </data>
+  <data name="Attendances" xml:space="preserve">
+    <value>الحضور</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>مجانا</value>
+  </data>
+</root>

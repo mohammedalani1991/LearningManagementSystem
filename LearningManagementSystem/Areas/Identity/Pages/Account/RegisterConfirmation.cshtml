@@ -1,0 +1,44 @@
+﻿@page
+@model RegisterConfirmationModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+    ViewData["Title"] = Localizer["Register confirmation"];
+}
+
+
+@*@{
+    if (@Model.DisplayConfirmAccountLink)
+    {
+        <p>
+            This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
+            Normally this would be emailed: <a id="confirm-link" href="@Model.EmailConfirmationUrl">Click here to confirm your account</a>
+        </p>
+    }
+    else
+    {
+        <p>
+            Please check your email to confirm your account.
+        </p>
+    }
+}*@
+
+
+
+
+<div class="container-fluid mtb-center">
+    <div class="row justify-content-center align-items-center ">
+        <div class="px-139 w-login bg-white">
+            <h3 class="Forgot text-center">
+                @Localizer["Register confirmation?"]
+            </h3>
+            <p class="Forgot-sup text-center">
+              
+                @Localizer["Please check your email to confirm your account."]
+
+            </p>
+
+            </div>
+        </div>
+    </div>

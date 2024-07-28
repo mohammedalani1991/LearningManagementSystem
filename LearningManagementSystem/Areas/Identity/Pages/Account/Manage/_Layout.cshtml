@@ -1,0 +1,127 @@
+﻿@using DataEntity.Models.EfModels;
+@using Microsoft.AspNetCore.Mvc.Localization
+@using LearningManagementSystem.Services.Helpers
+@using Microsoft.AspNetCore.Localization
+@using LearningManagementSystem.Services.ControlPanel
+@using static LearningManagementSystem.Core.Constants
+
+@inject IUserProfileService UserProfileService
+@inject IStudentService StudentService
+
+@inject IViewLocalizer Localizer
+@inject ICookieService Cookie
+@inject ICurrencyService CurrencyService
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+
+    Layout = "/Views/Shared/_LayoutPublic.cshtml";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var selectedLang = requestCulture.RequestCulture.UICulture.Name == "en-US" ? "English" : "عربي";
+    var user = UserProfileService.GetUserByUsername(User.Identity.Name, selectedLang);
+    var IsStudent = AuthenticationHelper.CheckIsStudent(User.Identity.Name);
+    var student = new Student();
+    if (IsStudent)
+    {
+        student = StudentService.GetStudentById(user.StudentId);
+    }
+    var cooke = Cookie.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        Cookie.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = Cookie.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+<style>
+    .btn:hover {
+        color: white;
+    }
+</style>
+
+@*<link rel="shortcut icon" href="~/theme/Public/assets/images/assafa-logo.png">
+<link rel="stylesheet" href="~/theme/Public/assets/lib/font-awesome/css/all.css">
+<link rel="stylesheet" href="~/theme/Public/assets/lib/swiper/swiper-bundle.min.css" />
+<link href="~/theme/Public/assets/lib/animate/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="~/theme/Public/assets/lib/bootstrap/css/bootstrap.min.css">
+<link href="~/theme/Public/assets/lib/calendar/main.min.css" rel="stylesheet" />
+<link href="~/theme/Public/assets/css/index.css" rel="stylesheet" />
+<link href="~/theme/Public/assets/lib/font-awesome/css/all.css" rel="stylesheet" />*@
+<div class="container-fluid container-lg p-0">
+    <div class="row bg-white round-8 mtb-Profile g-0 mx-2 p-2 p-md-4 ">
+        <div class="col-12 d-flex justify-content-between align-items-center p-0">
+            <div class="d-flex align-items-center">
+                <i class="fa-regular fa-user p-3 mx-3 fs-5 i-userProfile rounded-circle"></i>
+                <div>
+                    <h3 class="name-user m-0">@user.FullName</h3>
+                    <p class="email-user m-0">@User.Identity.Name</p>
+                </div>
+            </div>
+            @if (IsStudent)
+            {
+                <div class="d-flex">
+                    <h4 class="mb-0">@Localizer["Balance"] :</h4>
+                    <p class="text-primarycolor fs-23 mb-0 px-2">@(CurrencyService.GetValue(student.Balance ?? 0)) @Html.Raw(currency.Icon)</p>
+                </div>
+            }
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new {area = ""})">
+                <button class="btn btn-outline-primary">@Localizer["Sign out"]</button>
+            </form>
+        </div>
+    </div>
+    <div class="row bg-white mb-5 tap-Profile round-8 mx-2">
+        <partial name="_ManageNav.cshtml" />
+        @RenderBody()
+    </div>
+</div>
+
+
+
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/theme/Public/assets/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="~/theme/Public/assets/lib/swiper/swiper-bundle.min.js"></script>
+<script src="~/theme/Public/assets/lib/animate/aso.js"></script>
+<script src="~/theme/Public/assets/js/index.js"></script>
+<script src="~/theme/Public/assets/lib/calendar/main.js"></script>
+*@
+
+@section Scripts {
+
+    <script>
+        var Token = '@tokenSet.RequestToken';
+
+        window.addEventListener('load', (event) => {
+            $(".tms-col-nav-item-icon i").removeClass("active");
+            $(".tms-page").css("margin", "unset");
+            $(".tms-page").removeClass("tms-page");
+            $(".tms-col-nav-item-text a").removeClass("active");
+            var href = window.location.href;
+            if (href.endsWith('/Manage')) {
+                $("#profile").addClass("active")
+                $("#profile").parent().next().children().addClass("active");
+
+            }
+            if (href.endsWith('Manage/ChangePassword')) {
+                $("#change-password").addClass("active")
+                $("#change-password").parent().next().children().addClass("active");
+
+            }
+        });
+
+        function AccountProfileToggles() {
+            if ($("#EditCompanyToggle").is(":hidden"))
+                return;
+            $(".tms-nav-div").toggle();
+            $("#myTabContent").toggle();
+        }
+
+    </script>
+    @RenderSection("Scripts1", required: false)
+  }

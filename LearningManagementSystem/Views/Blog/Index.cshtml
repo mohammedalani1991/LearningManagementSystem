@@ -1,0 +1,104 @@
+﻿@using LearningManagementSystem.Core;
+@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@using LearningManagementSystem.Services.Helpers
+@model X.PagedList.IPagedList<DataEntity.Models.EfModels.CmsPage>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Services.General
+
+@inject ISettingService _SettingService
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Our Blogs"];
+    bool ShowPostedBy = false;
+    Boolean.TryParse(_SettingService.GetOrCreate(Constants.SystemSettings.ShowPostedBy, "false").Value, out ShowPostedBy);
+}
+
+<div id="Blogs">
+    <div class="container-fluid container-lg pt-3">
+        <div class="row px-3">
+            <p class="fs-title40 m-0">@Localizer["Our Blogs"]</p>
+            <span class="botm-title40"></span>
+        </div>
+        <p class="d-block d-lg-none text-end">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                @Localizer["Search and Filter"]
+            </button>
+        </p>
+        <div class="row flex-column-reverse flex-lg-row">
+            <div class="col-12 col-lg-9">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <h2>@Localizer["There Is no Data"]</h2>
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+
+                        <div class="d-flex blogs-div">
+                            <img src="@item.ImageUrl" class="card-img"
+                                 alt="img">
+                            <div class="Blogs-card">
+                                @if (ShowPostedBy)
+                                {
+                                    <div class="blogs-p-card1">
+                                        <p class="d-inline-block Blogs-user-name">
+                                            <i class="fa-regular fa-user"></i> @Localizer["Posted By"] @LookupHelper.GetFullNameByEmail(item.CreatedBy ,(int)ViewBag.LangId).GetFullNameByEmail(ViewBag.LangId == null ? 0 : (int)ViewBag.LangId)
+                                        </p>
+                                        <p class="d-inline"><i class="fa-regular fa-calendar"></i> @item.PublishDate?.ToString("yyyy-MM-dd")</p>
+                                    </div>
+                                }
+                                <a href="@Url.Action("Details","Blog",new {Id=item.Id })" class="Blogs-alink fw-bold">
+                                    @item.Name
+                                </a>
+                                <p class="blogs-p-text m-0">
+                                    @item.ShortDescription
+                                </p>
+
+                            </div>
+                        </div>
+                    }
+                    <div class="paddtop-Page">
+
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-start">
+                                @Html.PagedListPager(Model, page => Url.Action("Index", new { search = ViewBag.Search, category= ViewBag.category, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, page }))
+                            </ul>
+                        </nav>
+
+                    </div>
+                }
+            </div>
+            <div class="col-12 col-lg-3">
+                <div class="collapse d-lg-block" id="collapseExample">
+                    <div class="row px-3 d-flex align-items-center mb-5 Se-div">
+                        <form class="col-12">
+                            <input type="text" class="form-control Search" id="search" name="search" placeholder="&#xf002; @Localizer["Search"].Value" value="@ViewBag.Search">
+                            <input type="hidden" id="category" name="category" value="@ViewBag.category" />
+
+                            <div class="row justify-content-between p-0 ">
+                                <div class="col">
+                                    <label for="From">@Localizer["From"]:</label>
+                                    <input type="date" class="" id="FromDate" name="FromDate">
+                                </div>
+                                <div class="col">
+                                    <label for="to">
+                                        @Localizer["To"]:
+                                    </label>
+                                    <input type="date" class="" id="ToDate" name="ToDate">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary py-2 py-lg-3 w-100 ms-auto">@Localizer["Apply Filters"]</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

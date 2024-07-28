@@ -1,0 +1,40 @@
+﻿@inject IViewLocalizer Localizer
+
+@{
+    ViewBag.Title = "Unauthorized";
+}
+<style>
+
+    .container {
+        max-width: 100%;
+        padding: 40px;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        text-align: center;
+        height:87vh;
+        justify-content:center;
+        display:flex;
+        flex-direction:column;
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+        text-align:center;
+        color:red;
+    }
+
+    p {
+        font-size: 22px;
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+</style>
+
+<div class="container">
+    <h1>@Localizer["Unauthorized"]</h1>
+    <p>@Localizer["You are not authorized to access"] @ViewBag.Message</p>
+    <a href="/" class="btn btn-primary mx-auto" style="width:250px">@Localizer["Go Home"]</a>
+</div>

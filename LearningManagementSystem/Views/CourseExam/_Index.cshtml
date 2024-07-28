@@ -1,0 +1,586 @@
+﻿@using X.PagedList.Web.Common
+@using LearningManagementSystem.Core
+@model List<EnrollCourseExamQuestion>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using LearningManagementSystem.Services.General
+@using LearningManagementSystem.Core.SystemEnums
+@inject IViewLocalizer Localizer
+@inject ISettingService _SettingService
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+@{
+
+    Layout = null;
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    var i = 1;
+    int examCount = int.Parse(_SettingService.GetOrCreate(Constants.SystemSettings.CountOfExamAtPage, "10").Value);
+    string Cssclass = "div";
+    var jLoop = ((Model.Count) / examCount) + (((Model.Count) % examCount) >= 1 ? 1 : 0);
+    var Duration = 0;
+    if (Model.Count > 0 && Model[0].EnrollCourseExam != null && Model[0].EnrollCourseExam.Duration.HasValue)
+        Duration = Model[0].EnrollCourseExam.Duration.Value;
+}
+
+<div class="QusIndex">
+
+    <div class="divs">
+        <form id="CreateFrm">
+            <input type="hidden" id="EnrollCourseExamId" name="EnrollCourseExamId" value="@ViewBag.EnrollCourseExamId" />
+            <input type="hidden" id="EnrollTeacherCourseId" name="EnrollTeacherCourseId" value="@ViewBag.EnrollTeacherCourseId" />
+            @for (int j = 0; j < jLoop; j++)
+            {
+                <div class="@Cssclass">
+
+                    @foreach (var exam in Model.Skip(j * examCount).Take(examCount))
+                    {
+                        if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.Text)
+                        {
+                            <div>
+                                <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+
+                                    <p>@i- @exam.Question.Question.Name</p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                <div class="mtb-30">
+                                    <textarea name="textarea_@exam.Question.Question.Id" class="form-control textarea" placeholder="@Localizer["Add the answer here"]" rows="3"></textarea>
+                                </div>
+                                <hr class="colorhr">
+
+
+                            </div>
+
+                        }
+                        else if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.CheckBox)
+                        {
+                            <div class="pt-3">
+                                <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    <p>@i- @exam.Question.Question.Name </p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                <div class="mtb-30">
+                                    @foreach (var op in exam.Question.Question.QuestionOptions)
+                                    {
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="Checkbox_@exam.Question.Question.Id" id="@op.Id"
+                                   value="@op.Id">
+                                            <label class="form-check-label" for="@op.Id">
+                                                @op.Name
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+
+
+                            </div>
+                            <hr class="colorhr">
+                        }
+                        else if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.RadioButton)
+                        {
+                            <div class="pt-3">
+                                <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+                                    <p>@i- @exam.Question.Question.Name </p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                <div class="mtb-30">
+                                    @foreach (var op in exam.Question.Question.QuestionOptions)
+                                    {
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="Radios_@exam.Question.Question.Id" id="@op.Id"
+                                   value="@op.Id">
+                                            <label class="form-check-label" for="@op.Id">
+                                                @op.Name
+                                            </label>
+                                        </div>
+
+
+                                    }
+                                </div>
+
+                            </div>
+                            <hr class="colorhr">
+
+                        }
+                       else if (exam.Question.Question.Type == (int)GeneralEnums.QuestionEnum.UploadAttachment)
+                        {
+                             <div class="pt-3">
+                                <span class="field-validation-valid text-danger alertcust" id="alert_@exam.Question.Question.Id" data-valmsg-replace="true"></span>
+                                <div class="d-flex justify-content-between flex-column-reverse flex-lg-row">
+
+                                    <p>@i- @exam.Question.Question.Name</p>
+                                    <p class="text-primarycolor">(@exam.Mark @Localizer["Points"])</p>
+                                </div>
+                                <div class="mtb-30">
+                                
+                                            <label class="custom-file-upload">
+                                                <input type="file" accept="image/*" onchange="UploadFile(event,@exam.Question.Question.Id)" required class="required" />
+                                                <i class="fa fa-upload px-2 pt-1"></i> @Localizer["Upload"]
+                                            </label>
+                                            <input type="hidden" class="inputHidden" name="inputHidden_@exam.Question.Question.Id">
+                                </div>
+                                <hr class="colorhr">
+
+
+                            </div>
+
+                        }
+                        i++;
+                    }
+                </div>
+            }
+            <div class="text-center">
+                <button class="btn btn-primary btn-lg d-none" id="BtnConfirmSubmitExam" onclick="ConfirmSubmitExam()" type="button"><i class="fa fa-save"></i> @Localizer["Submit Exam"]</button>
+            </div>
+        </form>
+
+    </div>
+    <div class="d-flex justify-content-between mt-4" id="chevronExamsPage">
+        <div id="PaginButtonsprev">
+            <button id="prev" class="btn btn-primary rounded-pill py-3 px-3">
+                <i class="fa-solid fa-chevron-right  large"></i>
+                <span class="d-none d-lg-inline px-2">@Localizer["Previous"]</span>
+            </button>
+        </div>
+        <p class="m-0">@Localizer["Page"] <span class="QCurrentPage"></span> @Localizer["of"] <span class="QTotalCount"></span></p>
+        <div id="PaginButtonsNext">
+            <button id="next" class="btn btn-primary rounded-pill py-3 px-3">
+                <span class="d-none d-lg-inline px-2">
+                    @Localizer["Next"]
+                </span> <i class="fa-solid fa-chevron-left large"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $('.textarea').on("cut copy paste", function (e) {
+            e.preventDefault();
+        });
+    });
+</script>
+
+<script>
+var QTotalCount = @jLoop;
+var QFirstPage = "1";
+var CourseMainPage = "@Url.Action("Details","Courses", new { id = ViewBag.CourseId })";
+var HomeMainPage = "@Url.Action("Index","Home")";
+var CheckAbilityToEnrollStudentExam = "@ViewBag.CheckAbilityToEnrollStudentExam";
+var StudentSubmittedExamBefore = '@Localizer["You have submitted the exam before, please get in touch with the administrator for more information."]';
+var ExpiredDates='@Localizer["The exam has expired, please get in touch with the administrator for more information."]';
+var ExamNotStartYet='@Localizer["The exam has not started yet, Please get in touch with the administrator for more information."]';
+var Fail='@Localizer["There is an error that happened, please get in touch with the administrator for more information."]';
+var ZeroQuestionsInEnrollCourseExam='@Localizer["The exam does not have any questions yet, please get in touch with the administrator for more information."]';
+var StudentNotEnrolledInCourse='@Localizer["This student is not allowed to view this exam, please contact the administrator for more information."]';
+var Youmustanswer = '@Localizer["You must answer this question"]';
+var SomeQuestions = '@Localizer["Some questions have not yet been answered."]';
+var Yourtime  = '@Localizer["Your time has expired, The exam will be submitted automatically!"]';
+var Success= '@Localizer["The exam was submitted successfully"]';
+var EXPIRED= '@Localizer["EXPIRED"]';
+    $(document).ready(function () {
+
+    if (CheckAbilityToEnrollStudentExam == "StudentSubmittedExamBefore") {
+        $('#ResultSubmitExam #ResultSubmitExamLabel').html(StudentSubmittedExamBefore);
+        $('#ResultSubmitExam').modal("show");
+    } else if (CheckAbilityToEnrollStudentExam == "ExpiredDates") {
+         $(".CTimeLeft").remove();
+        $('#ResultSubmitExam #ResultSubmitExamLabel').html(ExpiredDates);
+        $('#ResultSubmitExam').modal("show");
+    }else if (CheckAbilityToEnrollStudentExam == "ExamNotStartYet") {
+         $(".CTimeLeft").remove();
+        $('#ResultSubmitExam #ResultSubmitExamLabel').html(ExamNotStartYet);
+        $('#ResultSubmitExam').modal("show");
+    } else if (CheckAbilityToEnrollStudentExam == "Fail") {
+        $('#ResultSubmitExam #ResultSubmitExamLabel').html(Fail);
+        $('#ResultSubmitExam').modal("show");
+    }else if (CheckAbilityToEnrollStudentExam == "ZeroQuestionsInEnrollCourseExam") {
+        $('#ResultSubmitExam #ResultSubmitExamLabel').html(ZeroQuestionsInEnrollCourseExam);
+        $('#ResultSubmitExam').modal("show");
+    } else if (CheckAbilityToEnrollStudentExam == "StudentNotEnrolledInCourse") {
+        ShowSpinner();
+        window.location = HomeMainPage;
+    } 
+
+        CreateTimer(@Duration);
+
+
+        if (QTotalCount == 1) {
+            $(".QusIndex #chevronExamsPage").remove();
+            $(".QusIndex #BtnConfirmSubmitExam").removeClass("d-none");
+        }
+
+        if (QFirstPage == 1) {
+            $(".QusIndex #PaginButtonsprev").addClass("invisible");
+        }
+
+
+        $(".QusIndex .QTotalCount").html(QTotalCount);
+        $(".QusIndex .QCurrentPage").html(QFirstPage);
+
+
+        $("#ResultSubmitExam").on('hide.bs.modal', function () {
+            ShowSpinner();
+            window.location = CourseMainPage;
+        });
+
+        $("#ResultSubmitExam").off('click').on("click", "#btnResultSubmitExamExam", function (event) {
+            event.preventDefault();
+            $('#ResultSubmitExam').modal("hide");
+        });
+
+        $("#ConfirmSubmitExam").off('click').on("click", "#btnConfirmSubmitExam", function (event) {
+            event.preventDefault();
+            ShowSpinner();
+            Save();
+            $('#ConfirmSubmitExam').modal("hide");
+        });
+
+
+        $(".QusIndex .divs .div").each(function (e) {
+            if (e != 0)
+                $(this).hide();
+        });
+
+        $(".QusIndex #next").click(function () {
+            var QCurrentPage = (parseInt($(".QusIndex .QCurrentPage").html()) + 1);
+
+            if (QCurrentPage > 1)
+                $(".QusIndex #PaginButtonsprev").removeClass("invisible");
+
+            if (QCurrentPage == QTotalCount) {
+                $(".QusIndex #BtnConfirmSubmitExam").removeClass("d-none");
+                $(".QusIndex #PaginButtonsNext").addClass("invisible");
+                $(".QusIndex #PaginButtonsprev").removeClass("invisible");
+            }
+
+            if (QCurrentPage > QTotalCount)
+                return false;
+
+            $(".QusIndex .QCurrentPage").html(QCurrentPage);
+            window.scrollTo(0, 0);
+            if ($(".QusIndex .divs .div:visible").next().length != 0)
+                $(".QusIndex .divs .div:visible").next().show().prev().hide();
+            else {
+
+                $(".QusIndex .divs .div:visible").hide();
+                $(".QusIndex .divs .div:first").show();
+
+            }
+            return false;
+        });
+
+        $(".QusIndex #prev").click(function () {
+            $(".QusIndex #BtnConfirmSubmitExam").addClass("d-none");
+            var QCurrentPage = (parseInt($(".QCurrentPage").html()) - 1);
+
+            if (QCurrentPage < QTotalCount)
+                $(".QusIndex #PaginButtonsNext").removeClass("invisible");
+
+            if (QCurrentPage == 1) {
+                $(".QusIndex #PaginButtonsNext").removeClass("invisible");
+                $(".QusIndex #PaginButtonsprev").addClass("invisible");
+            }
+
+            if (QCurrentPage <= 0)
+                return false;
+
+            $(".QusIndex .QCurrentPage").html(QCurrentPage);
+            window.scrollTo(0, 0);
+
+            if ($(".QusIndex .divs .div:visible").prev().length != 0)
+                $(".QusIndex .divs .div:visible").prev().show().next().hide();
+            else {
+                $(".QusIndex .divs .div:visible").hide();
+                $(".QusIndex .divs .div:last").show();
+
+            }
+            return false;
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+var Token = '@tokenSet.RequestToken';
+    function UploadFile(e,QId) {
+         
+        var files = e.target.files;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var formData = new FormData();
+                for (var i = 0; i != files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+                ShowSpinner();
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("UploadStudentExamAttachments", "Files", new {Area = "ControlPanel"})",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        '@tokenSet.HeaderName': Token
+                    },
+                    success: function(result) {
+                        $(".QusIndex input[name=inputHidden_"+QId+"]").val(result[0]);
+                        HideSpinner();
+                    },
+                    error: function(req, status, error) {
+                        alert("Error while adding the File");
+                        HideSpinner();
+                    }
+                });
+            } else {
+                alert("This browser doesn't support HTML5 file uploads!");
+                HideSpinner();
+            }
+        }
+    }
+    function AutoSubmitExam() {
+        toastr.error(Yourtime);
+        setTimeout(function () { Save(true) }, 500);
+    }
+    function ConfirmSubmitExam() {
+        event.preventDefault();
+        $('#ConfirmSubmitExam').modal("show");
+    }
+    function Save(IsAutoSubmitExam) {
+        ShowSpinner();
+        $(".QusIndex .alertcust").html("");
+
+
+        ///////////////Checkbox///////////////////////////
+        var allCheckbox = [];
+        $.each($(".QusIndex input[type=checkbox]"), function (index, value) {
+            if (allCheckbox.indexOf(value.name.split("_")[1]) == -1) {
+                allCheckbox.push(value.name.split("_")[1]);
+            }
+        });
+
+        var allCheckedCheckbox = [];
+        $.each($(".QusIndex input[type=checkbox]:checked"), function (index, value) {
+            if (allCheckedCheckbox.indexOf(value.name.split("_")[1]) == -1) {
+                allCheckedCheckbox.push(value.name.split("_")[1]);
+            }
+        });
+
+        var requiredCheckbox = [];
+        $.each(allCheckbox, function (index, value) {
+
+            if (allCheckedCheckbox.indexOf(value) == -1) {
+                if (IsAutoSubmitExam == true) {
+                    $(".QusIndex input[name=Checkbox_" + value + "]:first").prop("checked", true);
+                } else {
+                    requiredCheckbox.push(value);
+                }
+
+            }
+        });
+
+        if (requiredCheckbox.length > 0) {
+            $.each(requiredCheckbox, function (index, value) {
+
+                $(".QusIndex #alert_" + value).html(Youmustanswer);
+            });
+        }
+
+        $.each(allCheckedCheckbox, function (index, value) {
+
+            $(".QusIndex #alert_" + value).html("");
+        });
+
+
+
+        ///////////////radio///////////////////////////
+        var allradio = [];
+        $.each($(".QusIndex input[type=radio]"), function (index, value) {
+            if (allradio.indexOf(value.name.split("_")[1]) == -1) {
+                allradio.push(value.name.split("_")[1]);
+            }
+        });
+
+        var allCheckedradio = [];
+        $.each($(".QusIndex input[type=radio]:checked"), function (index, value) {
+            if (allCheckedradio.indexOf(value.name.split("_")[1]) == -1) {
+                allCheckedradio.push(value.name.split("_")[1]);
+            }
+        });
+
+        var requiredradio = [];
+        $.each(allradio, function (index, value) {
+
+            if (allCheckedradio.indexOf(value) == -1) {
+                if (IsAutoSubmitExam == true) {
+                    $(".QusIndex input[name=Radios_" + value + "]:first").prop("checked", true);
+                } else {
+                    requiredradio.push(value);
+                }
+
+            }
+        });
+
+        if (requiredradio.length > 0) {
+            $.each(requiredradio, function (index, value) {
+
+                $(".QusIndex #alert_" + value).html(Youmustanswer);
+            });
+        }
+
+        $.each(allCheckedradio, function (index, value) {
+
+            $(".QusIndex #alert_" + value).html("");
+        });
+
+        ///////////////textarea///////////////////////////
+
+        var alltextarea = [];
+        $.each($(".QusIndex textarea"), function (index, value) {
+            if (alltextarea.indexOf(value.name.split("_")[1]) == -1) {
+                alltextarea.push(value.name.split("_")[1]);
+            }
+        });
+
+        var allTextareaValue = [];
+        $.each($(".QusIndex textarea"), function (index, value) {
+            if (value.value != '') {
+                allTextareaValue.push(value.name.split("_")[1]);
+            }
+        });
+
+        var requiredTextarea = [];
+        $.each(alltextarea, function (index, value) {
+
+            if (allTextareaValue.indexOf(value) == -1) {
+                if (IsAutoSubmitExam == true) {
+                    $(".QusIndex textarea[name=textarea_" + value + "]").val("--");
+                } else {
+                    requiredTextarea.push(value);
+                }
+
+            }
+        });
+
+        if (requiredTextarea.length > 0) {
+            $.each(requiredTextarea, function (index, value) {
+
+                $(".QusIndex #alert_" + value).html(Youmustanswer);
+            });
+        }
+
+        $.each(allTextareaValue, function (index, value) {
+
+            $(".QusIndex #alert_" + value).html("");
+        });
+      ///////////////inputHidden///////////////////////////
+      
+        var allinputHidden = [];
+        $.each($(".QusIndex .inputHidden"), function (index, value) {
+            if (allinputHidden.indexOf(value.name.split("_")[1]) == -1) {
+                allinputHidden.push(value.name.split("_")[1]);
+            }
+        });
+
+        var allinputHiddenValue = [];
+        $.each($(".QusIndex .inputHidden"), function (index, value) {
+            if (value.value != '') {
+                allinputHiddenValue.push(value.name.split("_")[1]);
+            }
+        });
+
+        var requiredinputHidden = [];
+        $.each(allinputHidden, function (index, value) {
+
+            if (allinputHiddenValue.indexOf(value) == -1) {
+                if (IsAutoSubmitExam == true) {
+                    $(".QusIndex input[name=inputHidden_" + value + "]").val("--");
+                } else {
+                    requiredinputHidden.push(value);
+                }
+
+            }
+        });
+
+        if (requiredinputHidden.length > 0) {
+            $.each(requiredinputHidden, function (index, value) {
+
+                $(".QusIndex #alert_" + value).html(Youmustanswer);
+            });
+        }
+
+        $.each(allinputHiddenValue, function (index, value) {
+
+            $(".QusIndex #alert_" + value).html("");
+        });
+        
+        //////////////////////////////////////////////////////////////////////////////
+
+        var req = (requiredTextarea.concat(requiredradio).concat(requiredCheckbox).concat(requiredinputHidden)).sort(function (a, b) { return a - b });
+        if (req.length > 0) {
+            HideSpinner();
+            toastr.error(SomeQuestions);
+        } else {
+
+            $.ajax({
+                type: "POST",
+                url: "/CourseExam/Create",
+                dataType: 'json',
+                cache: false,
+                data: $(".QusIndex #CreateFrm").serialize(),
+                success: function (data) {
+                       
+                        if(data.result == "StudentSubmittedExamBefore")
+                        {
+                            HideSpinner();
+                              $('#ResultSubmitExam #ResultSubmitExamLabel').html(StudentSubmittedExamBefore);
+                                  $('#ResultSubmitExam').modal("show");
+                        }else if(data.result == "ExpiredDates") {
+                             $(".CTimeLeft").remove();
+                            HideSpinner();
+                            $('#ResultSubmitExam #ResultSubmitExamLabel').html(ExpiredDates);
+                                $('#ResultSubmitExam').modal("show");
+                        }else if(data.result == "ExamNotStartYet") {
+                             $(".CTimeLeft").remove();
+                            HideSpinner();
+                            $('#ResultSubmitExam #ResultSubmitExamLabel').html(ExamNotStartYet);
+                                $('#ResultSubmitExam').modal("show");
+                        }else if(data.result == "Fail") {
+                            HideSpinner();
+                            $('#ResultSubmitExam #ResultSubmitExamLabel').html(Fail);
+                                $('#ResultSubmitExam').modal("show");
+                        }else if(data.result == "StudentNotEnrolledInCourse") {
+                            HideSpinner();
+                            $('#ResultSubmitExam #ResultSubmitExamLabel').html(StudentNotEnrolledInCourse);
+                                $('#ResultSubmitExam').modal("show");
+                        }
+                        else if(data.result == "ZeroQuestionsInEnrollCourseExam") {
+                            HideSpinner();
+                            $('#ResultSubmitExam #ResultSubmitExamLabel').html(ZeroQuestionsInEnrollCourseExam);
+                                $('#ResultSubmitExam').modal("show");
+                        }
+                        
+                        else{
+                            toastr.success(Success);
+                             ShowSpinner();
+                        setTimeout(function () { window.history.go(-1) }, 1000);
+                        }
+                  
+                    
+                        
+                },
+                error: function () {
+                    HideSpinner();
+                    $('#ResultSubmitExam #ResultSubmitExamLabel').html(Fail);
+                    $('#ResultSubmitExam').modal("show");
+                }
+            });
+
+        }
+    }
+
+
+</script>

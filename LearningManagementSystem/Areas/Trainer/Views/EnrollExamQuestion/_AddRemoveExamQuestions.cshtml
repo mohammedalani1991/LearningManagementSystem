@@ -1,0 +1,143 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@using DataEntity.Models.EfModels;
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString() };
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    var ViewBagListCourseCategorys = ViewBag.ListCourseCategorys;
+    ViewBagListCourseCategorys.Add(new CourseCategory { Name = Localizer["Select Course Category"].Value, Id = 0 });
+    var ListCourseCategorys = (List<CourseCategory>)ViewBagListCourseCategorys;
+
+    ViewData["Title"] = @Localizer["Add Or Remove Exam Questions"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+
+    var ViewBagquestionTypes = LookupHelper.GetQuestionsType(); ;
+    ViewBagquestionTypes.Add(new DataEntity.Models.ViewModels.StatusViewModel { Name = Localizer["Select"].Value, Id = 0 });
+
+
+}
+<div class="modal-header">
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+       aria-label="Close"></i>
+</div>
+<div class="row">
+
+    <div class="col-12">
+        <div class="x_panel bg-transparent">
+            <div class="row mb-3">
+                <div class="col-12 ">
+                    <div class="float-left">
+                        <h4><small>@Localizer["Add Or Remove Exam Questions"] </small></h4>
+                    </div>
+                </div>
+            </div>
+            <div id="AddFromQuestionBank" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <form data-ajax="true" method="get" action="/Trainer/EnrollExamQuestion/TemplateBankExamQuestionsGetData" id="Form10" data-ajax-success="GetExamQuestionsData" data-ajax-begin="ShowSpinner" data-ajax-complete="HideSpinner">
+                    @Html.Hidden("table")
+                    @Html.Hidden("pagination")
+                    @Html.Hidden("page")
+                    @Html.Hidden("id")
+                    <div class="row">
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-control chosen-select tms-ddl" })
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                            <label class="control-label col-xs-6 tms-label" for="Status">
+                                @Localizer["Question Types"]
+                            </label>
+                            <div class="col-lg-12">
+                                @Html.DropDownList("TypeQuestion", new SelectList(ViewBagquestionTypes, "Id", "Name").OrderBy(e=>e.Value), new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="QuestionName">
+                                @Localizer["Question Name"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.Editor("QuestionName", new { htmlAttributes = new {  @class = "form-control col-md-7 col-xs-12 tms-input" } })
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12 SearchCourseNameDropDownList" CourseSearchURL="/ControlPanel/ExamQuestion/CourseSearch/">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseId">
+                                @Localizer["Course Name"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @* @Html.DropDownListFor(model => model.CourseId, new SelectList(Model.ListCourse, "Id", "CourseName"), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })*@
+                                @Html.DropDownList("CourseId",Enumerable.Empty<SelectListItem>(), Localizer["Search In Courses"].Value, new { @class = "form-control chosen-select tms-ddl" })
+                            </div>
+                        </div>
+                        <div class="form-group col-lg-5 col-sm-12 col-xs-12">
+                            <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="CourseCategoryId">
+                                @Localizer["Course Category"]
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("CourseCategoryId", new SelectList(ListCourseCategorys.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-control chosen-select tms-ddl" })
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                        <button class="btn btn-primary my-2" type="submit"><i class="fa fa-serach"></i> @Localizer["Search in Bank of Questions"]</button>
+                    </div>
+                </form>
+                <div class="row" id="TemplateBankExamQuestionsGetData">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#Form10").submit();
+
+    $("#TemplateBankExamQuestionsGetData").off("click").on("click", "[attr-enrollCourseExam-id]", function () {
+        ShowSpinner();
+        var EnrollCourseExamId = $(this).attr("attr-enrollCourseExam-id");
+        var Questionid = $(this).attr("attr-Question-id");
+        var checkedRow = $(this).is(":checked");
+        var checkbox = $("[attr-enrollCourseExam-id='" + EnrollCourseExamId + "']");
+
+        console.log(checkbox);
+        $.ajax({
+            type: "Post",
+            url: "/ControlPanel/EnrollQuestion/AddRemoveTemplateBankExamQuestions/",
+            data: { EnrollCourseExamId: EnrollCourseExamId, Questionid: Questionid, checkedRow: checkedRow },
+            success: function (data) {
+                if (data == "Ok") {
+                    toastr.success(editMassege);
+                    $(".NumberSelectedQuestions").text(data);
+                    HideSpinner();
+                } else if (data == "Fail") {
+                    HideSpinner();
+                    toastr.error(editMassegeErrorQuestions);
+                    checkbox.prop('checked', false);
+                }
+                else {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                    checkbox.prop('checked', false);
+                }
+            },
+            error: function (data) {
+                HideSpinner();
+                toastr.error(editMassegeError);
+                checkbox.prop('checked', false);
+            },
+        });
+
+    });
+</script>

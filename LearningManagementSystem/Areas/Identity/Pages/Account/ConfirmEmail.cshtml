@@ -1,0 +1,33 @@
+﻿@page
+@model ConfirmEmailModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "/Views/Shared/_LayoutPublic.cshtml";
+
+    ViewData["Title"] = @Localizer["Confirm email"];
+}
+
+<div class="container-fluid container-lg p-0 bg-white round-8 mb-5" style="min-height:42vh">
+    <div class="row mtb-Profile g-0 mx-2 ">
+        <div class="col-12 p-0">
+            <h1 class="text-center">@ViewData["Title"]</h1>
+        </div>
+        <div class="col-12 p-0 mt-4">
+            <h4 class="text-center">@Localizer[Model.StatusMessage].Value</h4>
+        </div>
+    </div>
+    <div class="col-12 p-0 d-flex mt-5">
+        <a class="btn btn-primary mx-auto" asp-area="Identity" asp-action="Login" asp-controller="Account">@Localizer["Login"]</a>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            location.href = "/Identity/Account/Login";
+        }, 10000);
+    });
+</script>

@@ -1,0 +1,1 @@
+alter table CommunicationLogs alter column LogText nvarchar(max)

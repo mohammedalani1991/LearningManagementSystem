@@ -1,0 +1,38 @@
+﻿@model IEnumerable<DataEntity.Models.EfModels.EnrollStudentCourse>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+<div class="row g-3">
+    @if (!Model.Any())
+    {
+        <h2 class="text-center">@Localizer["There is No Certificates"]</h2>
+    }
+    @foreach (var item in Model)
+    {
+        <div id="Certificates">
+        @foreach (var item1 in item.Course.Course.CourseCertifications)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-Certificate-card">
+                    <img src="@item.Course.Course.ImageUrl" alt="" class="img-fluid wh-img-Certificate">
+                    <p class="text-center  fs-Certificate">@item.Course.Course.CourseName || @item1.CreatedBy</p>
+                    @using (Html.BeginForm("ShowCertificates", "StudentCertificates", new { courseId = @item.Id, templatetId = @item1.TemplateHtmlId }, FormMethod.Post))
+                    {
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn w-75 btn-outline-primary rounded-pill">
+                                <i class="fa-solid fa-arrow-up-from-bracket mx-2"></i>@Localizer["Download"]
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        </div>
+    }
+</div>
+
+@*<script>
+    if ($("#Certificates").children().length > 0) {
+        $("#Certificates").append('<h2 class="text-center">@Localizer["There is No Certificates"]</h2>')
+    }
+</script>*@

@@ -1,0 +1,127 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollmentCourseViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using LearningManagementSystem.Core.SystemEnums;
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Enroll Trainer for Course - Delete"]
+            </div>
+        </div>
+
+        <div class="x_content">
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Trainer Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.TeacherName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Course Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.CourseViewModel.CourseName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Semester Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.SemesterName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Section Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.SectionName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Course Time"]</td>
+                    <td class="tms-details-data">
+                        <ul class="list-group">
+                            @foreach (var EnrollCourseTime in Model.EnrollTeacherCourseViewModel.ListEnrollCourseTime)
+                            {
+                                 var ValueData = LookupHelper.GetDaysOfTheWeekById(EnrollCourseTime.DayId, ViewBag.LangId)?.Name;
+                                <li class="list-group-item list-group-item-action list-group-item-light"><b>@Localizer["Day:"]</b> @ValueData  <b>@Localizer["From Time:"] </b> @EnrollCourseTime.FromTime  <b>@Localizer["To Time:"]</b> @EnrollCourseTime.ToTime </li>
+                            }
+                            @if (Model.EnrollTeacherCourseViewModel.ListEnrollCourseTime.Count == 0)
+                            {
+                                <li class="list-group-item list-group-item-action list-group-item-light">--</li>
+
+                            }
+
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Publication Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.PublicationDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Publication End Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.PublicationEndDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Work Start Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.WorkStartDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Work End Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.WorkEndDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Work End Date"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.WorkEndDate)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Learning Method"]</td>
+                    @if (Model.EnrollTeacherCourseViewModel.LearningMethodId != null)
+                    {
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.EnrollTeacherCourseViewModel.LearningMethodId ?? 0, ViewBag.LangId).Name</td>
+                    }
+                    else
+                    {
+                        <td class="tms-details-data">--</td>
+                    }
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Count Of Student"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.CountOfStudent)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Age Allowed For Registration"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.AgeAllowedForRegistration)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Age Group"]</td>
+                    @if (Model.EnrollTeacherCourseViewModel.AgeGroup != 0)
+                    {
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.EnrollTeacherCourseViewModel.AgeGroup, ViewBag.LangId).Name</td>
+                    }
+                    else
+                    {
+                        <td class="tms-details-data">--</td>
+                    }
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Notes for enrolled"]</td>
+                    <td class="tms-details-data">@Html.Raw(Model.EnrollTeacherCourseViewModel.NotesForEnrolled)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created By"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.EnrollTeacherCourseViewModel.CreatedBy)</td>
+                </tr>
+
+            </table>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center">
+                    <button class="tms-delete-btn" type="button" onclick="ConfirmDelete(@Model.EnrollTeacherCourseViewModel.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Enrolled Trainer Data"]</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

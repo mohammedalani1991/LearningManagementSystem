@@ -1,0 +1,261 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.GeneralContactViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    string title = "Delete Contact";
+
+    if (ViewBag.ContactTypeId != null && ViewBag.ContactTypeId > 0)
+    {
+        title = LookupHelper.GetContactDeletePagesTitle()[ViewBag.ContactTypeId];
+    }
+
+    ViewData["Title"] = @Localizer["Delete Contact"];
+}
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="x_panel">
+        <div class="d-flex tms-page-popup-title">
+            <div data-dismiss="modal" class="tms-close-div">
+                <i class="fa fa-close"></i>
+            </div>
+            <div class="tms-table-popup-title" style="width:97%;">
+                @Localizer["Delete Contact"]
+            </div>
+        </div>
+        <div class="x_content">
+
+            <table class="table tms-details">
+                <tr>
+                    <td class="tms-details-title">@Localizer["Full Name"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.FullName)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Email"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.Email)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Id Number"]</td>
+                    <td class="tms-details-data">@Model.ContactViewModel.IdNumber</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Mobile"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.Mobile)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Status"]</td>
+                    <td class="tms-details-data">@LookupHelper.GetStatusById(Model.ContactViewModel.Status)?.Name</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Gender"]</td>
+                    @if (Model.ContactViewModel?.GenderId != null)
+                    {
+            <td class="tms-details-data">@(LookupHelper.GetLookupDetailsById(Model.ContactViewModel?.GenderId??0, ViewBag.LangId)?.Name)</td> }
+                        else
+                        {
+            <td class="tms-details-data"></td>}
+                </tr>
+
+                <tr>
+                    <td class="tms-details-title">@Localizer["Created On"]</td>
+                    <td class="tms-details-data">@Html.DisplayFor(model => model.ContactViewModel.CreatedOn)</td>
+                </tr>
+                <tr>
+                    <td class="tms-details-title">@Localizer["Choose Role"]</td>
+                    <td class="tms-details-data">
+                        <ol>
+                            @if (Model.UserProfileViewModel?.Roles != null)
+                            {
+                                foreach (var item in Model.UserProfileViewModel?.Roles)
+                                {
+                <li>@item.Name</li>}
+                            }
+                        </ol>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        @*@if (Model.EmployeeViewModel != null)
+        {
+            <div class="x_content">
+                <div>
+                    <h4 style="color:#1dbebe">@Localizer["Employee Info"]</h4>
+                </div>
+                <hr />
+
+                <table class="table tms-details">
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Start Work Date"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.EmployeeViewModel.StartWorkDate)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Address"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.EmployeeViewModel.Address)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Address"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.EmployeeViewModel.Address)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Job"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.EmployeeViewModel.JobId ?? 0, ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Job Type"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.EmployeeViewModel.JobTypeId ?? 0, ViewBag.LangId)?.Name</td>
+                    </tr>
+
+                </table>
+            </div>
+
+        }
+        @if (Model.StudentViewModel != null)
+        {
+            <div class="x_content">
+                <div>
+                    <h4 style="color:#1dbebe">@Localizer["Student Info"]</h4>
+                </div>
+                <hr />
+
+                <table class="table tms-details">
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Mobile"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.Mobile)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Address"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.Address)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Educational Level"]</td>
+                        <td class="tms-details-data">@(LookupHelper.GetLookupDetailsById(Model.StudentViewModel.EducationalLevelId??0, ViewBag.LangId)?.Name)</td>
+                    </tr>                    
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Work"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.Work)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Work Place"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.WorkPlace)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Country"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.Country)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Birth Date"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.BirthDate)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Birth Place"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.BirthPlace)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["First Installment Date"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.FirstInstallmentDate)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Installments Number"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.InstallmentsNumber)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Coverage Value"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.CoverageValue)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Coverage Ratio"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.CoverageRatio)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Right Time"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.StudentViewModel.RightTimeId??0, ViewBag.LangId)?.Name</td>
+                    </tr>
+
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Payment Way"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.StudentViewModel.PaymentWayId??0, ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Subscription Price"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.SubscriptionPrice)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Subscription Date"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.StudentViewModel.SubscriptionDate)</td>
+                    </tr>
+                </table>
+            </div>
+
+        }
+
+        @if (Model.TrainerViewModel != null)
+        {
+            <div class="x_content">
+                <div>
+                    <h4 style="color:#1dbebe">@Localizer["Trainer Info"]</h4>
+                </div>
+                <hr />
+
+                <table class="table tms-details">
+
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Start Work Date"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.TrainerViewModel.StartWorkDate)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Work Hours"]</td>
+                        <td class="tms-details-data">@Html.DisplayFor(model => model.TrainerViewModel.WorkHouers)</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["General Specialty"]</td>
+                        <td class="tms-details-data">@LookupHelper.GetLookupDetailsById(Model.TrainerViewModel.GeneralSpecialtyId ?? 0, ViewBag.LangId)?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Is Full Time Worker"]</td>
+                        @if (Model.TrainerViewModel.IsFullTimeWorker == true)
+                        {
+                            <td class="tms-details-data"><i class="fa fa-check"></i></td>
+                        }
+                        else
+                        {
+                            <td class="tms-details-data"><i class="fa fa-times" aria-hidden="true"></i></td>
+                        }
+                    </tr>
+
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Show In Pages"]</td>
+                        @if (Model.TrainerViewModel.ShowInPages == true)
+                        {
+                            <td class="tms-details-data"><i class="fa fa-check"></i></td>
+                        }
+                        else
+                        {
+                            <td class="tms-details-data"><i class="fa fa-times" aria-hidden="true"></i></td>
+                        }
+                    </tr>
+
+                    <tr>
+                        <td class="tms-details-title">@Localizer["Is User"]</td>
+                        @if (Model.TrainerViewModel.IsUser == true)
+                        {
+                            <td class="tms-details-data"><i class="fa fa-check"></i></td>
+                        }
+                        else
+                        {
+                            <td class="tms-details-data"><i class="fa fa-times" aria-hidden="true"></i></td>
+                        }
+                    </tr>
+                </table>
+            </div>
+
+        }*@
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <div class="text-center">
+                <button class="tms-delete-btn" type="button" onclick="ConfirmDeleteNotVerifyEmail(@Model.ContactViewModel.Id)"><i class="fa fa-trash"></i> @Localizer["Delete Contact"]</button>
+            </div>
+        }
+
+    </div>
+</div>

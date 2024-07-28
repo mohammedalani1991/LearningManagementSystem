@@ -1,0 +1,110 @@
+﻿@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model X.PagedList.IPagedList<DataEntity.Models.ViewModels.CourseViewModel>
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@inject IViewLocalizer Localizer
+
+@using static LearningManagementSystem.Core.Constants
+@using LearningManagementSystem.Services.ControlPanel
+@inject ICurrencyService CurrencyService
+@inject ICookieService cookieService
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Our Courses"];
+
+    var ViewBagListCourseCategorys = ViewBag.ListCourseCategorys;
+    ViewBagListCourseCategorys.Add(new CourseCategory { Name = Localizer["Select Category"].Value, Id = 0 });
+    var ListCourseCategorys = (List<CourseCategory>)ViewBagListCourseCategorys;
+
+
+    //var ViewBagTrainer = ViewBag.ListTrainer;
+    //ViewBagTrainer.Add(new Contact { FirstName = Localizer["Select Category"].Value, Id = 0 });
+    //var ListTrainer = (List<Contact>)ViewBagTrainer;
+    var cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+    var currency = CurrencyService.GetPrimaryCurrency();
+    if (cooke == null)
+    {
+        cookieService.CreateCookie(CookieNames.SelectedCurrencyId, currency.Id.ToString(), 7);
+    }
+    else
+    {
+        cooke = cookieService.GetCookie(CookieNames.SelectedCurrencyId);
+        currency = CurrencyService.GetCurrencyById(Int32.Parse(cooke));
+    }
+
+}
+
+
+<div id="Cources">
+    <div class="container-fluid container-lg">
+        <div class="row px-3">
+            <p class="fs-title40 m-0">@Localizer["Our Courses"]</p>
+            <span class="botm-title40"></span>
+        </div>
+
+
+
+        <p class="d-block d-lg-none text-end">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                @Localizer["Search and Filter"]
+            </button>
+        </p>
+
+        <form>
+            <div class="collapse d-lg-block" id="collapseExample">
+                <div class="row px-3 d-flex align-items-center mb-5 Se-div">
+                    <input type="text" class="form-control Search" id="search" name="search" placeholder="&#xf002; @Localizer["Search"].Value" value="@ViewBag.Search">
+                    @Html.DropDownList("CategoryId", new SelectList(ListCourseCategorys.OrderBy(D => D.Id).ToList(), "Id", "Name"), new { @class = "form-select select2C" })
+                    @*@Html.DropDownList("trainer", new SelectList(ListTrainer.OrderBy(D => D.Id).ToList(), "Id", "FullName"), new { @class = "form-select select2C" })*@
+                    <button class="btn Csubmit ms-auto">@Localizer["Submit"]</button>
+                </div>
+            </div>
+        </form>
+
+        <hr class="d-none d-lg-block m-0" style="color:#cfcfcf;">
+
+        <div class="container-fluid p-0 m-0">
+            <div class="row pdding-topCors gutter-cor">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <h2>@Localizer["There Is no Courses"]</h2>
+                    </div>
+                }
+                @foreach (var item in Model)
+                {
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="bg-white shadow-sm rounded-5 p-Cbgwhite" data-aos="fade-up" data-aos-duration="3000">
+                            <img src="@(item.ImageUrl??"https://images.indianexpress.com/2020/04/online759.jpg")" class="img-fluid w-100 heightstat rounded-5">
+                            <p class="text-start Cource-fs-titel w-100">@item.CourseName</p>
+                            <div class="d-flex fw-bold w-100 align-items-center justify-content-between">
+                                <p class="text-primarycolor fs-cou-sup1 m-0">@(item.CoursePrice != null && item.CoursePrice > 0 ? item.CoursePrice : Localizer["Free"].Value) @Html.Raw(item.CoursePrice>0 ?currency.Icon:"")</p>
+
+                                <p class="font-smoll m-0 d-flex justify-content-center align-items-center rounded-pill color-category">
+                                    @item.CategoryName
+                                </p>
+                            </div>
+                            <button class="btn h-more hover-btnR colorbtn text-white rounded-pill w-100" onclick="window.location.href ='@Url.Action("Details","Courses",new {Id=item.Id })'">
+
+                                @Localizer["Read More"]
+                            </button>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+        @if (Model.Any())
+        {
+            <div class="paddtop-Page">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, search = ViewBag.Search, categoryId = ViewBag.CategoryId, trainer = ViewBag.Trainer }))
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

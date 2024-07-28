@@ -1,0 +1,31 @@
+﻿@model DataEntity.Models.EfModels.SenangPay
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IViewLocalizer Localizer
+
+@{
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+
+    ViewData["title"] = Localizer["Payment"];
+    int status = (int)ViewBag.Paymentstatus;
+    var massege = (status == 1 ? Localizer["Payment Completed Successfully"].Value : Localizer["Payment Was Not Successful"].Value);
+}
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap" rel="stylesheet">
+<link href="~/css/thankyou.css" rel="stylesheet" />
+<div id="ThankYou">
+    <div class="card">
+        <div style="border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;">
+            <i class="checkmark">✓</i>
+        </div>
+        <h1>@massege</h1>
+        <p>@Localizer["We received your purchase request;"]<br /> @Localizer["we'll be in touch shortly!"]</p>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            location.href = "/Courses/Details/@ViewBag.CourseId";
+        }, 5000);
+    });
+</script>

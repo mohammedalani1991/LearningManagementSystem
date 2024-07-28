@@ -1,0 +1,70 @@
+﻿@using X.PagedList.Web.Common
+@using X.PagedList.Mvc.Core
+@model EnrollCourseExamViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@using DataEntity.Models.EfModels;
+@using DataEntity.Models.ViewModels
+@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@inject IViewLocalizer Localizer
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
+    ViewData["Title"] = Localizer["Exam"];
+
+}
+<div class="container-fluid container-lg mb-5">
+    <div class="row bg-white m-Exam p-5">
+        <div class="d-flex justify-content-center mb-4 ">
+            @if (ViewBag.IsOnlineLearningMethod == false)
+            {
+                <p><b>@Localizer["Publish End Date:"]</b> @LookupHelper.ConvertTimeToSystemTimeZone(Model.PublishEndDate) <b> @Localizer["Exam Time Zone:"]</b> (@ViewBag.TimeZone)</p>
+            }
+            <p class="text-primarycolor CTimeLeft">@Localizer["Time Left:"]<label id="timer"></label> </p>
+        </div>
+        <hr class="colorhr">
+        <input value="@Model.Id" id="EnrollCourseExamId" name="EnrollCourseExamId" type="hidden" />
+        <input value="@Model.EnrollTeacherCourseId" id="EnrollTeacherCourseId" name="EnrollTeacherCourseId" type="hidden" />
+        <input value="@ViewBag.CheckAbilityToEnrollStudentExam" id="CheckAbilityToEnrollStudentExam" name="CheckAbilityToEnrollStudentExam" type="hidden" />
+        
+        <div id="GetData">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ConfirmSubmitExam" tabindex="-1" aria-labelledby="ConfirmSubmitExamLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ConfirmSubmitExamDiv">
+             <div class="modal-header">
+            <h1 class="modal-title fs-5" id="ConfirmSubmitExamLabel">@Localizer["Are you sure you want to submit the exam?"]</h1>
+
+        </div>
+            <div class="text-center mt-5">
+            <button class="btn btn-success" type="button" id="btnConfirmSubmitExam" ><i class="fa fa-save"></i> @Localizer["Ok"]</button>
+         </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ResultSubmitExam" tabindex="-1" aria-labelledby="ResultSubmitExamLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="ResultSubmitExamDiv">
+             <div class="modal-header">
+            <h1 class="modal-title fs-5" id="ResultSubmitExamLabel"></h1>
+
+        </div>
+            <div class="text-center mt-5">
+            <button class="btn btn-success" type="button" id="btnResultSubmitExamExam" ><i class="fa fa-times"></i> @Localizer["Close"]</button>
+         </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+    {
+
+<script src="~/theme/ControlPanel/vendors/echarts/test/lib/jquery.min.js"></script>
+<script src="~/js/jquery.unobtrusive-ajax.min.js"></script>
+<script src="~/js/CourseExam/CourseExam.js?ver=6.1"></script>
+
+    }

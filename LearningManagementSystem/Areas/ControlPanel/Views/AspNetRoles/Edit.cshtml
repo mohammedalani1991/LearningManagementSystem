@@ -1,0 +1,117 @@
+﻿@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.AspNetRoleViewModel
+@using Microsoft.AspNetCore.Antiforgery;
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+    ViewData["Title"] = @Localizer["Edit Role"];
+    var statuses = LookupHelper.GetStatuses();
+}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>@Localizer["Accounts"] <small>@ViewData["Title"]</small></h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form action="/ControlPanel/AspNetRoles/Edit" method="post" id="Role-Edit" class="form-horizontal form-label-left">
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    @Html.HiddenFor(r=>r.Id)
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Id">
+                            @Localizer["Id"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.NewId, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" ,disabled ="disabled"} })
+                            @Html.ValidationMessageFor(model => model.NewId, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="Name">
+                            @Localizer["Name"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.Name, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="NormalizedName">
+                            @Localizer["Accounts"] <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.NormalizedName, new { htmlAttributes = new { required = "required", @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.NormalizedName, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="ConcurrencyStamp">
+                            @Localizer["Concurrency Stamp"]
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            @Html.EditorFor(model => model.ConcurrencyStamp, new { htmlAttributes = new { @class = "form-control col-md-7 col-xs-12" } })
+                            @Html.ValidationMessageFor(model => model.ConcurrencyStamp, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                        <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                            <input type="button" onclick="EditRole()" value=@Localizer["Submit"] class="btn btn-success" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section JavaScript{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        var editMassege = '@Localizer["Edited successfully"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var existsMassegeError = '@Localizer["The id Already Exists"]';
+
+        if ("@ViewBag.AlertMessage" != "") {
+            toastr.error("@Localizer[@ViewBag.AlertMessage]");
+        }
+        $('.tms-management').addClass("active");
+        $('.tms-sub-roles').addClass("active");
+        $('.tms-sub-top-nav  .tms_sub_management').addClass("active");
+
+        function EditRole() {
+            var CurrencyEditFrm = $('#Role-Edit');
+            ShowSpinner();
+            $.ajax({
+                type: CurrencyEditFrm.attr('method'),
+                url: CurrencyEditFrm.attr('action'),
+                data: CurrencyEditFrm.serialize(),
+                headers: {
+                    'RequestVerificationToken': Token
+                },
+                success: function (data) {
+                    if (data.sussess)
+                        toastr.success(editMassege);
+                    else
+                        toastr.warning(existsMassegeError);
+                    HideSpinner();
+                },
+                error: function (data) {
+                    HideSpinner();
+                    toastr.error(editMassegeError);
+                },
+            });
+        }
+    </script>
+}
+

@@ -1,0 +1,102 @@
+﻿@model X.PagedList.IPagedList<DataEntity.Models.EfModels.Question>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@{
+    var tokenSet = Antiforgery.GetAndStoreTokens(Context);
+}
+
+
+<div id="main"></div>
+
+<div id='CreateQuestion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='CreateQuestionDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditQuestion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+     <div class="modal-dialog err-pop modal-dialog-centered modal-lg">
+        <div id='EditQuestionDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DetailsQuestion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DetailsQuestionDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='DeleteQuestion' style="z-index: 1050;" role="dialog" class='modal  fade'>
+    <div class="modal-dialog err-pop modal-dialog-centered">
+        <div id='DeleteQuestionDiv' class="modal-content">
+
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+<div id='EditTable' style="z-index: 1050" role="dialog" class='modal fade'>
+    <div class="modal-dialog modal-dialog-centered">
+        <div id='EditQuestionDiv' class="modal-content">
+        </div>
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+@section JavaScript
+{
+    <script>
+        var Token = '@tokenSet.RequestToken';
+        let table = '@ViewBag.Table'.split(',');
+        let s = ["Name", "Status", "CreatedBy","Mark", "CreatedOn", "CategoryId", "CourseId","Type"]
+        let data;
+
+        var editMassege = '@Localizer["Edited successfully"]';
+        var addMassege = '@Localizer["Added successfully"]';
+        var deleteMassege = '@Localizer["Deleted successfully"]';
+        var deleteMassegeError = '@Localizer["An error occurred while  deleting"]';
+        var addMassegeError = '@Localizer["An error occurred while adding"]';
+        var editMassegeError = '@Localizer["An error occurred while editing"]';
+        var correctAnswerError = '@Localizer["Please select the correct answer"]';
+        $('.tms-questions').addClass("active");
+        $('.tms-sub-Questions').addClass("active");
+        $('.tms-sub-top-nav .tms_sub_questions').addClass("active");
+
+
+
+
+        $(document).on('change', '.checkbox', function () {
+            if (this.checked)
+                if ($("#Type").val() == 3)
+                    $('input:checkbox').not(this).prop('checked', "");
+        });
+
+        function GetCourses(current) {
+            var CategoryId = current.value;
+            if (CategoryId != '' && CategoryId != undefined) {
+                $.ajax({
+                    type: "POST",
+                    url: "/BankOfQuestion/Question/GetCourses",
+                    dataType: 'json',
+                    cache: false,
+                    data: { id: CategoryId },
+                    success: function (data) {
+                        $("#CourseId").empty();
+                        $("#CourseId").append(data.result);
+                        $('#CourseId').trigger('chosen:updated');
+                    }
+                });
+            } else {
+                $("#CourseId").empty();
+                $('#CourseId').trigger('chosen:updated');
+
+            }
+        }
+    </script>
+
+    <script src="~/js/Question/Questions.js?ver=1.1" async></script>
+}

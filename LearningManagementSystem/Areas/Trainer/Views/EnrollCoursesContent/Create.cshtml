@@ -1,0 +1,170 @@
+﻿@using LearningManagementSystem.Core.SystemEnums
+@using LearningManagementSystem.Services.Helpers
+@model DataEntity.Models.ViewModels.EnrollCoursesContentViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    var lookupName = new HashSet<string>() { GeneralEnums.MasterLookupCodeEnums.Languages.ToString()};
+    var lookups = LookupHelper.GetLookupDetailsByMasterCode(lookupName, ViewBag.LangId);
+
+    ViewData["Title"] = @Localizer["Add Courses Content (Sections, Lectures)"];
+    var languages = lookups[GeneralEnums.MasterLookupCodeEnums.Languages.ToString()];
+}
+<div class="modal-header">
+    <h1 class="modal-title fs-5" id="CreateCoursesContentLabel">@Localizer["Add Courses Content (Sections, Lectures)"]</h1>
+    <i class="fa-solid fa-circle-xmark modal-Close" data-bs-dismiss="modal"
+        aria-label="Close"></i>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+
+            <div class="x_content">
+                <br />
+                <form action="/Trainer/EnrollCoursesContent/Create" method="post" id="CoursesContent-Create" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="form-group col-lg-3 col-sm-12 col-xs-12">
+                            <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label" for="LanguageId">
+                                @Localizer["Language"]<span class="required">*</span>
+                            </label>
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EnrollTeacherCourseViewModel.LanguageId", new SelectList(languages, "Id", "Name", ViewBag.LangId), new { @class = "form-select Filter", required = "required" , onchange = "onDdlChangedForCreate("+ViewBag.EnrollTeacherCourseId+",this)" })
+                                @Html.ValidationMessage("EnrollTeacherCourseViewModel.LanguageId", "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <input type="hidden" id="EnrollTeacherCourseViewModel_Id" name="EnrollTeacherCourseViewModel.Id" value="@ViewBag.EnrollTeacherCourseId" />
+
+                       <div class="form-group col-lg-12 col-sm-12 col-xs-12 mt-3">
+                           <label class=" control-label col-md-12 col-sm-3 col-xs-12 tms-label" style="color:#1dbebe;font-size: 14px;"  >
+                               @Localizer["Sections And Lectures Data"]
+                               
+                            </label>
+                          <div class="col-md-12 col-sm-6 col-xs-12">
+                               <hr />
+                           </div>
+                        </div>
+                    
+                        <div class="form-group col-lg-12 col-sm-12 col-xs-12">
+                        <!--begin::Repeater-->
+                         <div id="CoursesContentAdd_Repeater_Nested" class="Repeater_Nested"> 
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <div data-repeater-list="EnrollSectionOfCourseViewModel">
+                                        <div data-repeater-item>
+                                             <div class="row mb-3">
+                                                <div class="col-md-3">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Section Name"] <span class="required">*</span></label> 
+                                                       @Html.Editor("SectionName", new { htmlAttributes = new { required = "required", @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                                       @Html.ValidationMessage("SectionName", "", new { @class = "text-danger" })
+
+                                                       <button  data-repeater-delete class="tms-save-btn btn-light mt-3 mt-md-9 btn btn-outline-primary  btn-light-primary" type="button">
+                                                        <i class="fa fa-trash btnDeleteIcon"></i> @Localizer["Delete Section Row"] 
+                                                    </button>
+                                                </div>
+                                                  <div class="col-md-4">
+                                                    <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Section Description"]</label>
+                                                       @Html.Editor("Description", new { htmlAttributes = new {  @class = "form-control tms-input col-md-7 col-xs-12" } })
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <div class="inner-repeater">
+                                                        <div data-repeater-list="EnrollLectureViewModel" >
+                                                            <div data-repeater-item>
+                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Order"]<span class="required">*</span></label>
+                                                                <div class="input-group pb-3">
+                                                                    @Html.Editor("Order", new { htmlAttributes = new { required = "required", @class = "form-control form-controlE tms-input col-md-7 col-xs-12" } })
+                                                                    @Html.ValidationMessage("Order", "", new { @class = "text-danger" })
+                                                                    <button class="border border-secondary btn btn-icon btn-danger input-group-text" data-repeater-delete type="button">
+                                                                        <i class="fa fa-times "></i>
+                                                                    </button>
+                                                                </div>
+
+                                                                <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Name"]<span class="required">*</span></label> 
+                                                                <div class="input-group pb-3">
+                                                                       @Html.Editor("LectureName", new { htmlAttributes = new { required = "required", @class = "form-control form-controlE tms-input col-md-7 col-xs-12" } })
+                                                                        @Html.ValidationMessage("LectureName", "", new { @class = "text-danger" })
+                                                                </div>
+
+                                                                  <label class="control-label col-md-12 col-sm-3 col-xs-12 tms-label">@Localizer["Lecture Description"]</label>
+                                                                 <div class="input-group pb-5">
+                                                                      @Html.TextArea("Description",  new {@class = "form-control col-md-7 col-xs-12" ,style="min-height:120px"})
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+
+                                                        <button class="btn btn-primary btn-light-primary tms-custom-btn" data-repeater-create type="button">
+                                                            <i class="fa fa-plus"></i> @Localizer["Add Lecture"] 
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                    
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end::Form group-->
+
+                                <!--begin::Form group-->
+                                <div class="form-group">
+                                    <button  data-repeater-create class="btn btn-outline-primary  btn-light-primary " type="button">
+                                         <i class="fa fa-plus"></i> @Localizer["Add Section Row"]  
+                                    </button>
+                                </div>
+                                <!--end::Form group-->
+                            </div>
+                            <!--end::Repeater-->
+                        </div>
+                   
+
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> @Localizer["Saving Changes"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .form-controlE{
+        width: auto !important;
+    }
+        #CoursesContentAdd_Repeater_Nested .inner-repeater{
+        background: #8AAAE5;
+        border-radius: 7px;
+        padding: 6px;
+    }
+        #CoursesContentAdd_Repeater_Nested .inner-repeater .control-label{
+       color: white;
+    }
+    .Repeater_Nested .btn-light {
+    color: #ffffff !important;
+    border-color: #8d8d8d !important;
+    background-color: #ff5050 !important;
+}
+</style>
+<script type="text/javascript" >
+$('#CoursesContentAdd_Repeater_Nested').repeater({
+    repeaters: [{
+        selector: '.inner-repeater',
+        show: function () {
+            $(this).slideDown();
+        },
+
+        hide: function (deleteElement) {
+            $(this).slideUp(deleteElement);
+        }
+    }],
+    show: function () {
+        $(this).slideDown();
+    },
+
+    hide: function (deleteElement) {
+        $(this).slideUp(deleteElement);
+    }
+});    
+
+</script>
+<script src="~/js/EnrollCoursesContent/TrainerEnrollCoursesContent.js?ver=11.1"></script>

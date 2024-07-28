@@ -1,0 +1,2 @@
+﻿INSERT [dbo].[AboutDic] ( [GroupName], [Name], [Value], [SortOrder], [CreatedOn], [CreatedBy], [Status], [DeletedOn]) VALUES ( N'PasswordReset', N'Password Reset', N'Password Reset', 1, CAST(N'2022-09-05T00:00:00.000' AS DateTime), N'salam-cs@hotmail.com', 1, NULL)
+INSERT [dbo].[AboutDic] ( [GroupName], [Name], [Value], [SortOrder], [CreatedOn], [CreatedBy], [Status], [DeletedOn]) VALUES ( N'RegistrationConfirmation', N'Registration Confirmation', N'Registration Confirmation', 1, CAST(N'2022-09-05T00:00:00.000' AS DateTime), N'salam-cs@hotmail.com', 1, NULL)
